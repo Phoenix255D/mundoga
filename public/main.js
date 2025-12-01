@@ -536,7 +536,6 @@ function dibujar() {
     otrosJugadores.forEach((otroJugador) => {
         if (otroJugador.escenario === escenarioActual) {
             console.log("id" + otroJugador.id);
-            console.log(otrosJugadoresPos);
             otrosJugadoresPos.get(otroJugador.id).x = otroJugador.realX;
             otrosJugadoresPos.get(otroJugador.id).y = otroJugador.realY;
             let getX = otrosJugadoresPos.get(otroJugador.id).x;
@@ -552,6 +551,7 @@ function dibujar() {
                         x: getX,
                         y: getY
                     });
+            console.log(otrosJugadoresPos);
 
                     currentIndex += 0.5;
                     oStep = states[Math.floor(currentIndex) % 4];
