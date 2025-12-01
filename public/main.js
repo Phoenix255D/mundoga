@@ -17,6 +17,7 @@ const ws = window.__WS__;
 const tamano = 32;
 let miIdJugador = null;
 const otrosJugadores = new Map();
+const otrosJugadoresPos = new Map();
 
 let escenarioActual = "plaza";
 let imagenesListas = false;
@@ -198,6 +199,7 @@ ws.onmessage = (evento) => {
                 for (const [id] of otrosJugadores) {
                     if (!nuevosIds.has(id)) {
                         otrosJugadores.delete(id);
+                        otrosJugadoresPos.delete(id);
                     }
                 }
                 
@@ -224,6 +226,10 @@ ws.onmessage = (evento) => {
                         escenario: j.escenario,
                         color: "#0000FF"
                     });
+                    otrosJugadoresPos.set(j.id,{
+                        x: j.realX,
+                        y: j.realY
+                    });
                 });
             }
             break;
@@ -235,6 +241,7 @@ ws.onmessage = (evento) => {
                 }
                 
                 otrosJugadores.delete(datos.jugador.id);
+                otrosJugadoresPos.delete(datos.jugador.id);
                 otrosJugadores.set(datos.jugador.id, {
                     x: datos.jugador.x,
                     y: datos.jugador.y,
@@ -242,6 +249,10 @@ ws.onmessage = (evento) => {
                     step: datos.jugador.step ?? 1,
                     escenario: datos.jugador.escenario,
                     color: "#0000FF"
+                });
+                otrosJugadoresPos.set(datos.jugador.id, {
+                    x: datos.jugador.realX,
+                    y: datos.jugador.realY
                 });
             }
             break;
@@ -252,6 +263,7 @@ ws.onmessage = (evento) => {
             }
 
             let otroJugador = otrosJugadores.get(datos.idJugador);
+            let otroJugadorPos = otrosJugadoresPos.get(datos.idJugador);
             if (!otroJugador) {
                 return;
             }
@@ -267,10 +279,14 @@ ws.onmessage = (evento) => {
             otroJugador.dir = datos.dir;
             otroJugador.step = datos.step ?? 1;
             otroJugador.escenario = datos.escenario;
+            otroJugadorPos = datos.realX;
+            otroJugadorPos = datos.realY;
+            console.log(otroJugador);
             break;
             
         case 'jugadorSalio':
             otrosJugadores.delete(datos.idJugador);
+            otrosJugadoresPos.delete(datos.idJugador);
             break;
 
         default:
@@ -362,7 +378,7 @@ function actualizar() {
         
         jugador.x -= (jugador.realX - xNext) * jugador.velocidad;
         jugador.y -= (jugador.realY - yNext) * jugador.velocidad; 
-        currentIndex += 0.05;
+        currentIndex += 0.08;
         jugador.step = states[Math.floor(currentIndex) % 4];
     } else {
         jugador.step = 1;
@@ -512,13 +528,14 @@ function dibujar() {
 
     otrosJugadores.forEach((otroJugador) => {
         if (otroJugador.escenario === escenarioActual) {
-            let posX = otroJugador.realX, posY = otroJugador.realY;
+            otrosJugadorPos[otroJugador.id].x = otroJugador.realX;
+            otrosJugadorPos[otroJugador.id].y = otroJugador.realY;
             let oStep = 1;
             if (imagenesListas && imagenes.jugador && imagenes.jugador.complete) {
                 ctx.globalAlpha = 0.7;
-                if(otroJugador.x != otroJugador.realX || otroJugador.y != otroJugador.realY){
-                    posX -= (otroJugador.realX - otroJugador.x) * 0.08; 
-                    posY -= (otroJugador.realY - otroJugador.y) * 0.08; 
+                if(otroJugadorPos.x != otroJugador.realX || otroJugador.y != otroJugador.realY){
+                    otrosJugadorPos[otroJugador.id].x -= (otroJugador.realX - otroJugador.x) * 0.08; 
+                    otrosJugadorPos[otroJugador.id].y -= (otroJugador.realY - otroJugador.y) * 0.08; 
                     currentIndex += 0.5;
                     oStep = states[Math.floor(currentIndex) % 4];
                 }
@@ -528,8 +545,8 @@ function dibujar() {
                     (otroJugador.dir || 0) * tamano, 
                     tamano, 
                     tamano, 
-                    posX * tamano, 
-                    posY * tamano, 
+                    otrosJugadorPos[otroJugador.id].x * tamano, 
+                    otrosJugadorPos[otroJugador.id].y * tamano, 
                     tamano, 
                     tamano
                 );
