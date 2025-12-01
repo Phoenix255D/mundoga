@@ -537,14 +537,20 @@ function dibujar() {
         if (otroJugador.escenario === escenarioActual) {
             console.log("id" + otroJugador.id);
             console.log(otrosJugadoresPos);
-            otrosJugadoresPos[otroJugador.id].x = otroJugador.realX;
-            otrosJugadoresPos[otroJugador.id].y = otroJugador.realY;
+            otrosJugadoresPos.get(otroJugador.id).x = otroJugador.realX;
+            otrosJugadoresPos.get(otroJugador.id).y = otroJugador.realY;
+            let getX = otrosJugadoresPos.get(otroJugador.id).x;
+            let getY = otrosJugadoresPos.get(otroJugador.id).y;
             let oStep = 1;
             if (imagenesListas && imagenes.jugador && imagenes.jugador.complete) {
                 ctx.globalAlpha = 0.7;
                 if(otroJugadorPos.x != otroJugador.realX || otroJugador.y != otroJugador.realY){
-                    otrosJugadoresPos[otroJugador.id].x -= (otroJugador.realX - otroJugador.x) * 0.08; 
-                    otrosJugadoresPos[otroJugador.id].y -= (otroJugador.realY - otroJugador.y) * 0.08; 
+                    otrosJugadoresPos.set(otroJugador.id, {
+                        id: otroJugador.id,
+                        x: getX -= (otroJugador.realX - otroJugador.x) * 0.08,
+                        y: getY -= (otroJugador.realY - otroJugador.y) * 0.08 
+                    });
+
                     currentIndex += 0.5;
                     oStep = states[Math.floor(currentIndex) % 4];
                 }
@@ -554,8 +560,8 @@ function dibujar() {
                     (otroJugador.dir || 0) * tamano, 
                     tamano, 
                     tamano, 
-                    otrosJugadoresPos[otroJugador.id].x * tamano, 
-                    otrosJugadoresPos[otroJugador.id].y * tamano, 
+                    otrosJugadoresPos.get(otroJugador.id).x * tamano, 
+                    otrosJugadoresPos.get(otroJugador.id).y * tamano, 
                     tamano, 
                     tamano
                 );
