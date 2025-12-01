@@ -462,8 +462,8 @@ function actualizar() {
     }
 
     if (collidedDoor && collidedDoor.tipo === "pared") {
-        move = false;
-        dirC = true;
+        //move = false;
+        //dirC = true;
         xNext += jugador.realX - xNext;
         yNext += jugador.realY - yNext;
         jugador.realX = xNext;
