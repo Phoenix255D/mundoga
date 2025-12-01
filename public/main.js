@@ -309,6 +309,9 @@ const hitbox = {
 
 let jugando = false;
 let juegoN = 0;
+let ii = 0;
+const states = [0, 1, 2, 1];
+
 
 function actualizar() {
     if (!validarCoordenadas(jugador.x, jugador.y, "actualizar - jugador") || 
@@ -324,7 +327,7 @@ function actualizar() {
         dirC = true;
         return;
     }
-    
+    ii = 0;
     if (dirC == true) {
         if (teclas["ArrowRight"]) { 
             xNext = Math.floor(jugador.realX) + 1; 
@@ -343,57 +346,21 @@ function actualizar() {
             jugador.dir = 0; 
             move = true; 
         }
+        
     }
 
     if (move == true) {
         dirC = false;
         
         jugador.x -= (jugador.realX - xNext) * jugador.velocidad;
-        jugador.y -= (jugador.realY - yNext) * jugador.velocidad;
-
-        if (approximatelyEqual(jugador.x, xNext) && approximatelyEqual(jugador.y, yNext)) {
-            jugador.realX = xNext;
-            jugador.realY = yNext;
-            jugador.x = Math.floor(jugador.realX);
-            jugador.y = Math.floor(jugador.realY);
-            dirC = true;
-            
-            if (!pulsaTecla()) {
-                move = false;
-            }
-            
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    tipo: 'mover',
-                    x: jugador.x,
-                    y: jugador.y,
-                    dir: jugador.dir,
-                    step: jugador.step,
-                    escenario: escenarioActual
-                }));
-                
-                ultimaPosicionEnviada = { 
-                    x: jugador.x, 
-                    y: jugador.y, 
-                    dir: jugador.dir, 
-                    step: jugador.step, 
-                    escenario: escenarioActual 
-                };
-            }
-        }
-    }
-
-    if (move == true) {
-        const states = [0, 1, 2, 1];
+        jugador.y -= (jugador.realY - yNext) * jugador.velocidad; 
         currentIndex += 0.1;
         jugador.step = states[Math.floor(currentIndex) % 4];
     } else {
         jugador.step = 1;
         currentIndex = 0;
     }
-
-    const collidedDoor = mapa.checkDoorCollisions(escenarioActual, jugador);
-
+    
     if (teclas[" "] && press == false) {
         press = true;
         switch (jugador.dir) {
@@ -428,6 +395,8 @@ function actualizar() {
             dirC = true;
         }
     }
+
+    const collidedDoor = mapa.checkDoorCollisions(escenarioActual, jugador);
 
     if (collidedDoor && collidedDoor.tipo === "puerta") {
         xNext = collidedDoor.posx;
@@ -471,6 +440,45 @@ function actualizar() {
         jugador.x = jugador.realX;
         jugador.y = jugador.realY;
     }
+
+    if(pulsaTecla() && ii == 0){
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    tipo: 'mover',
+                    x: xNext,
+                    y: yNext,
+                    realX: jugador.x,
+                    realY: jugador.y,
+                    dir: jugador.dir,
+                    step: jugador.step,
+                    escenario: escenarioActual
+                }));
+                
+                ultimaPosicionEnviada = { 
+                    x: xNext, 
+                    y: yNext,
+                    realX: jugador.x,
+                    realY: jugador.y,
+                    dir: jugador.dir, 
+                    step: jugador.step, 
+                    escenario: escenarioActual 
+                };
+            }
+        ii++;
+    }
+
+    if (approximatelyEqual(jugador.x, xNext) && approximatelyEqual(jugador.y, yNext)) {
+            jugador.realX = xNext;
+            jugador.realY = yNext;
+            jugador.x = Math.floor(jugador.realX);
+            jugador.y = Math.floor(jugador.realY);
+            dirC = true;
+            
+            if (!pulsaTecla()) {
+                move = false;
+            }
+            
+        }
 }
 
 function dibujar() {
@@ -493,16 +501,24 @@ function dibujar() {
 
     otrosJugadores.forEach((otroJugador) => {
         if (otroJugador.escenario === escenarioActual) {
+            let posX = otroJugador.realX, posY = otroJugador.realY;
+            let oStep = 1;
             if (imagenesListas && imagenes.jugador && imagenes.jugador.complete) {
                 ctx.globalAlpha = 0.7;
+                if(otroJugador.x != otroJugador.realX || otroJugador.y != otroJugador.realY){
+                    posX = (otroJugador.realX - otroJugador.x) * 0.08; 
+                    posY = (otroJugador.realY - otroJugador.y) * 0.08; 
+                    currentIndex += 0.1;
+                    oStep = states[Math.floor(currentIndex) % 4];
+                }
                 ctx.drawImage(
                     imagenes.jugador, 
-                    (otroJugador.step || 1) * tamano, 
+                    (oStep || 1) * tamano, 
                     (otroJugador.dir || 0) * tamano, 
                     tamano, 
                     tamano, 
-                    otroJugador.x * tamano, 
-                    otroJugador.y * tamano, 
+                    posX * tamano, 
+                    posY * tamano, 
                     tamano, 
                     tamano
                 );

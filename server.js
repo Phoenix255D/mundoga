@@ -84,6 +84,8 @@ servidorWS.on('connection', (ws) => {
                         idJugador: idJugador,
                         x: datos.x,
                         y: datos.y,
+                        realX: datos.realX,
+                        realY: datos.realY,
                         dir: datos.dir,
                         step: datos.step,
                         escenario: datos.escenario
