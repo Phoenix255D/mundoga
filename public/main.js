@@ -544,7 +544,7 @@ function dibujar() {
             let oStep = 1;
             if (imagenesListas && imagenes.jugador && imagenes.jugador.complete) {
                 ctx.globalAlpha = 0.7;
-                if(otroJugadorPos.x != otroJugador.realX || otroJugador.y != otroJugador.realY){
+                if(otroJugador.x != otroJugador.realX || otroJugador.y != otroJugador.realY){
                     otrosJugadoresPos.set(otroJugador.id, {
                         id: otroJugador.id,
                         x: getX -= (otroJugador.realX - otroJugador.x) * 0.08,
