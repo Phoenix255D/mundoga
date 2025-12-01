@@ -519,7 +519,7 @@ function dibujar() {
                 if(otroJugador.x != otroJugador.realX || otroJugador.y != otroJugador.realY){
                     posX -= (otroJugador.realX - otroJugador.x) * 0.08; 
                     posY -= (otroJugador.realY - otroJugador.y) * 0.08; 
-                    currentIndex += 0.0.5;
+                    currentIndex += 0.5;
                     oStep = states[Math.floor(currentIndex) % 4];
                 }
                 ctx.drawImage(
