@@ -540,7 +540,8 @@ function dibujar() {
             let oStep = 1;
             if (imagenesListas && imagenes.jugador && imagenes.jugador.complete) {
                 ctx.globalAlpha = 0.7;
-
+                
+                if(otroJugador.x != otrosJugadoresPos.get(otroJugador.id).x || otrosJugadoresPos.get(otroJugador.id).y){
                     getX -= (otroJugador.realX - otroJugador.x) * 0.08;
                     getY -= (otroJugador.realY - otroJugador.y) * 0.08; 
                     console.log("X: "+getX);
@@ -550,8 +551,6 @@ function dibujar() {
                         y: getY
                     });
 
-
-                if(otroJugador.x != otroJugador.realX || otroJugador.y != otroJugador.realY){
                     currentIndex += 0.5;
                     oStep = states[Math.floor(currentIndex) % 4];
                 }

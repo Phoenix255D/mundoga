@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../public"
+		},
+		{
+			"name": "mundoga",
+			"path": "."
+		}
+	],
+	"settings": {}
+}
