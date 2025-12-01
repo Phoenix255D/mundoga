@@ -288,8 +288,8 @@ ws.onmessage = (evento) => {
                     x: datos.realX,
                     y: datos.realY
                 });
-            console.log(otroJugador);
-            break;
+
+                break;
             
         case 'jugadorSalio':
             otrosJugadores.delete(datos.idJugador);
@@ -358,7 +358,7 @@ function actualizar() {
         dirC = true;
         return;
     }
-    console.log("dirc "+ dirC );
+
     if (dirC == true) {
         if (teclas["ArrowRight"]) { 
             xNext = Math.floor(jugador.realX) + 1; 
@@ -385,13 +385,7 @@ function actualizar() {
         
         jugador.x -= (jugador.realX - xNext) * jugador.velocidad;
         jugador.y -= (jugador.realY - yNext) * jugador.velocidad; 
-        currentIndex += 0.1;
-        jugador.step = states[Math.floor(currentIndex) % 4];
-    } else {
-        jugador.step = 1;
-        currentIndex = 0;
-    }
-    
+
     if (approximatelyEqual(jugador.x, xNext) && approximatelyEqual(jugador.y, yNext)) {
             jugador.realX = xNext;
             jugador.realY = yNext;
@@ -405,6 +399,14 @@ function actualizar() {
             }
             
         }
+
+        currentIndex += 0.1;
+        jugador.step = states[Math.floor(currentIndex) % 4];
+    } else {
+        jugador.step = 1;
+        currentIndex = 0;
+    }
+    
 
     if (teclas[" "] && press == false) {
         press = true;
@@ -509,8 +511,6 @@ function actualizar() {
                     step: jugador.step, 
                     escenario: escenarioActual 
                 };
-                console.log("envio");
-                console.log(ultimaPosicionEnviada);
             }
         ii++;
     }
@@ -546,7 +546,6 @@ function dibujar() {
                 if(!approximatelyEqual(otroJugador.x,otrosJugadoresPos.get(otroJugador.id).x)  || !approximatelyEqual(otroJugador.y,otrosJugadoresPos.get(otroJugador.id).y)){
                     getX -= (otroJugador.realX - otroJugador.x) * 0.085;
                     getY -= (otroJugador.realY - otroJugador.y) * 0.085; 
-                    console.log("X: "+getX);
                     otrosJugadoresPos.set(otroJugador.id, {
                         id: otroJugador.id,
                         x: getX,
