@@ -392,6 +392,20 @@ function actualizar() {
         currentIndex = 0;
     }
     
+    if (approximatelyEqual(jugador.x, xNext) && approximatelyEqual(jugador.y, yNext)) {
+            jugador.realX = xNext;
+            jugador.realY = yNext;
+            jugador.x = Math.floor(jugador.realX);
+            jugador.y = Math.floor(jugador.realY);
+            dirC = true;
+            ii = 0;
+
+            if (!pulsaTecla()) {
+                move = false;
+            }
+            
+        }
+
     if (teclas[" "] && press == false) {
         press = true;
         switch (jugador.dir) {
@@ -501,19 +515,6 @@ function actualizar() {
         ii++;
     }
 
-    if (approximatelyEqual(jugador.x, xNext) && approximatelyEqual(jugador.y, yNext)) {
-            jugador.realX = xNext;
-            jugador.realY = yNext;
-            jugador.x = Math.floor(jugador.realX);
-            jugador.y = Math.floor(jugador.realY);
-            dirC = true;
-            ii = 0;
-
-            if (!pulsaTecla()) {
-                move = false;
-            }
-            
-        }
 }
 
 function dibujar() {
