@@ -528,14 +528,14 @@ function dibujar() {
 
     otrosJugadores.forEach((otroJugador) => {
         if (otroJugador.escenario === escenarioActual) {
-            otrosJugadorPos[otroJugador.id].x = otroJugador.realX;
-            otrosJugadorPos[otroJugador.id].y = otroJugador.realY;
+            otroJugadorPos[otroJugador.id].x = otroJugador.realX;
+            otroJugadorPos[otroJugador.id].y = otroJugador.realY;
             let oStep = 1;
             if (imagenesListas && imagenes.jugador && imagenes.jugador.complete) {
                 ctx.globalAlpha = 0.7;
                 if(otroJugadorPos.x != otroJugador.realX || otroJugador.y != otroJugador.realY){
-                    otrosJugadorPos[otroJugador.id].x -= (otroJugador.realX - otroJugador.x) * 0.08; 
-                    otrosJugadorPos[otroJugador.id].y -= (otroJugador.realY - otroJugador.y) * 0.08; 
+                    otroJugadorPos[otroJugador.id].x -= (otroJugador.realX - otroJugador.x) * 0.08; 
+                    otroJugadorPos[otroJugador.id].y -= (otroJugador.realY - otroJugador.y) * 0.08; 
                     currentIndex += 0.5;
                     oStep = states[Math.floor(currentIndex) % 4];
                 }
@@ -545,8 +545,8 @@ function dibujar() {
                     (otroJugador.dir || 0) * tamano, 
                     tamano, 
                     tamano, 
-                    otrosJugadorPos[otroJugador.id].x * tamano, 
-                    otrosJugadorPos[otroJugador.id].y * tamano, 
+                    otroJugadorPos[otroJugador.id].x * tamano, 
+                    otroJugadorPos[otroJugador.id].y * tamano, 
                     tamano, 
                     tamano
                 );
