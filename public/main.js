@@ -284,7 +284,7 @@ ws.onmessage = (evento) => {
             otroJugador.step = datos.step ?? 1;
             otroJugador.escenario = datos.escenario;
             otrosJugadoresPos.set(datos.idJugador, {
-                    id: datos.jugador.id,
+                    id: datos.idJugador,
                     x: datos.jugador.realX,
                     y: datos.jugador.realY
                 });
