@@ -283,7 +283,7 @@ ws.onmessage = (evento) => {
             otroJugador.dir = datos.dir;
             otroJugador.step = datos.step ?? 1;
             otroJugador.escenario = datos.escenario;
-            otrosJugadoresPos.set(datos.jugador.id, {
+            otrosJugadoresPos.set(datos.idJugador, {
                     id: datos.jugador.id,
                     x: datos.jugador.realX,
                     y: datos.jugador.realY
@@ -535,7 +535,6 @@ function dibujar() {
 
     otrosJugadores.forEach((otroJugador) => {
         if (otroJugador.escenario === escenarioActual) {
-            console.log("id" + otroJugador.id);
             otrosJugadoresPos.get(otroJugador.id).x = otroJugador.realX;
             otrosJugadoresPos.get(otroJugador.id).y = otroJugador.realY;
             let getX = otrosJugadoresPos.get(otroJugador.id).x;
@@ -551,7 +550,6 @@ function dibujar() {
                         x: getX,
                         y: getY
                     });
-            console.log(otrosJugadoresPos);
 
                     currentIndex += 0.5;
                     oStep = states[Math.floor(currentIndex) % 4];
