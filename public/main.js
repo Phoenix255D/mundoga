@@ -335,7 +335,7 @@ function actualizar() {
         dirC = true;
         return;
     }
-    ii = 0;
+
     if (dirC == true) {
         if (teclas["ArrowRight"]) { 
             xNext = Math.floor(jugador.realX) + 1; 
@@ -362,7 +362,7 @@ function actualizar() {
         
         jugador.x -= (jugador.realX - xNext) * jugador.velocidad;
         jugador.y -= (jugador.realY - yNext) * jugador.velocidad; 
-        currentIndex += 0.1;
+        currentIndex += 0.05;
         jugador.step = states[Math.floor(currentIndex) % 4];
     } else {
         jugador.step = 1;
@@ -465,8 +465,8 @@ function actualizar() {
                 ultimaPosicionEnviada = { 
                     x: xNext, 
                     y: yNext,
-                    realX: jugador.x,
-                    realY: jugador.y,
+                    realX: jugador.realX,
+                    realY: jugador.realY,
                     dir: jugador.dir, 
                     step: jugador.step, 
                     escenario: escenarioActual 
@@ -483,7 +483,8 @@ function actualizar() {
             jugador.x = Math.floor(jugador.realX);
             jugador.y = Math.floor(jugador.realY);
             dirC = true;
-            
+            ii = 0;
+
             if (!pulsaTecla()) {
                 move = false;
             }
@@ -516,9 +517,9 @@ function dibujar() {
             if (imagenesListas && imagenes.jugador && imagenes.jugador.complete) {
                 ctx.globalAlpha = 0.7;
                 if(otroJugador.x != otroJugador.realX || otroJugador.y != otroJugador.realY){
-                    posX = (otroJugador.realX - otroJugador.x) * 0.08; 
-                    posY = (otroJugador.realY - otroJugador.y) * 0.08; 
-                    currentIndex += 0.1;
+                    posX -= (otroJugador.realX - otroJugador.x) * 0.08; 
+                    posY -= (otroJugador.realY - otroJugador.y) * 0.08; 
+                    currentIndex += 0.0.5;
                     oStep = states[Math.floor(currentIndex) % 4];
                 }
                 ctx.drawImage(
