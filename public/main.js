@@ -540,10 +540,10 @@ function dibujar() {
             let oStep = 1;
             if (imagenesListas && imagenes.jugador && imagenes.jugador.complete) {
                 ctx.globalAlpha = 0.7;
-                
-                if(otroJugador.x != otrosJugadoresPos.get(otroJugador.id).x || otrosJugadoresPos.get(otroJugador.id).y){
-                    getX -= (otroJugador.realX - otroJugador.x) * 0.08;
-                    getY -= (otroJugador.realY - otroJugador.y) * 0.08; 
+
+                if(!approximatelyEqual(otroJugador.x,otrosJugadoresPos.get(otroJugador.id).x)  || !approximatelyEqual(otroJugador.y,otrosJugadoresPos.get(otroJugador.id).y)){
+                    getX -= (otroJugador.realX - otroJugador.x) * 0.085;
+                    getY -= (otroJugador.realY - otroJugador.y) * 0.085; 
                     console.log("X: "+getX);
                     otrosJugadoresPos.set(otroJugador.id, {
                         id: otroJugador.id,
