@@ -545,6 +545,7 @@ function dibujar() {
                 if(otroJugador.x != otroJugador.realX || otroJugador.y != otroJugador.realY){
                     getX -= (otroJugador.realX - otroJugador.x) * 0.08;
                     getY -= (otroJugador.realY - otroJugador.y) * 0.08; 
+                    console.log("X: "+getX);
                     otrosJugadoresPos.set(otroJugador.id, {
                         id: otroJugador.id,
                         x: getX,
