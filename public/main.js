@@ -256,6 +256,8 @@ ws.onmessage = (evento) => {
 
             otroJugador.x = datos.x;
             otroJugador.y = datos.y;
+            otroJugador.realX = datos.realX;
+            otroJugador.realY = datos.realY
             otroJugador.dir = datos.dir;
             otroJugador.step = datos.step ?? 1;
             otroJugador.escenario = datos.escenario;
