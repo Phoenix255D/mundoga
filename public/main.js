@@ -358,7 +358,7 @@ function actualizar() {
         dirC = true;
         return;
     }
-
+    console.log("dirc "+ dirC );
     if (dirC == true) {
         if (teclas["ArrowRight"]) { 
             xNext = Math.floor(jugador.realX) + 1; 
@@ -418,6 +418,7 @@ function actualizar() {
     }
 
     if (jugando == true) {
+        
         switch (juegoN) {
             case 1: jugando = bucleTest(); break;
             case 2: jugando = update(); break;

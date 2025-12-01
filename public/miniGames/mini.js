@@ -98,15 +98,6 @@ return true;
 }
 }
 
-let currentState = 0;
-var currentIndex = 0;
-let press = false;
-
-    let xNext = jugador.realX;
-    let yNext = jugador.realY;
-    let move = false;
-    let dirC = true;
-
 function actualizar() {
 pulsaTecla();
 }
