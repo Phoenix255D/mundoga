@@ -535,8 +535,6 @@ function dibujar() {
 
     otrosJugadores.forEach((otroJugador) => {
         if (otroJugador.escenario === escenarioActual) {
-            otrosJugadoresPos.get(otroJugador.id).x = otroJugador.realX;
-            otrosJugadoresPos.get(otroJugador.id).y = otroJugador.realY;
             let getX = otrosJugadoresPos.get(otroJugador.id).x;
             let getY = otrosJugadoresPos.get(otroJugador.id).y;
             let oStep = 1;
