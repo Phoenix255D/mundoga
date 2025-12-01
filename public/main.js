@@ -172,6 +172,8 @@ ws.onmessage = (evento) => {
                     tipo: 'mover',
                     x: jugador.x,
                     y: jugador.y,
+                    realX: jugador.x,
+                    realY: jugador.y,
                     dir: jugador.dir,
                     step: jugador.step,
                     escenario: escenarioActual
@@ -179,7 +181,9 @@ ws.onmessage = (evento) => {
                 
                 ultimaPosicionEnviada = { 
                     x: jugador.x, 
-                    y: jugador.y, 
+                    y: jugador.y,
+                    realX: jugador.x,
+                    realY: jugador.y,
                     dir: jugador.dir, 
                     step: jugador.step, 
                     escenario: escenarioActual 
@@ -213,6 +217,8 @@ ws.onmessage = (evento) => {
                     otrosJugadores.set(j.id, {
                         x: j.x,
                         y: j.y,
+                        realX: j.realX,
+                        realY: j.realY,
                         dir: j.dir,
                         step: j.step ?? 1,
                         escenario: j.escenario,
@@ -465,6 +471,8 @@ function actualizar() {
                     step: jugador.step, 
                     escenario: escenarioActual 
                 };
+                console.log("envio");
+                console.log(ultimaPosicionEnviada);
             }
         ii++;
     }

@@ -3,6 +3,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
 const os = require('os');
+const { read } = require('fs');
 
 const aplicacion = express();
 const servidor = http.createServer(aplicacion);
@@ -30,8 +31,10 @@ servidorWS.on('connection', (ws) => {
 
     const nuevoJugador = {
         id: idJugador,
-        x: 100,
-        y: 300,
+        x: 10,
+        y: 10,
+        realX: 10,
+        realY: 10,
         dir: 0,
         step: 0,
         escenario: 'plaza',
