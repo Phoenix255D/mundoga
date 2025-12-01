@@ -385,7 +385,7 @@ function actualizar() {
         
         jugador.x -= (jugador.realX - xNext) * jugador.velocidad;
         jugador.y -= (jugador.realY - yNext) * jugador.velocidad; 
-        currentIndex += 0.08;
+        currentIndex += 0.1;
         jugador.step = states[Math.floor(currentIndex) % 4];
     } else {
         jugador.step = 1;
@@ -534,7 +534,7 @@ function dibujar() {
     }
 
     otrosJugadores.forEach((otroJugador) => {
-        if (otroJugador.escenario === escenarioActual) {
+        if (otroJugador.escenario === escenarioActual && otroJugador.id != jugador) {
             let getX = otrosJugadoresPos.get(otroJugador.id).x;
             let getY = otrosJugadoresPos.get(otroJugador.id).y;
             let oStep = 1;
