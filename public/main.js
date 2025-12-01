@@ -392,7 +392,6 @@ function actualizar() {
             jugador.x = Math.floor(jugador.realX);
             jugador.y = Math.floor(jugador.realY);
             dirC = true;
-            ii = 0;
 
             if (!pulsaTecla()) {
                 move = false;
@@ -407,6 +406,9 @@ function actualizar() {
         currentIndex = 0;
     }
     
+    if (approximatelyEqual(jugador.x, xNext) && approximatelyEqual(jugador.y, yNext)) {
+                ii = 0;
+        }
 
     if (teclas[" "] && press == false) {
         press = true;
