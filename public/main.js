@@ -4,9 +4,6 @@ import { initFrog, update } from "./miniGames/frogger/main.js";
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const canvas2 = document.getElementById("miniGame");
-const ctx2 = canvas2.getContext("2d");
-
 if (!window.__WS__) {
     window.__WS__ = new WebSocket(
         (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws"
@@ -36,13 +33,13 @@ class Mapa {
     constructor() {
         this.scenes = {
             plaza: {
-                puerta: {x: 24, y: 6, w: 1, h: 2, tipo: "puerta", destino: "casa", posx: 1, posy: 6, message: "puerta"},
+                puerta: {x: 31, y: 6, w: 1, h: 2, tipo: "puerta", destino: "casa", posx: 1, posy: 6, message: "puerta"},
                 puerta2: {x: 10, y: 6, w: 3, h: 3, tipo: "pared", destino: "casa", posx: 2, posy: 10},
                 puerta3: {x: 15, y: 10, w: 2, h: 2, tipo: "pared", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "pared Interactiva"},
                 frogger: {x: 12, y: 15, w: 2, h: 2, tipo: "pared", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva"},
             },
             casa: {
-                puerta: {x: 0, y: 6, w: 1, h: 2, tipo: "puerta", destino: "plaza", posx: 23, posy: 6, message: "puerta"}
+                puerta: {x: 0, y: 6, w: 1, h: 2, tipo: "puerta", destino: "plaza", posx: 30, posy: 6, message: "puerta"}
             }
         };
     }
@@ -109,7 +106,7 @@ const jugador = {
     realY: 10,
     w: 1,
     h: 1,
-    velocidad: 0.08,
+    velocidad: 0.085,
     dir: 0,
     step: 1,
     color: "#FF0000"
@@ -399,14 +396,14 @@ function actualizar() {
             
         }
 
-        currentIndex += 0.1;
+        currentIndex += 0.12;
         jugador.step = states[Math.floor(currentIndex) % 4];
     } else {
         jugador.step = 1;
         currentIndex = 0;
     }
     
-    if (approximatelyEqual(jugador.x, xNext) && approximatelyEqual(jugador.y, yNext)) {
+    if (approximatelyEqual(jugador.x, xNext) || approximatelyEqual(jugador.y, yNext)) {
                 ii = 0;
         }
 
@@ -497,8 +494,8 @@ function actualizar() {
                     tipo: 'mover',
                     x: xNext,
                     y: yNext,
-                    realX: jugador.x,
-                    realY: jugador.y,
+                    realX: jugador.realX,
+                    realY: jugador.realY,
                     dir: jugador.dir,
                     step: jugador.step,
                     escenario: escenarioActual
@@ -546,8 +543,8 @@ function dibujar() {
                 ctx.globalAlpha = 0.7;
 
                 if(!approximatelyEqual(otroJugador.x,otrosJugadoresPos.get(otroJugador.id).x)  || !approximatelyEqual(otroJugador.y,otrosJugadoresPos.get(otroJugador.id).y)){
-                    getX -= (otroJugador.realX - otroJugador.x) * 0.085;
-                    getY -= (otroJugador.realY - otroJugador.y) * 0.085; 
+                    getX -= (otroJugador.realX - otroJugador.x) * 0.08;
+                    getY -= (otroJugador.realY - otroJugador.y) * 0.08; 
                     otrosJugadoresPos.set(otroJugador.id, {
                         id: otroJugador.id,
                         x: getX,
@@ -556,6 +553,12 @@ function dibujar() {
 
                     currentIndex += 0.5;
                     oStep = states[Math.floor(currentIndex) % 4];
+                }else{
+                    otrosJugadoresPos.set(otroJugador.id, {
+                        id: otroJugador.id,
+                        x: otroJugador.x,
+                        y: otroJugador.y
+                    });
                 }
                 ctx.drawImage(
                     imagenes.jugador, 
@@ -578,8 +581,8 @@ function dibujar() {
             ctx.strokeStyle = "black";
             ctx.lineWidth = 2;
             ctx.font = "12px Arial";
-            ctx.strokeText("Jugador", otroJugador.x * tamano, otroJugador.y * tamano - 5);
-            ctx.fillText("Jugador", otroJugador.x * tamano, otroJugador.y * tamano - 5);
+            ctx.strokeText("Jugador", otrosJugadoresPos.get(otroJugador.id).x * tamano, otrosJugadoresPos.get(otroJugador.id).y * tamano - 5);
+            ctx.fillText("Jugador", otrosJugadoresPos.get(otroJugador.id).x * tamano, otrosJugadoresPos.get(otroJugador.id).y * tamano - 5);
         }
     });
     
