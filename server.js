@@ -37,7 +37,8 @@ servidorWS.on('connection', (ws) => {
         realY: 10,
         dir: 0,
         step: 0,
-        escenario: 'plaza',
+        escenario: 'lobby',
+        dinero: 100,
         ws: ws
     };
 

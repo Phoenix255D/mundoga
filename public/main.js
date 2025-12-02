@@ -16,7 +16,7 @@ let miIdJugador = null;
 const otrosJugadores = new Map();
 const otrosJugadoresPos = new Map();
 
-let escenarioActual = "plaza";
+let escenarioActual = "lobby";
 let imagenesListas = false;
 const imagenes = {};
 
@@ -32,14 +32,14 @@ function colision(a, b) {
 class Mapa {
     constructor() {
         this.scenes = {
-            plaza: {
-                puerta: {x: 31, y: 6, w: 1, h: 2, tipo: "puerta", destino: "casa", posx: 1, posy: 6, message: "puerta"},
-                puerta2: {x: 10, y: 6, w: 3, h: 3, tipo: "pared", destino: "casa", posx: 2, posy: 10},
+            lobby: {
+                puerta: {x: 0, y: 14, w: 1, h: 2, tipo: "puerta", destino: "iglu", posx: 30, posy: 14, message: "puerta"},
+                puerta2: {x: 10, y: 6, w: 3, h: 3, tipo: "pared", destino: "iglu", posx: 2, posy: 10},
                 puerta3: {x: 15, y: 10, w: 2, h: 2, tipo: "pared", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "pared Interactiva"},
                 frogger: {x: 12, y: 15, w: 2, h: 2, tipo: "pared", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva"},
             },
-            casa: {
-                puerta: {x: 0, y: 6, w: 1, h: 2, tipo: "puerta", destino: "plaza", posx: 30, posy: 6, message: "puerta"}
+            iglu: {
+                puerta: {x: 31, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 1, posy: 14, message: "puerta"}
             }
         };
     }
@@ -70,8 +70,8 @@ class Mapa {
 
 function cargarImagenes() {
     const rutasImagenes = {
-        plaza: "escenarios/plaza.png",
-        casa: "escenarios/casa.png",
+        lobby: "escenarios/lobby.png",
+        iglu: "escenarios/iglu.png",
         jugador: "sprites/Zero.png"
     };
     
@@ -109,6 +109,7 @@ const jugador = {
     velocidad: 0.085,
     dir: 0,
     step: 1,
+    dinero: 0,
     color: "#FF0000"
 };
 
@@ -155,6 +156,7 @@ ws.onmessage = (evento) => {
                     jugador.realY = newY;
                     jugador.dir = datos.jugador.dir ?? jugador.dir;
                     jugador.step = datos.jugador.step ?? jugador.step;
+                    jugador.dinero = datos.jugador.dinero;
                     escenarioActual = datos.jugador.escenario ?? escenarioActual;
                 } else {
                     console.error('Posición inicial inválida del servidor, manteniendo predeterminada');
@@ -615,9 +617,10 @@ function dibujar() {
     
     ctx.fillStyle = "black";
     ctx.font = "20px Arial";
-    ctx.fillText("Escenario: " + escenarioActual, 10, 30);
-    ctx.fillText("Pos: " + jugador.x.toFixed(1) + ", " + jugador.y.toFixed(1), 10, 50);
-    ctx.fillText("ID: " + (miIdJugador || "Conectando..."), 10, 70);
+    ctx.fillText("Dinero: " + jugador.dinero.toFixed(1), 10, 30);
+    ctx.fillText("Escenario: " + escenarioActual, 10, 50);
+    ctx.fillText("Pos: " + jugador.x.toFixed(1) + ", " + jugador.y.toFixed(1), 10, 70);
+    ctx.fillText("ID: " + (miIdJugador || "Conectando..."), 10, 90);
 }
 
 bucleJuego();
