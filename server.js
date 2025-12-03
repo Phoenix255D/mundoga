@@ -20,7 +20,10 @@ const db = mysql.createConnection({
 });
 
 db.connect(err => {
-    if (err) throw err;
+    if (err) {
+        console.error("Error conectando a MySQL:", err);
+        throw err;
+    }
     console.log("Conectado a MySQL");
 });
 
@@ -54,7 +57,10 @@ aplicacion.post("/login", (req, res) => {
         "SELECT * FROM usuarios WHERE username = ? AND password = ?",
         [username, password],
         (err, result) => {
-            if (err) throw err;
+            if (err) {
+                console.error("Error en login:", err);
+                return res.send("<h3>Error en el servidor</h3><a href='/login'>Intentar de nuevo</a>");
+            }
             
             if (result.length === 1) {
                 req.session.user = result[0];
@@ -75,49 +81,67 @@ aplicacion.get("/registro", (req, res) => {
 aplicacion.post("/registro", (req, res) => {
     const { username, password, confirm_password } = req.body;
     
-    console.log("Intento de registro:", username); // Para debugging
+    console.log("=== INTENTO DE REGISTRO ===");
+    console.log("Username:", username);
+    console.log("Password length:", password ? password.length : 0);
+    console.log("Confirm password length:", confirm_password ? confirm_password.length : 0);
     
     // Validar que los campos existan
     if (!username || !password || !confirm_password) {
+        console.log("Error: Campos vacíos");
         return res.send("<h3>Todos los campos son obligatorios</h3><a href='/registro'>Intentar de nuevo</a>");
     }
     
     // Validar que las contraseñas coincidan
     if (password !== confirm_password) {
+        console.log("Error: Contraseñas no coinciden");
         return res.send("<h3>Las contraseñas no coinciden</h3><a href='/registro'>Intentar de nuevo</a>");
     }
     
     // Verificar si el usuario ya existe
+    console.log("Verificando si usuario existe...");
     db.query(
         "SELECT * FROM usuarios WHERE username = ?",
         [username],
         (err, result) => {
             if (err) {
-                console.error("Error al verificar usuario:", err);
-                return res.send(`<h3>Error al verificar usuario: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
+                console.error("❌ Error al verificar usuario:", err);
+                console.error("Código de error:", err.code);
+                console.error("SQL State:", err.sqlState);
+                console.error("SQL Message:", err.sqlMessage);
+                return res.send(`<h3>Error al verificar usuario: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
             }
             
+            console.log("Resultados de búsqueda:", result.length);
+            
             if (result.length > 0) {
+                console.log("Usuario ya existe");
                 return res.send("<h3>El usuario ya existe</h3><a href='/registro'>Intentar de nuevo</a>");
             }
             
             // Insertar nuevo usuario
+            console.log("Intentando crear usuario...");
             db.query(
                 "INSERT INTO usuarios (username, password) VALUES (?, ?)",
                 [username, password],
                 (err, result) => {
                     if (err) {
-                        console.error("Error al crear cuenta:", err);
-                        return res.send(`<h3>Error al crear la cuenta: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
+                        console.error("❌ Error al crear cuenta:", err);
+                        console.error("Código de error:", err.code);
+                        console.error("SQL State:", err.sqlState);
+                        console.error("SQL Message:", err.sqlMessage);
+                        return res.send(`<h3>Error al crear la cuenta: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
                     }
                     
-                    console.log("Usuario creado exitosamente:", username);
+                    console.log("✅ Usuario creado exitosamente:", username);
+                    console.log("ID insertado:", result.insertId);
                     res.send("<h3>Cuenta creada exitosamente</h3><a href='/login'>Ir a iniciar sesión</a>");
                 }
             );
         }
     );
 });
+
 
 function requireLogin(req, res, next) {
     if (!req.session.user) return res.redirect("/login");
@@ -126,11 +150,8 @@ function requireLogin(req, res, next) {
 
 aplicacion.use(requireLogin);
 
-aplicacion.use(express.static(path.join(__dirname, 'public')));
 
-
-
-// Servir carpeta public
+// Servir carpeta public (una sola vez)
 aplicacion.use(express.static(path.join(__dirname, 'public')));
 
 const jugadores = new Map();
@@ -163,26 +184,22 @@ servidorWS.on('connection', (ws) => {
     console.log('Jugador conectado:', idJugador);
     console.log('Total jugadores:', jugadores.size);
 
-    // Enviar datos iniciales SOLO al jugador nuevo
     ws.send(JSON.stringify({
         tipo: 'iniciar',
         idJugador: idJugador,
         jugador: nuevoJugador
     }));
 
-    // Mandar lista completa de jugadores a TODOS
     transmitir({
         tipo: 'listaJugadores',
         jugadores: Array.from(jugadores.values())
     });
 
-    // Anunciar a los demás que llegó un nuevo jugador
     transmitir({
         tipo: 'jugadorUnido',
         jugador: nuevoJugador
     }, ws);
 
-    // Cuando el cliente manda mensajes
     ws.on('message', (mensaje) => {
         try {
             const datos = JSON.parse(mensaje);
@@ -229,7 +246,6 @@ servidorWS.on('connection', (ws) => {
     });
 });
 
-// Enviar mensaje a todos excepto al que originó
 function transmitir(datos, exceptoWs = null) {
     const mensaje = JSON.stringify(datos);
     servidorWS.clients.forEach((cliente) => {
@@ -239,7 +255,6 @@ function transmitir(datos, exceptoWs = null) {
     });
 }
 
-// Generar ID único
 function generarId() {
     let id;
     do {
@@ -248,7 +263,6 @@ function generarId() {
     return id;
 }
 
-// Railway:
 const PUERTO = process.env.PORT || 3000;
 
 servidor.listen(PUERTO, '0.0.0.0', () => {
@@ -256,7 +270,6 @@ servidor.listen(PUERTO, '0.0.0.0', () => {
     console.log('Acceso local: http://localhost:' + PUERTO);
 });
 
-// Keepalive Railway
 const intervalo = setInterval(() => {
     servidorWS.clients.forEach((ws) => {
         if (!ws.isAlive) {
@@ -276,4 +289,3 @@ const intervalo = setInterval(() => {
 servidorWS.on("close", () => {
     clearInterval(intervalo);
 });
-
