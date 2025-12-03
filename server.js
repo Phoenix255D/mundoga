@@ -44,6 +44,7 @@ const servidorWS = new WebSocket.Server({
     path: "/ws"
 });
 
+
 // Página de login (GET)
 aplicacion.get("/login", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
@@ -77,7 +78,7 @@ aplicacion.get("/registro", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "registro.html"));
 });
 
-// Procesar registro (POST) - VERSIÓN CON ID MANUAL
+// Procesar registro (POST)
 aplicacion.post("/registro", (req, res) => {
     const { username, password, confirm_password } = req.body;
     
@@ -109,7 +110,6 @@ aplicacion.post("/registro", (req, res) => {
                 return res.send("<h3>El usuario ya existe</h3><a href='/registro'>Intentar de nuevo</a>");
             }
             
-            // Obtener el último ID
             console.log("Obteniendo último ID...");
             db.query(
                 "SELECT MAX(id) as maxId FROM usuarios",
@@ -122,7 +122,6 @@ aplicacion.post("/registro", (req, res) => {
                     const nuevoId = (result[0].maxId || 0) + 1;
                     console.log("Nuevo ID será:", nuevoId);
                     
-                    // Insertar con ID manual
                     db.query(
                         "INSERT INTO usuarios (id, username, password) VALUES (?, ?, ?)",
                         [nuevoId, username, password],
@@ -132,7 +131,7 @@ aplicacion.post("/registro", (req, res) => {
                                 return res.send(`<h3>Error: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
                             }
                             
-                            console.log("✅ Usuario creado exitosamente:", username, "con ID:", nuevoId);
+                            console.log(" Usuario creado exitosamente:", username, "con ID:", nuevoId);
                             res.send("<h3>Cuenta creada exitosamente</h3><a href='/login'>Ir a iniciar sesión</a>");
                         }
                     );
@@ -142,6 +141,7 @@ aplicacion.post("/registro", (req, res) => {
     );
 });
 
+// Cerrar sesión
 aplicacion.get("/logout", (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -152,6 +152,7 @@ aplicacion.get("/logout", (req, res) => {
     });
 });
 
+
 function requireLogin(req, res, next) {
     if (!req.session.user) return res.redirect("/login");
     next();
@@ -159,9 +160,16 @@ function requireLogin(req, res, next) {
 
 aplicacion.use(requireLogin);
 
-
-// Servir carpeta public (una sola vez)
+// Servir carpeta public
 aplicacion.use(express.static(path.join(__dirname, 'public')));
+
+// API para obtener datos del usuario
+aplicacion.get("/api/user", (req, res) => {
+    res.json({
+        username: req.session.user.username,
+        id: req.session.user.id
+    });
+});
 
 const jugadores = new Map();
 
@@ -185,6 +193,7 @@ servidorWS.on('connection', (ws) => {
         step: 0,
         escenario: 'lobby',
         dinero: 100,
+        username: 'Conectando...', // NUEVO
         ws: ws
     };
 
@@ -213,6 +222,21 @@ servidorWS.on('connection', (ws) => {
         try {
             const datos = JSON.parse(mensaje);
             console.log(mensaje);
+
+            // NUEVO: Manejar actualización de username
+            if (datos.tipo === 'actualizar_username') {
+                const jugador = jugadores.get(idJugador);
+                if (jugador) {
+                    jugador.username = datos.username;
+                    console.log('Username actualizado:', idJugador, datos.username);
+                    
+                    transmitir({
+                        tipo: 'jugadorActualizado',
+                        idJugador: idJugador,
+                        username: datos.username
+                    });
+                }
+            }
 
             if (datos.tipo === 'mover') {
                 const jugador = jugadores.get(idJugador);
