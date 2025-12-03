@@ -142,6 +142,16 @@ aplicacion.post("/registro", (req, res) => {
     );
 });
 
+aplicacion.get("/logout", (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error("Error al cerrar sesión:", err);
+            return res.send("<h3>Error al cerrar sesión</h3>");
+        }
+        res.redirect("/login");
+    });
+});
+
 function requireLogin(req, res, next) {
     if (!req.session.user) return res.redirect("/login");
     next();
