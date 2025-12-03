@@ -4,6 +4,19 @@ import { initFrog, update } from "./miniGames/frogger/main.js";
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+// Obtener datos del usuario
+let miUsername = "Cargando...";
+fetch('/api/user')
+    .then(res => res.json())
+    .then(data => {
+        miUsername = data.username;
+        console.log('Usuario logueado:', miUsername);
+    })
+    .catch(err => {
+        console.error('Error obteniendo usuario:', err);
+        miUsername = "Usuario";
+    });
+
 if (!window.__WS__) {
     window.__WS__ = new WebSocket(
         (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws"
@@ -136,7 +149,9 @@ let ultimaPosicionEnviada = { x: jugador.x, y: jugador.y, dir: jugador.dir, step
 window.addEventListener("keydown", e => teclas[e.key] = true);
 window.addEventListener("keyup", e => teclas[e.key] = false);
 
-ws.onopen = () => {};
+ws.onopen = () => {
+    console.log('WebSocket conectado');
+};
 
 ws.onmessage = (evento) => {
     const datos = JSON.parse(evento.data);
@@ -178,6 +193,15 @@ ws.onmessage = (evento) => {
                     step: jugador.step,
                     escenario: escenarioActual
                 }));
+				
+            setTimeout(() => {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        tipo: 'actualizar_username',
+                        username: miUsername
+                    }));
+                }
+            }, 500);
                 
                 ultimaPosicionEnviada = { 
                     x: jugador.x, 
@@ -189,6 +213,7 @@ ws.onmessage = (evento) => {
                     escenario: escenarioActual 
                 };
             }
+			
             break;
             
         case 'listaJugadores':
@@ -293,6 +318,13 @@ ws.onmessage = (evento) => {
         case 'jugadorSalio':
             otrosJugadores.delete(datos.idJugador);
             otrosJugadoresPos.delete(datos.idJugador);
+            break;
+
+        case 'jugadorActualizado':
+            let jugadorActualizado = otrosJugadores.get(datos.idJugador);
+            if (jugadorActualizado) {
+                jugadorActualizado.username = datos.username;
+            }
             break;
 
         default:
@@ -583,9 +615,10 @@ function dibujar() {
             ctx.strokeStyle = "black";
             ctx.lineWidth = 2;
             ctx.font = "12px Arial";
-            ctx.strokeText("Jugador", otrosJugadoresPos.get(otroJugador.id).x * tamano, otrosJugadoresPos.get(otroJugador.id).y * tamano - 5);
-            ctx.fillText("Jugador", otrosJugadoresPos.get(otroJugador.id).x * tamano, otrosJugadoresPos.get(otroJugador.id).y * tamano - 5);
-        }
+            const nombreOtro = otroJugador.username || "Jugador";
+			ctx.strokeText(nombreOtro, otrosJugadoresPos.get(otroJugador.id).x * tamano, otrosJugadoresPos.get(otroJugador.id).y * tamano - 5);
+			ctx.fillText(nombreOtro, otrosJugadoresPos.get(otroJugador.id).x * tamano, otrosJugadoresPos.get(otroJugador.id).y * tamano - 5);
+			}
     });
     
     const playerPixelX = jugador.x * tamano;
@@ -612,15 +645,15 @@ function dibujar() {
     ctx.strokeStyle = "black";
     ctx.lineWidth = 2;
     ctx.font = "12px Arial";
-    ctx.strokeText("Tu", playerPixelX, playerPixelY - 5);
-    ctx.fillText("Tu", playerPixelX, playerPixelY - 5);
+    ctx.strokeText(miUsername, playerPixelX, playerPixelY - 5);
+	ctx.fillText(miUsername, playerPixelX, playerPixelY - 5);
     
     ctx.fillStyle = "black";
     ctx.font = "20px Arial";
     ctx.fillText("Dinero: " + jugador.dinero.toFixed(1), 10, 30);
     ctx.fillText("Escenario: " + escenarioActual, 10, 50);
     ctx.fillText("Pos: " + jugador.x.toFixed(1) + ", " + jugador.y.toFixed(1), 10, 70);
-    ctx.fillText("ID: " + (miIdJugador || "Conectando..."), 10, 90);
+    ctx.fillText("Usuario: " + miUsername, 10, 90);
 }
 
 bucleJuego();
