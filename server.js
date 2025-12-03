@@ -4,11 +4,9 @@ const WebSocket = require('ws');
 const path = require('path');
 const os = require('os');
 const { read } = require('fs');
-
 const session = require("express-session");
 const bodyParser = require("body-parser");
 const mysql = require("mysql2");
-
 
 const aplicacion = express();
 
@@ -21,13 +19,12 @@ const db = mysql.createConnection({
     port: process.env.MYSQLPORT
 });
 
-
 db.connect(err => {
     if (err) throw err;
     console.log("Conectado a MySQL");
 });
 
-// boody parser y sesiones
+// body parser y sesiones
 aplicacion.use(bodyParser.urlencoded({ extended: true }));
 
 aplicacion.use(session({
@@ -35,7 +32,6 @@ aplicacion.use(session({
     resave: false,
     saveUninitialized: false
 }));
-
 
 const servidor = http.createServer(aplicacion);
 
@@ -45,40 +41,85 @@ const servidorWS = new WebSocket.Server({
     path: "/ws"
 });
 
-
-// Página de login
+// Página de login (GET)
 aplicacion.get("/login", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// Procesar login
+// Procesar login (POST)
 aplicacion.post("/login", (req, res) => {
     const { username, password } = req.body;
-
+    
     db.query(
         "SELECT * FROM usuarios WHERE username = ? AND password = ?",
         [username, password],
         (err, result) => {
             if (err) throw err;
-
+            
             if (result.length === 1) {
                 req.session.user = result[0];
                 return res.redirect("/");
             }
-
+            
             res.send("<h3>Usuario o contraseña incorrectos</h3><a href='/login'>Intentar de nuevo</a>");
         }
     );
 });
 
+// Página de registro (GET)
+aplicacion.get("/registro", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "registro.html"));
+});
 
-// Middleware para proteger rutas
+// Procesar registro (POST)
+aplicacion.post("/registro", (req, res) => {
+    const { username, password, confirm_password } = req.body;
+    
+    // Validar que las contraseñas coincidan
+    if (password !== confirm_password) {
+        return res.send("<h3>Las contraseñas no coinciden</h3><a href='/registro'>Intentar de nuevo</a>");
+    }
+    
+    // Verificar si el usuario ya existe
+    db.query(
+        "SELECT * FROM usuarios WHERE username = ?",
+        [username],
+        (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.send("<h3>Error al verificar usuario</h3><a href='/registro'>Intentar de nuevo</a>");
+            }
+            
+            if (result.length > 0) {
+                return res.send("<h3>El usuario ya existe</h3><a href='/registro'>Intentar de nuevo</a>");
+            }
+            
+            // Insertar nuevo usuario
+            db.query(
+                "INSERT INTO usuarios (username, password) VALUES (?, ?)",
+                [username, password],
+                (err, result) => {
+                    if (err) {
+                        console.error(err);
+                        return res.send("<h3>Error al crear la cuenta</h3><a href='/registro'>Intentar de nuevo</a>");
+                    }
+                    
+                    res.send("<h3>Cuenta creada exitosamente</h3><a href='/login'>Ir a iniciar sesión</a>");
+                }
+            );
+        }
+    );
+});
+
 function requireLogin(req, res, next) {
     if (!req.session.user) return res.redirect("/login");
     next();
 }
 
 aplicacion.use(requireLogin);
+
+aplicacion.use(express.static(path.join(__dirname, 'public')));
+
 
 
 // Servir carpeta public
