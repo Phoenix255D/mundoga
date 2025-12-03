@@ -72,11 +72,6 @@ aplicacion.post("/login", (req, res) => {
     );
 });
 
-// Página de registro (GET)
-aplicacion.get("/registro", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "registro.html"));
-});
-
 // Procesar registro (POST)
 aplicacion.post("/registro", (req, res) => {
     const { username, password, confirm_password } = req.body;
@@ -105,10 +100,7 @@ aplicacion.post("/registro", (req, res) => {
         [username],
         (err, result) => {
             if (err) {
-                console.error("❌ Error al verificar usuario:", err);
-                console.error("Código de error:", err.code);
-                console.error("SQL State:", err.sqlState);
-                console.error("SQL Message:", err.sqlMessage);
+                console.error(" Error al verificar usuario:", err);
                 return res.send(`<h3>Error al verificar usuario: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
             }
             
@@ -119,23 +111,37 @@ aplicacion.post("/registro", (req, res) => {
                 return res.send("<h3>El usuario ya existe</h3><a href='/registro'>Intentar de nuevo</a>");
             }
             
-            // Insertar nuevo usuario
-            console.log("Intentando crear usuario...");
+            // Obtener el último ID para generar uno nuevo
+            console.log("Obteniendo último ID...");
             db.query(
-                "INSERT INTO usuarios (username, password) VALUES (?, ?)",
-                [username, password],
+                "SELECT MAX(id) as maxId FROM usuarios",
                 (err, result) => {
                     if (err) {
-                        console.error("❌ Error al crear cuenta:", err);
-                        console.error("Código de error:", err.code);
-                        console.error("SQL State:", err.sqlState);
-                        console.error("SQL Message:", err.sqlMessage);
-                        return res.send(`<h3>Error al crear la cuenta: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
+                        console.error(" Error al obtener último ID:", err);
+                        return res.send(`<h3>Error: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
                     }
                     
-                    console.log("✅ Usuario creado exitosamente:", username);
-                    console.log("ID insertado:", result.insertId);
-                    res.send("<h3>Cuenta creada exitosamente</h3><a href='/login'>Ir a iniciar sesión</a>");
+                    const nuevoId = (result[0].maxId || 0) + 1;
+                    console.log("Nuevo ID será:", nuevoId);
+                    
+                    // Insertar nuevo usuario con ID manual
+                    console.log("Intentando crear usuario...");
+                    db.query(
+                        "INSERT INTO usuarios (id, username, password) VALUES (?, ?, ?)",
+                        [nuevoId, username, password],
+                        (err, result) => {
+                            if (err) {
+                                console.error(" Error al crear cuenta:", err);
+                                console.error("Código de error:", err.code);
+                                console.error("SQL Message:", err.sqlMessage);
+                                return res.send(`<h3>Error al crear la cuenta: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
+                            }
+                            
+                            console.log("✅ Usuario creado exitosamente:", username);
+                            console.log("Con ID:", nuevoId);
+                            res.send("<h3>Cuenta creada exitosamente</h3><a href='/login'>Ir a iniciar sesión</a>");
+                        }
+                    );
                 }
             );
         }
