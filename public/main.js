@@ -216,104 +216,112 @@ ws.onmessage = (evento) => {
 			
             break;
             
-        case 'listaJugadores':
-            {
-                const nuevosIds = new Set((datos.jugadores || []).map(j => j.id).filter(id => id !== miIdJugador));
-                
-                for (const [id] of otrosJugadores) {
-                    if (!nuevosIds.has(id)) {
-                        otrosJugadores.delete(id);
-                        otrosJugadoresPos.delete(id);
-                    }
-                }
-                
-                (datos.jugadores || []).forEach(j => {
-                    if (!j || !j.id) {
-                        return;
-                    }
-                    
-                    if (j.id === miIdJugador) {
-                        return;
-                    }
+			case 'listaJugadores':
+		{
+			const nuevosIds = new Set((datos.jugadores || []).map(j => j.id).filter(id => id !== miIdJugador));
+			
+			for (const [id] of otrosJugadores) {
+				if (!nuevosIds.has(id)) {
+					otrosJugadores.delete(id);
+					otrosJugadoresPos.delete(id);
+				}
+			}
+			
+			(datos.jugadores || []).forEach(j => {
+				if (!j || !j.id) {
+					return;
+				}
+				
+				if (j.id === miIdJugador) {
+					return;
+				}
 
-                    if (!validarCoordenadas(j.x, j.y, `jugador ${j.id}`)) {
-                        return;
-                    }
+				if (!validarCoordenadas(j.x, j.y, `jugador ${j.id}`)) {
+					return;
+				}
 
-                    otrosJugadores.set(j.id, {
-                        id: j.id,
-                        x: j.x,
-                        y: j.y,
-                        realX: j.realX,
-                        realY: j.realY,
-                        dir: j.dir,
-                        step: j.step ?? 1,
-                        escenario: j.escenario,
-                        color: "#0000FF"
-                    });
-                    otrosJugadoresPos.set(j.id,{
-                        id: j.id,
-                        x: j.realX,
-                        y: j.realY
-                    });
-                });
-            }
-            break;
+				otrosJugadores.set(j.id, {
+					id: j.id,
+					x: j.x,
+					y: j.y,
+					realX: j.realX,
+					realY: j.realY,
+					dir: j.dir,
+					step: j.step ?? 1,
+					escenario: j.escenario,
+					username: j.username,  // ← AGREGAR ESTA LÍNEA
+					color: "#0000FF"
+				});
+				otrosJugadoresPos.set(j.id,{
+					id: j.id,
+					x: j.realX,
+					y: j.realY
+				});
+			});
+		}
+		break;
             
-        case 'jugadorUnido':
-            if (datos.jugador && datos.jugador.id !== miIdJugador) {
-                if (!validarCoordenadas(datos.jugador.x, datos.jugador.y, `jugadorUnido ${datos.jugador.id}`)) {
-                    return;
-                }
-                
-                otrosJugadores.delete(datos.jugador.id);
-                otrosJugadoresPos.delete(datos.jugador.id);
-                otrosJugadores.set(datos.jugador.id, {
-                    id: datos.jugador.id,
-                    x: datos.jugador.x,
-                    y: datos.jugador.y,
-                    dir: datos.jugador.dir,
-                    step: datos.jugador.step ?? 1,
-                    escenario: datos.jugador.escenario,
-                    color: "#0000FF"
-                });
-                otrosJugadoresPos.set(datos.jugador.id, {
-                    id: datos.jugador.id,
-                    x: datos.jugador.realX,
-                    y: datos.jugador.realY
-                });
-            }
-            break;
+				case 'jugadorUnido':
+			if (datos.jugador && datos.jugador.id !== miIdJugador) {
+				if (!validarCoordenadas(datos.jugador.x, datos.jugador.y, `jugadorUnido ${datos.jugador.id}`)) {
+					return;
+				}
+				
+				otrosJugadores.delete(datos.jugador.id);
+				otrosJugadoresPos.delete(datos.jugador.id);
+				otrosJugadores.set(datos.jugador.id, {
+					id: datos.jugador.id,
+					x: datos.jugador.x,
+					y: datos.jugador.y,
+					dir: datos.jugador.dir,
+					step: datos.jugador.step ?? 1,
+					escenario: datos.jugador.escenario,
+					username: datos.jugador.username,  // ← AGREGAR ESTA LÍNEA
+					color: "#0000FF"
+				});
+				otrosJugadoresPos.set(datos.jugador.id, {
+					id: datos.jugador.id,
+					x: datos.jugador.realX,
+					y: datos.jugador.realY
+				});
+			}
+			break;
             
-        case 'jugadorMovido':
-            if (datos.idJugador === miIdJugador) {
-                break;
-            }
+				case 'jugadorMovido':
+			if (datos.idJugador === miIdJugador) {
+				break;
+			}
 
-            let otroJugador = otrosJugadores.get(datos.idJugador);
-            let otroJugadorPos = otrosJugadoresPos.get(datos.idJugador);
-            if (!otroJugador) {
-                return;
-            }
+			let otroJugador = otrosJugadores.get(datos.idJugador);
+			let otroJugadorPos = otrosJugadoresPos.get(datos.idJugador);
+			if (!otroJugador) {
+				return;
+			}
 
-            if (!validarCoordenadas(datos.x, datos.y, `jugadorMovido ${datos.idJugador}`)) {
-                return;
-            }
+			if (!validarCoordenadas(datos.x, datos.y, `jugadorMovido ${datos.idJugador}`)) {
+				return;
+			}
 
-            otroJugador.x = datos.x;
-            otroJugador.y = datos.y;
-            otroJugador.realX = datos.realX;
-            otroJugador.realY = datos.realY
-            otroJugador.dir = datos.dir;
-            otroJugador.step = datos.step ?? 1;
-            otroJugador.escenario = datos.escenario;
-            otrosJugadoresPos.set(datos.idJugador, {
-                    id: datos.idJugador,
-                    x: datos.realX,
-                    y: datos.realY
-                });
+			otroJugador.x = datos.x;
+			otroJugador.y = datos.y;
+			otroJugador.realX = datos.realX;
+			otroJugador.realY = datos.realY;
+			otroJugador.dir = datos.dir;
+			otroJugador.step = datos.step ?? 1;
+			otroJugador.escenario = datos.escenario;
+			
+			// Actualizar username si viene en los datos
+			if (datos.username) {  // ← AGREGAR ESTAS LÍNEAS
+				otroJugador.username = datos.username;
+			}
+			
+			otrosJugadoresPos.set(datos.idJugador, {
+				id: datos.idJugador,
+				x: datos.realX,
+				y: datos.realY
+			});
 
-                break;
+			break;
             
         case 'jugadorSalio':
             otrosJugadores.delete(datos.idJugador);
