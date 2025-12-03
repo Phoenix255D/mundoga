@@ -5,9 +5,15 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <button id="logout-btn" class="logout-button">Cerrar Sesión</button>
     <canvas id="game" width="1024" height="576"></canvas>
-
     <script type="module" src="./main.js"></script>
-
+    <script>
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            if (confirm('¿Seguro que quieres cerrar sesión?')) {
+                window.location.href = '/logout';
+            }
+        });
+    </script>
 </body>
 </html>
