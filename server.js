@@ -5,7 +5,38 @@ const path = require('path');
 const os = require('os');
 const { read } = require('fs');
 
+const session = require("express-session");
+const bodyParser = require("body-parser");
+const mysql = require("mysql2");
+
+
 const aplicacion = express();
+
+// cosa para mysql
+const db = mysql.createConnection({
+    host: process.env.MYSQLHOST,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
+    port: process.env.MYSQLPORT
+});
+
+
+db.connect(err => {
+    if (err) throw err;
+    console.log("Conectado a MySQL");
+});
+
+// boody parser y sesiones
+aplicacion.use(bodyParser.urlencoded({ extended: true }));
+
+aplicacion.use(session({
+    secret: "secreto_mundoga",
+    resave: false,
+    saveUninitialized: false
+}));
+
+
 const servidor = http.createServer(aplicacion);
 
 // WebSocket para Railway
@@ -13,6 +44,42 @@ const servidorWS = new WebSocket.Server({
     server: servidor,
     path: "/ws"
 });
+
+
+// Página de login
+aplicacion.get("/login", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
+// Procesar login
+aplicacion.post("/login", (req, res) => {
+    const { username, password } = req.body;
+
+    db.query(
+        "SELECT * FROM usuarios WHERE username = ? AND password = ?",
+        [username, password],
+        (err, result) => {
+            if (err) throw err;
+
+            if (result.length === 1) {
+                req.session.user = result[0];
+                return res.redirect("/");
+            }
+
+            res.send("<h3>Usuario o contraseña incorrectos</h3><a href='/login'>Intentar de nuevo</a>");
+        }
+    );
+});
+
+
+// Middleware para proteger rutas
+function requireLogin(req, res, next) {
+    if (!req.session.user) return res.redirect("/login");
+    next();
+}
+
+aplicacion.use(requireLogin);
+
 
 // Servir carpeta public
 aplicacion.use(express.static(path.join(__dirname, 'public')));
@@ -160,3 +227,4 @@ const intervalo = setInterval(() => {
 servidorWS.on("close", () => {
     clearInterval(intervalo);
 });
+
