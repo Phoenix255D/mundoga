@@ -75,6 +75,13 @@ aplicacion.get("/registro", (req, res) => {
 aplicacion.post("/registro", (req, res) => {
     const { username, password, confirm_password } = req.body;
     
+    console.log("Intento de registro:", username); // Para debugging
+    
+    // Validar que los campos existan
+    if (!username || !password || !confirm_password) {
+        return res.send("<h3>Todos los campos son obligatorios</h3><a href='/registro'>Intentar de nuevo</a>");
+    }
+    
     // Validar que las contraseñas coincidan
     if (password !== confirm_password) {
         return res.send("<h3>Las contraseñas no coinciden</h3><a href='/registro'>Intentar de nuevo</a>");
@@ -86,8 +93,8 @@ aplicacion.post("/registro", (req, res) => {
         [username],
         (err, result) => {
             if (err) {
-                console.error(err);
-                return res.send("<h3>Error al verificar usuario</h3><a href='/registro'>Intentar de nuevo</a>");
+                console.error("Error al verificar usuario:", err);
+                return res.send(`<h3>Error al verificar usuario: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
             }
             
             if (result.length > 0) {
@@ -100,10 +107,11 @@ aplicacion.post("/registro", (req, res) => {
                 [username, password],
                 (err, result) => {
                     if (err) {
-                        console.error(err);
-                        return res.send("<h3>Error al crear la cuenta</h3><a href='/registro'>Intentar de nuevo</a>");
+                        console.error("Error al crear cuenta:", err);
+                        return res.send(`<h3>Error al crear la cuenta: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
                     }
                     
+                    console.log("Usuario creado exitosamente:", username);
                     res.send("<h3>Cuenta creada exitosamente</h3><a href='/login'>Ir a iniciar sesión</a>");
                 }
             );
