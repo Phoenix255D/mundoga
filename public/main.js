@@ -29,6 +29,16 @@ let miIdJugador = null;
 const otrosJugadores = new Map();
 const otrosJugadoresPos = new Map();
 
+//Variables en el chat
+let miNombreJugador = "Jugador"
+let estadoConexion = null;
+
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const chatSend = document.getElementById('chatSend');
+const estadoConexionElem = document.getElementById('estadoConexion');
+
+
 let escenarioActual = "lobby";
 let imagenesListas = false;
 const imagenes = {};
@@ -149,6 +159,70 @@ let ultimaPosicionEnviada = { x: jugador.x, y: jugador.y, dir: jugador.dir, step
 window.addEventListener("keydown", e => teclas[e.key] = true);
 window.addEventListener("keyup", e => teclas[e.key] = false);
 
+//Funciones del chat
+function actualizarEstadoConexion(conectado) {
+    estadoConexion = conectado;
+    estadoConexionElem.textContent = conectado ? "Conectado" : "Desconectado";
+    estadoConexionElem.className = conectado ? "conectado" : "desconectado";
+}
+
+function agregarMensajeChat(nombre, texto, esMio = false) {
+    const mensajeDiv = document.createElement('div');
+    mensajeDiv.className = `message ${esMio ? 'mio' : ''}`;
+
+    const hora = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+    mensajeDiv.innerHTML = `
+        <span class="username">${nombre}</span>
+        <span class="text">${texto}</span>
+        <span class="hora">${hora}</span>
+    `;
+
+    chatMessages.appendChild(mensajeDiv);
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function enviarMensajeChat() {
+    const texto = chatInput.value.trim();
+    if (!texto) return;
+
+    if (ws.readyState === WebSocket.OPEN && miIdJugador) {
+        // Mostrar mensaje inmediatamente
+        agregarMensajeChat(miNombreJugador, texto, true);
+
+        // Enviar al servidor
+        ws.send(JSON.stringify({
+            tipo: 'chat',
+            jugadorId: miIdJugador,
+            nombre: miNombreJugador,
+            texto: texto,
+            escenario: escenarioActual
+        }));
+
+        // Limpiar input
+        chatInput.value = '';
+        chatInput.focus();
+    } else {
+        agregarMensajeChat("Sistema", "No estás conectado al servidor", false);
+    }
+}
+
+function inicializarChat() {
+    chatSend.addEventListener('click', enviarMensajeChat);
+
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            enviarMensajeChat();
+        }
+    });
+
+    setTimeout(() => {
+        agregarMensajeChat("Sistema", `¡Bienvenido ${miNombreJugador}! Escribe en el chat para hablar con otros jugadores.`, false);
+    }, 1000);
+}
+
+
 ws.onopen = () => {
     console.log('WebSocket conectado');
 };
@@ -182,6 +256,8 @@ ws.onmessage = (evento) => {
                 otrosJugadores.delete(miIdJugador);
             }
             
+            inicializarChat();
+
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
                     tipo: 'mover',
@@ -258,6 +334,8 @@ ws.onmessage = (evento) => {
 					y: j.realY
 				});
 			});
+            agregarMensajeChat("Sistema", `${datos.jugador.nombre} se ha unido al juego`, false);
+
 		}
 		break;
             
@@ -324,9 +402,21 @@ ws.onmessage = (evento) => {
 			break;
             
         case 'jugadorSalio':
+            const jugadorSaliente = otrosJugadores.get(datos.idJugador);
+            if (jugadorSaliente) {
+                agregarMensajeChat("Sistema", `${jugadorSaliente.nombre} ha salido del juego`, false);
+            }
             otrosJugadores.delete(datos.idJugador);
             otrosJugadoresPos.delete(datos.idJugador);
             break;
+
+        case 'chat':
+            if (datos.jugadorId !== miIdJugador && datos.escenario === escenarioActual) {
+                    agregarMensajeChat(datos.nombre, datos.texto, false);
+                }
+
+            break;
+
 
         case 'jugadorActualizado':
             let jugadorActualizado = otrosJugadores.get(datos.idJugador);

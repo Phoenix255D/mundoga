@@ -7,6 +7,16 @@
 <body>
     <button id="logout-btn" class="logout-button">Cerrar Sesión</button>
     <canvas id="game" width="1024" height="576"></canvas>
+    
+    <div class="chatContainer" id="chatContainer">
+        <div id="chatHeader">Chat del Juego</div>
+        <div id="chatMessages"></div>
+        <div id="chatInputContainer">
+            <input type="text" id="chatInput" placeholder="Escribe un mensaje...">
+            <button id="chatSend">Enviar</button>
+        </div>
+    </div>
+
     <script type="module" src="./main.js"></script>
     <script>
         document.getElementById('logout-btn').addEventListener('click', () => {
