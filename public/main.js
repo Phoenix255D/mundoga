@@ -615,7 +615,7 @@ function dibujar() {
             ctx.strokeStyle = "black";
             ctx.lineWidth = 2;
             ctx.font = "12px Arial";
-            const nombreOtro = otroJugador.username || "Jugador";
+            const nombreOtro = otroJugador.username;
 			ctx.strokeText(nombreOtro, otrosJugadoresPos.get(otroJugador.id).x * tamano, otrosJugadoresPos.get(otroJugador.id).y * tamano - 5);
 			ctx.fillText(nombreOtro, otrosJugadoresPos.get(otroJugador.id).x * tamano, otrosJugadoresPos.get(otroJugador.id).y * tamano - 5);
 			}
