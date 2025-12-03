@@ -72,28 +72,28 @@ aplicacion.post("/login", (req, res) => {
     );
 });
 
-// Procesar registro (POST)
+// Página de registro (GET)
+aplicacion.get("/registro", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "registro.html"));
+});
+
+// Procesar registro (POST) - VERSIÓN CON ID MANUAL
 aplicacion.post("/registro", (req, res) => {
     const { username, password, confirm_password } = req.body;
     
     console.log("=== INTENTO DE REGISTRO ===");
     console.log("Username:", username);
-    console.log("Password length:", password ? password.length : 0);
-    console.log("Confirm password length:", confirm_password ? confirm_password.length : 0);
     
-    // Validar que los campos existan
     if (!username || !password || !confirm_password) {
         console.log("Error: Campos vacíos");
         return res.send("<h3>Todos los campos son obligatorios</h3><a href='/registro'>Intentar de nuevo</a>");
     }
     
-    // Validar que las contraseñas coincidan
     if (password !== confirm_password) {
         console.log("Error: Contraseñas no coinciden");
         return res.send("<h3>Las contraseñas no coinciden</h3><a href='/registro'>Intentar de nuevo</a>");
     }
     
-    // Verificar si el usuario ya existe
     console.log("Verificando si usuario existe...");
     db.query(
         "SELECT * FROM usuarios WHERE username = ?",
@@ -101,17 +101,15 @@ aplicacion.post("/registro", (req, res) => {
         (err, result) => {
             if (err) {
                 console.error(" Error al verificar usuario:", err);
-                return res.send(`<h3>Error al verificar usuario: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
+                return res.send(`<h3>Error: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
             }
-            
-            console.log("Resultados de búsqueda:", result.length);
             
             if (result.length > 0) {
                 console.log("Usuario ya existe");
                 return res.send("<h3>El usuario ya existe</h3><a href='/registro'>Intentar de nuevo</a>");
             }
             
-            // Obtener el último ID para generar uno nuevo
+            // Obtener el último ID
             console.log("Obteniendo último ID...");
             db.query(
                 "SELECT MAX(id) as maxId FROM usuarios",
@@ -124,21 +122,17 @@ aplicacion.post("/registro", (req, res) => {
                     const nuevoId = (result[0].maxId || 0) + 1;
                     console.log("Nuevo ID será:", nuevoId);
                     
-                    // Insertar nuevo usuario con ID manual
-                    console.log("Intentando crear usuario...");
+                    // Insertar con ID manual
                     db.query(
                         "INSERT INTO usuarios (id, username, password) VALUES (?, ?, ?)",
                         [nuevoId, username, password],
                         (err, result) => {
                             if (err) {
                                 console.error(" Error al crear cuenta:", err);
-                                console.error("Código de error:", err.code);
-                                console.error("SQL Message:", err.sqlMessage);
-                                return res.send(`<h3>Error al crear la cuenta: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
+                                return res.send(`<h3>Error: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
                             }
                             
-                            console.log("✅ Usuario creado exitosamente:", username);
-                            console.log("Con ID:", nuevoId);
+                            console.log("✅ Usuario creado exitosamente:", username, "con ID:", nuevoId);
                             res.send("<h3>Cuenta creada exitosamente</h3><a href='/login'>Ir a iniciar sesión</a>");
                         }
                     );
@@ -147,7 +141,6 @@ aplicacion.post("/registro", (req, res) => {
         }
     );
 });
-
 
 function requireLogin(req, res, next) {
     if (!req.session.user) return res.redirect("/login");
