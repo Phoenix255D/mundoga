@@ -262,45 +262,19 @@ servidorWS.on('connection', (ws) => {
                     }, ws);
                 }
             }
-            else if (datos.tipo === 'chat') {
-                const jugador = jugadores.get(datos.jugadorId);
-                if (jugador) {
-                    const mensajeChat = {
-                        tipo: 'chat',
-                        jugadorId: datos.jugadorId,
-                        // El nombre se toma del objeto jugador del servidor, que ya fue actualizado con el username.
-                        nombre: datos.nombre || jugador.username, 
-                        texto: datos.texto,
-                        escenario: datos.escenario || jugador.escenario
-                    };
-
-                    servidorWS.clients.forEach((cliente) => {
-                        if (cliente.readyState === WebSocket.OPEN) {
-                            const clienteJugador = Array.from(jugadores.values()).find(j => j.ws === cliente);
-                            if (clienteJugador && clienteJugador.escenario === mensajeChat.escenario) {
-                                cliente.send(JSON.stringify(mensajeChat));
-                            }
-                        }
-                    });
-
-                    ws.send(JSON.stringify(mensajeChat));
-                }
-            }
         } catch (error) {
             console.error('Error procesando mensaje:', error);
         }
     });
 
     ws.on('close', () => {
-        const jugadorSaliendo = jugadores.get(idJugador);
         jugadores.delete(idJugador);
         console.log('Jugador desconectado:', idJugador);
         console.log('Total jugadores:', jugadores.size);
 
         transmitir({
             tipo: 'jugadorSalio',
-            idJugador: idJugador,
-            username: jugadorSaliendo ? jugadorSaliendo.username : 'Desconocido' 
+            idJugador: idJugador
         });
     });
 });
