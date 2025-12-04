@@ -1,10 +1,11 @@
 import { iniciarJuego, bucleTest } from "./miniGames/mini.js";
-import { initFrog, update } from "./miniGames/frogger/main.js";
+// importar funcion de ocultar
+import { initFrog, update, getFrogPosition, updateRemoteFrog, hideRemoteFrog } from "./miniGames/frogger/main.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// Obtener datos del usuario
+// obtener datos del usuario
 let miUsername = "Cargando...";
 fetch('/api/user')
     .then(res => res.json())
@@ -29,7 +30,7 @@ let miIdJugador = null;
 const otrosJugadores = new Map();
 const otrosJugadoresPos = new Map();
 
-//Variables en el chat
+// variables en el chat
 let miNombreJugador = "Jugador"
 let estadoConexion = null;
 
@@ -159,7 +160,7 @@ let ultimaPosicionEnviada = { x: jugador.x, y: jugador.y, dir: jugador.dir, step
 window.addEventListener("keydown", e => teclas[e.key] = true);
 window.addEventListener("keyup", e => teclas[e.key] = false);
 
-//Funciones del chat
+// funciones del chat
 function actualizarEstadoConexion(conectado) {
     estadoConexion = conectado;
     estadoConexionElem.textContent = conectado ? "Conectado" : "Desconectado";
@@ -188,10 +189,10 @@ function enviarMensajeChat() {
     if (!texto) return;
 
     if (ws.readyState === WebSocket.OPEN && miIdJugador) {
-        // Mostrar mensaje inmediatamente
+        // mostrar mensaje inmediatamente
         agregarMensajeChat(miNombreJugador, texto, true);
 
-        // Enviar al servidor
+        // enviar al servidor
         ws.send(JSON.stringify({
             tipo: 'chat',
             jugadorId: miIdJugador,
@@ -200,7 +201,7 @@ function enviarMensajeChat() {
             escenario: escenarioActual
         }));
 
-        // Limpiar input
+        // limpiar input
         chatInput.value = '';
         chatInput.focus();
     } else {
@@ -325,7 +326,7 @@ ws.onmessage = (evento) => {
 					dir: j.dir,
 					step: j.step ?? 1,
 					escenario: j.escenario,
-					username: j.username,  // ← AGREGAR ESTA LÍNEA
+					username: j.username,  
 					color: "#0000FF"
 				});
 				otrosJugadoresPos.set(j.id,{
@@ -354,7 +355,7 @@ ws.onmessage = (evento) => {
 					dir: datos.jugador.dir,
 					step: datos.jugador.step ?? 1,
 					escenario: datos.jugador.escenario,
-					username: datos.jugador.username,  // ← AGREGAR ESTA LÍNEA
+					username: datos.jugador.username,  
 					color: "#0000FF"
 				});
 				otrosJugadoresPos.set(datos.jugador.id, {
@@ -369,6 +370,17 @@ ws.onmessage = (evento) => {
 			if (datos.idJugador === miIdJugador) {
 				break;
 			}
+            
+            // actualizar fantasma en minijuego
+            if (juegoN === 2) {
+                // ocultar usando la funcion si las coordenadas son muy bajas
+                if (datos.x > 50) {
+                    updateRemoteFrog(datos.x, datos.y);
+                } else {
+                    hideRemoteFrog();
+                }
+                break;
+            }
 
 			let otroJugador = otrosJugadores.get(datos.idJugador);
 			let otroJugadorPos = otrosJugadoresPos.get(datos.idJugador);
@@ -388,8 +400,8 @@ ws.onmessage = (evento) => {
 			otroJugador.step = datos.step ?? 1;
 			otroJugador.escenario = datos.escenario;
 			
-			// Actualizar username si viene en los datos
-			if (datos.username) {  // ← AGREGAR ESTAS LÍNEAS
+			// actualizar username si viene en los datos
+			if (datos.username) {  
 				otroJugador.username = datos.username;
 			}
 			
@@ -568,7 +580,23 @@ function actualizar() {
         
         switch (juegoN) {
             case 1: jugando = bucleTest(); break;
-            case 2: jugando = update(); break;
+            case 2: 
+                jugando = update();
+                // enviar posicion en minijuego
+                const fPos = getFrogPosition();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        tipo: 'mover',
+                        x: fPos.x,
+                        y: fPos.y,
+                        realX: fPos.x,
+                        realY: fPos.y,
+                        dir: 0,
+                        step: 1,
+                        escenario: escenarioActual
+                    }));
+                }
+                break;
         }
         if (jugando == false) {
             dirC = true;

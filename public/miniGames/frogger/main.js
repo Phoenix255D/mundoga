@@ -1,4 +1,5 @@
-        export {initFrog,update}
+        // modificar exportacion para incluir funcion de ocultar
+        export {initFrog,update,getFrogPosition,updateRemoteFrog,hideRemoteFrog}
         import {teclas} from "/main.js";
         
         // funcionalidad para cerrar
@@ -21,6 +22,9 @@
         let score = 0;
         let animationId;
         let juega = true;
+
+        // agregar propiedad de visibilidad para evitar fantasmas
+        let remotePlayer = { x: -100, y: -100, size: 32, color: '#ff00ff', visible: false };
 
         const player = {
             x: 256, 
@@ -62,6 +66,10 @@
             });
             player.x = 320;
             player.y = canvas.height -32;
+            
+            // ocultar jugador remoto al iniciar para limpiar estado
+            remotePlayer.visible = false;
+            
             juega = true;
             //loopFrog();
         }
@@ -103,8 +111,7 @@ let offset = true;
             if(player.x > canvas.width) player.x = canvas.width - 16;
             if(player.y > canvas.height) player.y = canvas.height -32;
         });
-*/
-
+*/ 
 
             if (player.y < 25) {
                 score++;
@@ -132,6 +139,12 @@ let offset = true;
             ctx.fillStyle = player.color;
             ctx.fillRect(player.x - player.size/2, player.y - player.size/2, player.size, player.size);
 
+            // dibujar jugador remoto solo si es visible
+            if (remotePlayer.visible) {
+                ctx.fillStyle = remotePlayer.color;
+                ctx.fillRect(remotePlayer.x - remotePlayer.size/2, remotePlayer.y - remotePlayer.size/2, remotePlayer.size, remotePlayer.size);
+            }
+
             cars.forEach(car => {
                 ctx.fillStyle = car.color;
                 ctx.fillRect(car.x, car.y, car.w, car.h);
@@ -154,6 +167,23 @@ let offset = true;
             //scoreEl.innerText = score;
             player.x = 320;
             player.y = canvas.height -32;
+        }
+
+        // obtener posicion local
+        function getFrogPosition() {
+            return { x: player.x, y: player.y };
+        }
+
+        // actualizar posicion remota y hacer visible
+        function updateRemoteFrog(x, y) {
+            remotePlayer.x = x;
+            remotePlayer.y = y;
+            remotePlayer.visible = true;
+        }
+
+        // funcion para ocultar jugador remoto
+        function hideRemoteFrog() {
+            remotePlayer.visible = false;
         }
 
 
