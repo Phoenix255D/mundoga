@@ -37,56 +37,6 @@
 .logout-button:active {
     transform: scale(0.95);
 }
-.character-card {
-    width: 140px;
-    padding: 10px;
-    border-radius: 12px;
-    background: #ffffffaa;
-    text-align: center;
-    cursor: pointer;
-    transition: 0.3s;
-    backdrop-filter: blur(5px);
-}
-
-.character-card:hover {
-    transform: scale(1.05);
-}
-
-.character-card.seleccionado {
-    border: 3px solid #ff4444;
-}
-
-.character-card img.icono-personaje {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-}
-
-
-#btn-cambiar-skin {
-    position: absolute;
-    top: 10px;
-    right: 155px; 
-    padding: 10px 20px;
-    background: #005187;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-    z-index: 1000;
-    transition: background 0.3s ease;
-}
-
-#btn-cambiar-skin:hover {
-    background: #00385f;
-}
-
-#btn-cambiar-skin:active {
-    transform: scale(0.95);
-}
-
 
 #chatContainer{
     position: absolute;

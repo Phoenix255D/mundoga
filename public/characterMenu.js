@@ -13,6 +13,7 @@ export class CharacterMenu {
                 id: 1,
                 name: "Pingüino Negro",
                 color: "#2C3E50",
+                stats: { velocidad: 1.2, fuerza: 1.0, agilidad: 0.9 },
                 description: "Veloz y ágil, perfecto para explorar",
                 price: 0
             },
@@ -20,6 +21,7 @@ export class CharacterMenu {
                 id: 2,
                 name: "Pingüino Blue",
                 color: "#F1C40F",
+                stats: { velocidad: 0.8, fuerza: 1.3, agilidad: 0.7 },
                 description: "Fuerte y resistente, ideal para desafíos",
                 price: 50
             },
@@ -27,6 +29,7 @@ export class CharacterMenu {
                 id: 3,
                 name: "Pingüino Fosfo",
                 color: "#3498DB",
+                stats: { velocidad: 1.0, fuerza: 1.1, agilidad: 1.0 },
                 description: "Equilibrado en todas las habilidades",
                 price: 25
             },
@@ -34,6 +37,7 @@ export class CharacterMenu {
                 id: 4,
                 name: "Pingüino Grey",
                 color: "#E74C3C",
+                stats: { velocidad: 1.1, fuerza: 1.2, agilidad: 0.8 },
                 description: "Veloz y fuerte, un buen competidor",
                 price: 75
             },
@@ -41,6 +45,7 @@ export class CharacterMenu {
                 id: 5,
                 name: "Pingüino Pink",
                 color: "#E74C3C",
+                stats: { velocidad: 1.1, fuerza: 1.2, agilidad: 0.8 },
                 description: "Veloz y fuerte, un buen competidor",
                 price: 75
             },
@@ -48,6 +53,7 @@ export class CharacterMenu {
                 id: 6,
                 name: "Pingüino Pink 2",
                 color: "#E74C3C",
+                stats: { velocidad: 1.1, fuerza: 1.2, agilidad: 0.8 },
                 description: "Veloz y fuerte, un buen competidor",
                 price: 75
             },
@@ -55,11 +61,13 @@ export class CharacterMenu {
                 id: 7,
                 name: "Pingüino Purple",
                 color: "#E74C3C",
+                stats: { velocidad: 1.1, fuerza: 1.2, agilidad: 0.8 },
                 description: "Veloz y fuerte, un buen competidor",
                 price: 75
             }
         ];
         
+        // Cargar imágenes de personajes
         this.images = {};
         this.loadImages();
         
@@ -69,19 +77,20 @@ export class CharacterMenu {
     }
     
     loadImages() {
-    const imageNames = ['black', 'blue', 'fosfo', 'grey', 'pink', 'pink2', 'purple'];
-    imageNames.forEach((name, index) => {
-        const img = new Image();
-        img.onload = () => {
-            this.images[index] = img;
-        };
-        img.onerror = () => {
-            this.images[index] = null;
-        };
-        img.src = `sprites/frontal/penguin_${name}.png`;
-    });
-}
-
+        // Intentar cargar imágenes de personajes
+        const imageNames = ['black', 'blue', 'fosfo', 'grey', 'pink', 'pink2', 'purple'];
+        imageNames.forEach((name, index) => {
+            const img = new Image();
+            img.onload = () => {
+                this.images[index] = img;
+            };
+            img.onerror = () => {
+                // Si no hay imagen, usamos color
+                this.images[index] = null;
+            };
+            img.src = `sprites/penguin_${name}.png`;
+        });
+    }
     
     setupControls() {
         document.addEventListener('keydown', (e) => {
@@ -199,7 +208,7 @@ export class CharacterMenu {
             if (char.price > 0) {
                 this.ctx.fillStyle = '#F1C40F';
                 this.ctx.font = 'bold 16px Arial';
-                this.ctx.fillText(` ${char.price} monedas`, centerX, y + cardHeight - 15);
+                this.ctx.fillText(`💰 ${char.price} monedas`, centerX, y + cardHeight - 15);
             }
             
             // Indicador de selección
