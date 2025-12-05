@@ -37,6 +37,37 @@
     max-width: 500px;
 }
 
+.contenedor-botones {
+    position: fixed;
+    left: 20px;
+    top: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1100;
+}
+
+.btn-seleccionar,
+.btn-cerrar-menu {
+    padding: 10px 25px;
+    font-size: 14px;
+    background: #1b7caf;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-seleccionar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-seleccionar:hover,
+.btn-cerrar-menu:hover {
+    background: #16658c;
+}
+
 .character-card {
     background: rgba(255,255,255,0.15);
     border-radius: 10px;
@@ -47,6 +78,7 @@
     min-height: 160px;
     display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: space-between;
 }
 
@@ -61,6 +93,9 @@
     border-radius: 50%;
     border: 2px solid white;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .sprite-preview {
@@ -85,35 +120,11 @@
     border: 2px solid white;
     border-radius: 50%;
     opacity: 0;
+    margin: 5px auto 0;
 }
+
 .character-card.selected .indicador-seleccion {
     opacity: 1;
-}
-
-.contenedor-botones {
-    display: flex;
-    gap: 15px;
-}
-
-.btn-seleccionar,
-.btn-cerrar-menu {
-    padding: 10px 25px;
-    font-size: 14px;
-    background: #1b7caf;     
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.btn-seleccionar:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.btn-seleccionar:hover,
-.btn-cerrar-menu:hover {
-    background: #16658c;
 }
 
 #btn-personajes-menu {
@@ -129,7 +140,7 @@
     font-size: 14px;
     font-weight: bold;
     z-index: 1000;
-    transition: background 0.3s ease, transform 0.2s ease; 
+    transition: background 0.3s ease, transform 0.2s ease;
 }
 
 #btn-personajes-menu:hover {
