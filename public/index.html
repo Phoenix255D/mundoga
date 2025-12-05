@@ -1,31 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Club Penguin</title>
+    <title>Holas</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="skins.css">
+	<link rel="stylesheet" href="style2.css">
 </head>
 <body>
-
-    <button id="btn-cambiar-skin" class="btn-menu">Cambiar Personaje</button>
-
-    <div id="personajes-menu" class="ventana-flotante" style="display:none;">
-        <h1>Skins</h1>
-        <h2>Skins de pingus</h2>
-
-        <div id="grid-personajes"></div>
-
-        <div id="menu-botones">
-            <button id="btn-seleccionar" class="btn-menu" disabled>Seleccionar</button>
-            <button id="btn-cerrar" class="btn-menu">Cerrar</button>
-        </div>
-    </div>
-
     <button id="logout-btn" class="logout-button">Cerrar Sesión</button>
-
     <canvas id="game" width="1024" height="576"></canvas>
     
-    <!-- Chat -->
     <div class="chatContainer" id="chatContainer">
         <div id="chatHeader">Chat del Juego</div>
         <div id="chatMessages"></div>
@@ -36,26 +19,12 @@
     </div>
 
     <script type="module" src="./main.js"></script>
-
     <script>
-        const menu = document.getElementById("personajes-menu");
-        const btnCambiar = document.getElementById("btn-cambiar-skin");
-        const btnCerrar = document.getElementById("btn-cerrar");
-
-        btnCambiar.addEventListener("click", () => {
-            menu.style.display = "block";
-        });
-
-        btnCerrar.addEventListener("click", () => {
-            menu.style.display = "none";
-        });
-
         document.getElementById('logout-btn').addEventListener('click', () => {
             if (confirm('¿Seguro que quieres cerrar sesión?')) {
                 window.location.href = '/logout';
             }
         });
     </script>
-
 </body>
 </html>
