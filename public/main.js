@@ -1,15 +1,9 @@
 import { iniciarJuego, bucleTest } from "./miniGames/mini.js";
-// importar funcion de ocultar
 import { initFrog, update, getFrogPosition, updateRemoteFrog, hideRemoteFrog } from "./miniGames/frogger/main.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// ============================================
-// NUEVO: SISTEMA DE PERSONAJES
-// ============================================
-
-// Definir los 7 personajes disponibles con tus sprites
 const personajes = [
     {
         id: 1,
@@ -69,11 +63,9 @@ const personajes = [
     }
 ];
 
-// Variable para controlar si el menú está abierto
 let menuPersonajesAbierto = false;
 let personajeSeleccionado = null;
 
-// Crear contenedor del menú
 const menuContainer = document.createElement("div");
 menuContainer.id = "personajes-menu";
 menuContainer.style.cssText = `
@@ -96,7 +88,7 @@ menuContainer.style.cssText = `
 `;
 
 const tituloMenu = document.createElement("h1");
-tituloMenu.textContent = "🎮 SELECCIONA TU PERSONAJE";
+tituloMenu.textContent = " SELECCIONA TU PERSONAJE";
 tituloMenu.style.cssText = `
     font-size: 36px;
     margin-bottom: 15px;
@@ -131,7 +123,7 @@ contenedorBotones.style.cssText = `
 `;
 
 const btnSeleccionar = document.createElement("button");
-btnSeleccionar.textContent = "✅ SELECCIONAR";
+btnSeleccionar.textContent = " SELECCIONAR";
 btnSeleccionar.style.cssText = `
     padding: 15px 40px;
     font-size: 18px;
@@ -147,23 +139,9 @@ btnSeleccionar.style.cssText = `
     cursor: not-allowed;
 `;
 
-const btnAleatorio = document.createElement("button");
-btnAleatorio.textContent = "🎲 ALEATORIO";
-btnAleatorio.style.cssText = `
-    padding: 15px 40px;
-    font-size: 18px;
-    background: linear-gradient(135deg, #8A2BE2, #4B0082);
-    color: white;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    font-weight: bold;
-`;
 
 const btnCerrarMenu = document.createElement("button");
-btnCerrarMenu.textContent = "❌ CERRAR";
+btnCerrarMenu.textContent = " CERRAR";
 btnCerrarMenu.style.cssText = `
     padding: 15px 40px;
     font-size: 18px;
@@ -192,15 +170,7 @@ btnSeleccionar.onmouseleave = () => {
     }
 };
 
-btnAleatorio.onmouseenter = () => {
-    btnAleatorio.style.transform = "scale(1.05)";
-    btnAleatorio.style.boxShadow = "0 6px 20px rgba(0,0,0,0.3)";
-};
 
-btnAleatorio.onmouseleave = () => {
-    btnAleatorio.style.transform = "scale(1)";
-    btnAleatorio.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
-};
 
 btnCerrarMenu.onmouseenter = () => {
     btnCerrarMenu.style.transform = "scale(1.05)";
@@ -352,18 +322,12 @@ function seleccionarPersonaje(personaje) {
     btnSeleccionar.disabled = false;
     btnSeleccionar.style.opacity = "1";
     btnSeleccionar.style.cursor = "pointer";
-    btnSeleccionar.textContent = `✅ JUGAR COMO ${personaje.nombre}`;
+    btnSeleccionar.textContent = `JUGAR COMO ${personaje.nombre}`;
     
     mostrarNotificacion(`¡${personaje.nombre} seleccionado!`);
 }
 
-// Función para selección aleatoria
-btnAleatorio.addEventListener("click", () => {
-    const personajeAleatorio = personajes[Math.floor(Math.random() * personajes.length)];
-    seleccionarPersonaje(personajeAleatorio);
-});
 
-// Función para aplicar selección
 btnSeleccionar.addEventListener("click", () => {
     if (personajeSeleccionado) {
         aplicarPersonajeSeleccionado(personajeSeleccionado);
@@ -371,29 +335,25 @@ btnSeleccionar.addEventListener("click", () => {
     }
 });
 
-// Función para cerrar menú
 btnCerrarMenu.addEventListener("click", cerrarMenuPersonajes);
 
-// Función para aplicar el personaje seleccionado
 function aplicarPersonajeSeleccionado(personaje) {
-    console.log(`🎮 Personaje seleccionado: ${personaje.nombre}`);
-    console.log(`📁 Sprite: ${personaje.sprite}`);
+    console.log(` Personaje seleccionado: ${personaje.nombre}`);
+    console.log(` Sprite: ${personaje.sprite}`);
     
     // Actualizar el sprite del jugador
     imagenes.jugador = new Image();
     imagenes.jugador.src = personaje.sprite;
     imagenes.jugador.onload = () => {
-        console.log(`✅ Sprite cargado: ${personaje.sprite}`);
+        console.log(`Sprite cargado: ${personaje.sprite}`);
     };
     imagenes.jugador.onerror = (err) => {
-        console.error(`❌ Error al cargar sprite: ${personaje.sprite}`, err);
+        console.error(` Error al cargar sprite: ${personaje.sprite}`, err);
     };
     
-    // Actualizar color del jugador
     jugador.color = personaje.color;
     jugador.nombrePersonaje = personaje.nombre;
     
-    // Notificar al servidor
     if (ws.readyState === WebSocket.OPEN && miIdJugador) {
         ws.send(JSON.stringify({
             tipo: 'actualizar_personaje',
@@ -406,7 +366,6 @@ function aplicarPersonajeSeleccionado(personaje) {
     mostrarNotificacion(`¡Ahora eres ${personaje.nombre}!`);
 }
 
-// Función para mostrar notificación
 function mostrarNotificacion(mensaje) {
     const notificacion = document.createElement("div");
     notificacion.textContent = mensaje;
@@ -433,7 +392,6 @@ function mostrarNotificacion(mensaje) {
     }, 2000);
 }
 
-// Estilos de animación
 const estilosAnimacion = document.createElement("style");
 estilosAnimacion.textContent = `
     @keyframes slideIn {
@@ -459,26 +417,20 @@ estilosAnimacion.textContent = `
     }
 `;
 document.head.appendChild(estilosAnimacion);
-
-// Construir el menú
 menuContainer.appendChild(tituloMenu);
 menuContainer.appendChild(subtituloMenu);
 menuContainer.appendChild(gridPersonajes);
-contenedorBotones.appendChild(btnAleatorio);
 contenedorBotones.appendChild(btnSeleccionar);
 contenedorBotones.appendChild(btnCerrarMenu);
 menuContainer.appendChild(contenedorBotones);
 
-// Agregar al DOM
 document.body.appendChild(menuContainer);
 
-// Función para abrir menú
 function abrirMenuPersonajes() {
     menuPersonajesAbierto = true;
     menuContainer.style.display = "flex";
     menuContainer.style.animation = "fadeIn 0.3s ease";
-    
-    // Agregar animación de entrada
+  
     if (!document.querySelector('#menu-animation')) {
         const animStyle = document.createElement('style');
         animStyle.id = 'menu-animation';
@@ -491,8 +443,6 @@ function abrirMenuPersonajes() {
         document.head.appendChild(animStyle);
     }
 }
-
-// Función para cerrar menú
 function cerrarMenuPersonajes() {
     menuPersonajesAbierto = false;
     menuContainer.style.animation = "fadeOut 0.3s ease";
@@ -500,8 +450,6 @@ function cerrarMenuPersonajes() {
     setTimeout(() => {
         menuContainer.style.display = "none";
     }, 300);
-    
-    // Agregar animación de salida
     if (!document.querySelector('#menu-animation-out')) {
         const animStyle = document.createElement('style');
         animStyle.id = 'menu-animation-out';
@@ -515,18 +463,10 @@ function cerrarMenuPersonajes() {
     }
 }
 
-// ============================================
-// NUEVO: BOTÓN DE PERSONAJES EN EL HEADER
-// ============================================
-
-// Crear botón de personajes inmediatamente
 const crearBotonPersonajes = () => {
-    // Si ya existe el botón, no crear otro
     if (document.getElementById('btn-personajes-menu')) {
         return;
     }
-    
-    // Crear botón de personajes
     const btnPersonajes = document.createElement("button");
     btnPersonajes.id = "btn-personajes-menu";
     btnPersonajes.innerHTML = "👤 Personajes";
@@ -567,16 +507,10 @@ const crearBotonPersonajes = () => {
     console.log('Botón de personajes creado');
 };
 
-// Crear botón inmediatamente y también después de que cargue la página
 crearBotonPersonajes();
 document.addEventListener('DOMContentLoaded', crearBotonPersonajes);
 window.addEventListener('load', crearBotonPersonajes);
 
-// ============================================
-// FIN DEL NUEVO SISTEMA DE PERSONAJES
-// ============================================
-
-// obtener datos del usuario
 let miUsername = "Cargando...";
 fetch('/api/user')
     .then(res => res.json())
