@@ -5,15 +5,15 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const personajes = [
-    { id: 1, nombre: "Zero", sprite: "sprites/Zero.png", color: "#000000", descripcion: "El zero" },
-    { id: 2, nombre: "Pingüino Negro", sprite: "sprites/penguin_black.png", color: "#000000", descripcion: "Pingu Negro" },
-    { id: 3, nombre: "Pingüino Azul", sprite: "sprites/penguin_blue.png", color: "#0000FF", descripcion: "Pingu azul" },
-    { id: 4, nombre: "Pingüino Fosfo", sprite: "sprites/penguin_fosfo.png", color: "#00FF00", descripcion: "Pingu fosfo" },
-    { id: 5, nombre: "Pingüino Gris", sprite: "sprites/penguin_grey.png", color: "#808080", descripcion: "Pingu gris" },
-    { id: 6, nombre: "Pingüino Rosa", sprite: "sprites/penguin_pink.png", color: "#FFC0CB", descripcion: "Pingu rosita" },
-    { id: 7, nombre: "Pingüino Rosa2", sprite: "sprites/penguin_pink2.png", color: "#FF69B4", descripcion: "Pingu mas rosita" },
-    { id: 8, nombre: "Pingüino Morado", sprite: "sprites/penguin_purple.png", color: "#800080", descripcion: "Pingu morado" }
+    { id: 1, nombre: "Pingüino Negro", sprite: "sprites/frontal/penguin_black.png", color: "#000000", descripcion: "Pingu Negro" },
+    { id: 2, nombre: "Pingüino Azul", sprite: "sprites/frontal/penguin_blue.png", color: "#0000FF", descripcion: "Pingu azul" },
+    { id: 3, nombre: "Pingüino Fosfo", sprite: "sprites/frontal/penguin_fosfo.png", color: "#00FF00", descripcion: "Pingu fosfo" },
+    { id: 4, nombre: "Pingüino Gris", sprite: "sprites/frontal/penguin_grey.png", color: "#808080", descripcion: "Pingu gris" },
+    { id: 5, nombre: "Pingüino Rosa", sprite: "sprites/frontal/penguin_pink.png", color: "#FFC0CB", descripcion: "Pingu rosita" },
+    { id: 6, nombre: "Pingüino Rosa 2", sprite: "sprites/frontal/penguin_pink2.png", color: "#FF69B4", descripcion: "Pingu mas rosita" },
+    { id: 7, nombre: "Pingüino Morado", sprite: "sprites/frontal/penguin_purple.png", color: "#800080", descripcion: "Pingu morado" }
 ];
+
 
 let menuPersonajesAbierto = false;
 let personajeSeleccionado = null;
@@ -31,6 +31,11 @@ subtituloMenu.textContent = "Elige el personaje que más te guste";
 const gridPersonajes = document.createElement("div");
 
 personajes.forEach(personaje => {
+	const img = document.createElement("img");
+	img.src = personaje.sprite;
+	img.className = "icono-personaje";
+	card.insertBefore(img, nombre);
+
     const card = document.createElement("div");
     card.className = "character-card";
     card.dataset.id = personaje.id;
