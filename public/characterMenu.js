@@ -67,7 +67,6 @@ export class CharacterMenu {
                 this.images[index] = img;
             };
             img.onerror = () => {
-                // Si no hay imagen, usamos color
                 this.images[index] = null;
             };
             img.src = `sprites/penguin_${name}.png`;
@@ -170,35 +169,8 @@ export class CharacterMenu {
             this.ctx.fillStyle = 'white';
             this.ctx.font = 'bold 22px Arial';
             this.ctx.fillText(char.name, centerX, y + 130);
+           
             
-            // Descripción
-            this.ctx.fillStyle = '#CCCCCC';
-            this.ctx.font = '14px Arial';
-            this.wrapText(char.description, centerX, y + 160, cardWidth - 20, 18);
-            
-            // Estadísticas
-            this.ctx.fillStyle = '#4CC9F0';
-            this.ctx.font = '14px Arial';
-            let statsY = y + 190;
-            for (const [stat, value] of Object.entries(char.stats)) {
-                const statName = stat.charAt(0).toUpperCase() + stat.slice(1);
-                this.ctx.fillText(`${statName}: ${value}`, centerX, statsY);
-                statsY += 18;
-            }
-            
-            // Precio si tiene
-            if (char.price > 0) {
-                this.ctx.fillStyle = '#F1C40F';
-                this.ctx.font = 'bold 16px Arial';
-                this.ctx.fillText(` ${char.price} monedas`, centerX, y + cardHeight - 15);
-            }
-            
-            // Indicador de selección
-            if (isSelected) {
-                this.ctx.fillStyle = '#F72585';
-                this.ctx.font = 'bold 18px Arial';
-                this.ctx.fillText('▼ SELECCIONADO ▼', centerX, y + cardHeight + 30);
-            }
         }
         
         // Pie de página
@@ -224,7 +196,6 @@ export class CharacterMenu {
                 y += lineHeight;
                 lineCount++;
                 
-                // Limitar a 2 líneas
                 if (lineCount >= 2) {
                     this.ctx.fillText('...', x, y);
                     break;
