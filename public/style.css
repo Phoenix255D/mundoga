@@ -1,9 +1,9 @@
     body{
             margin: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: flex-start;
             height: 100vh;
     }
     #game,#miniGame{
@@ -39,18 +39,18 @@
 }
 
 #chatContainer{
-        margin-top: 500px;
-        border:  solid black;
-
-        width: 800px;
-        height: 200px;
-        background-color: white;
-        border: 2px solid #333;
-        border-radius: 5px;
-        margin-bottom: 10px;
-        display: flex;
-        flex-direction: column;
-    }
+    position: absolute;
+    top: 70px;       
+	right: 5px; 
+    width: 325px;
+    height: 500px;
+    background-color: white;
+    border: 2px solid #333;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    z-index: 500;    
+}
 
     #chatMessages {
         flex: 1;
