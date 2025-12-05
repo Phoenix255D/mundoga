@@ -42,12 +42,12 @@ const servidorWS = new WebSocket.Server({
 
 
 // Página de login (GET)
-aplicacion.get("/login", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "login.html"));
+aplicacion.get("/login1", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "login1.html"));
 });
 
 // Procesar login (POST)
-aplicacion.post("/login", (req, res) => {
+aplicacion.post("/login1", (req, res) => {
     const { username, password } = req.body;
     
     db.query(
@@ -56,7 +56,7 @@ aplicacion.post("/login", (req, res) => {
         (err, result) => {
             if (err) {
                 console.error("Error en login:", err);
-                return res.send("<h3>Error en el servidor</h3><a href='/login'>Intentar de nuevo</a>");
+                return res.send("<h3>Error en el servidor</h3><a href='/login1'>Intentar de nuevo</a>");
             }
             
             if (result.length === 1) {
@@ -64,7 +64,7 @@ aplicacion.post("/login", (req, res) => {
                 return res.redirect("/");
             }
             
-            res.send("<h3>Usuario o contraseña incorrectos</h3><a href='/login'>Intentar de nuevo</a>");
+            res.send("<h3>Usuario o contraseña incorrectos</h3><a href='/login1'>Intentar de nuevo</a>");
         }
     );
 });
@@ -128,7 +128,7 @@ aplicacion.post("/registro", (req, res) => {
                             }
                             
                             console.log(" Usuario creado exitosamente:", username, "con ID:", nuevoId);
-                            res.send("<h3>Cuenta creada exitosamente</h3><a href='/login'>Ir a iniciar sesión</a>");
+                            res.send("<h3>Cuenta creada exitosamente</h3><a href='/login1'>Ir a iniciar sesión</a>");
                         }
                     );
                 }
@@ -144,13 +144,13 @@ aplicacion.get("/logout", (req, res) => {
             console.error("Error al cerrar sesión:", err);
             return res.send("<h3>Error al cerrar sesión</h3>");
         }
-        res.redirect("/login");
+        res.redirect("/login1");
     });
 });
 
 
 function requireLogin(req, res, next) {
-    if (!req.session.user) return res.redirect("/login");
+    if (!req.session.user) return res.redirect("/login1");
     next();
 }
 
