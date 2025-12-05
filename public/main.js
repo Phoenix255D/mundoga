@@ -1,9 +1,574 @@
 import { iniciarJuego, bucleTest } from "./miniGames/mini.js";
-// importar funcion de ocultar
 import { initFrog, update, getFrogPosition, updateRemoteFrog, hideRemoteFrog } from "./miniGames/frogger/main.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+
+const personajes = [
+    {
+        id: 1,
+        nombre: "Zero",
+        sprite: "sprites/Zero.png",
+        color: "#000000",
+        descripcion: "El guerrero oscuro"
+    },
+    {
+        id: 2,
+        nombre: "Pingüino Negro",
+        sprite: "sprites/penguin_black.png",
+        color: "#000000",
+        descripcion: "El clásico elegante"
+    },
+    {
+        id: 3,
+        nombre: "Pingüino Azul",
+        sprite: "sprites/penguin_blue.png",
+        color: "#0000FF",
+        descripcion: "Frescura polar"
+    },
+    {
+        id: 4,
+        nombre: "Pingüino Fosfo",
+        sprite: "sprites/penguin_fosfo.png",
+        color: "#00FF00",
+        descripcion: "Brillo fluorescente"
+    },
+    {
+        id: 5,
+        nombre: "Pingüino Gris",
+        sprite: "sprites/penguin_grey.png",
+        color: "#808080",
+        descripcion: "Estilo minimalista"
+    },
+    {
+        id: 6,
+        nombre: "Pingüino Rosa",
+        sprite: "sprites/penguin_pink.png",
+        color: "#FFC0CB",
+        descripcion: "Dulce y suave"
+    },
+    {
+        id: 7,
+        nombre: "Pingüino Rosa2",
+        sprite: "sprites/penguin_pink2.png",
+        color: "#FF69B4",
+        descripcion: "Rosa vibrante"
+    },
+    {
+        id: 8,
+        nombre: "Pingüino Morado",
+        sprite: "sprites/penguin_purple.png",
+        color: "#800080",
+        descripcion: "Misterio real"
+    }
+];
+
+// Variable para controlar si el menú está abierto
+let menuPersonajesAbierto = false;
+let personajeSeleccionado = null;
+
+// Crear contenedor del menú
+const menuContainer = document.createElement("div");
+menuContainer.id = "personajes-menu";
+menuContainer.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(26, 41, 128, 0.95), rgba(38, 208, 206, 0.95));
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    font-family: 'Arial', sans-serif;
+    color: white;
+    overflow-y: auto;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+`;
+
+const tituloMenu = document.createElement("h1");
+tituloMenu.textContent = "🎮 SELECCIONA TU PERSONAJE";
+tituloMenu.style.cssText = `
+    font-size: 36px;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    text-align: center;
+`;
+
+const subtituloMenu = document.createElement("h2");
+subtituloMenu.textContent = "Elige el personaje que más te guste";
+subtituloMenu.style.cssText = `
+    font-size: 18px;
+    margin-bottom: 40px;
+    text-align: center;
+    color: rgba(255,255,255,0.8);
+    font-weight: normal;
+`;
+
+const gridPersonajes = document.createElement("div");
+gridPersonajes.style.cssText = `
+    display: grid;
+    grid-template-columns: repeat(3, 200px);
+    gap: 20px;
+    margin-bottom: 40px;
+    max-width: 700px;
+`;
+
+const contenedorBotones = document.createElement("div");
+contenedorBotones.style.cssText = `
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+`;
+
+const btnSeleccionar = document.createElement("button");
+btnSeleccionar.textContent = "✅ SELECCIONAR";
+btnSeleccionar.style.cssText = `
+    padding: 15px 40px;
+    font-size: 18px;
+    background: linear-gradient(135deg, #00b09b, #96c93d);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    font-weight: bold;
+    opacity: 0.7;
+    cursor: not-allowed;
+`;
+
+const btnAleatorio = document.createElement("button");
+btnAleatorio.textContent = "🎲 ALEATORIO";
+btnAleatorio.style.cssText = `
+    padding: 15px 40px;
+    font-size: 18px;
+    background: linear-gradient(135deg, #8A2BE2, #4B0082);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    font-weight: bold;
+`;
+
+const btnCerrarMenu = document.createElement("button");
+btnCerrarMenu.textContent = "❌ CERRAR";
+btnCerrarMenu.style.cssText = `
+    padding: 15px 40px;
+    font-size: 18px;
+    background: linear-gradient(135deg, #FF416C, #FF4B2B);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    font-weight: bold;
+`;
+
+// Estilos para efectos hover
+btnSeleccionar.onmouseenter = () => {
+    if (!btnSeleccionar.disabled) {
+        btnSeleccionar.style.transform = "scale(1.05)";
+        btnSeleccionar.style.boxShadow = "0 6px 20px rgba(0,0,0,0.3)";
+    }
+};
+
+btnSeleccionar.onmouseleave = () => {
+    if (!btnSeleccionar.disabled) {
+        btnSeleccionar.style.transform = "scale(1)";
+        btnSeleccionar.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
+    }
+};
+
+btnAleatorio.onmouseenter = () => {
+    btnAleatorio.style.transform = "scale(1.05)";
+    btnAleatorio.style.boxShadow = "0 6px 20px rgba(0,0,0,0.3)";
+};
+
+btnAleatorio.onmouseleave = () => {
+    btnAleatorio.style.transform = "scale(1)";
+    btnAleatorio.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
+};
+
+btnCerrarMenu.onmouseenter = () => {
+    btnCerrarMenu.style.transform = "scale(1.05)";
+    btnCerrarMenu.style.boxShadow = "0 6px 20px rgba(0,0,0,0.3)";
+};
+
+btnCerrarMenu.onmouseleave = () => {
+    btnCerrarMenu.style.transform = "scale(1)";
+    btnCerrarMenu.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
+};
+
+// Crear tarjetas de personajes
+personajes.forEach(personaje => {
+    const card = document.createElement("div");
+    card.className = "character-card";
+    card.dataset.id = personaje.id;
+    
+    card.style.cssText = `
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        min-height: 220px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+    `;
+    
+    const avatarContainer = document.createElement("div");
+    avatarContainer.style.cssText = `
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 15px;
+        border-radius: 50%;
+        background: ${personaje.color}30;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        overflow: hidden;
+    `;
+    
+    // Vista previa del sprite
+    const spritePreview = document.createElement("div");
+    spritePreview.style.cssText = `
+        width: 50px;
+        height: 50px;
+        background-color: ${personaje.color};
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    `;
+    spritePreview.textContent = "🐧";
+    
+    avatarContainer.appendChild(spritePreview);
+    
+    const nombre = document.createElement("h3");
+    nombre.textContent = personaje.nombre;
+    nombre.style.cssText = `
+        margin: 0 0 10px 0;
+        font-size: 18px;
+        color: white;
+        font-weight: bold;
+    `;
+    
+    const descripcion = document.createElement("p");
+    descripcion.textContent = personaje.descripcion;
+    descripcion.style.cssText = `
+        margin: 0;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        min-height: 40px;
+    `;
+    
+    const indicadorSeleccion = document.createElement("div");
+    indicadorSeleccion.style.cssText = `
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: ${personaje.color};
+        margin: 10px auto 0;
+        border: 2px solid white;
+        opacity: 0;
+        transform: scale(0);
+        transition: all 0.3s ease;
+    `;
+    
+    card.appendChild(avatarContainer);
+    card.appendChild(nombre);
+    card.appendChild(descripcion);
+    card.appendChild(indicadorSeleccion);
+    
+    // Eventos de la tarjeta
+    card.addEventListener("mouseenter", () => {
+        card.style.background = "rgba(255, 255, 255, 0.2)";
+        card.style.transform = "translateY(-5px)";
+        card.style.boxShadow = "0 10px 20px rgba(0,0,0,0.2)";
+    });
+    
+    card.addEventListener("mouseleave", () => {
+        if (personajeSeleccionado?.id !== personaje.id) {
+            card.style.background = "rgba(255, 255, 255, 0.1)";
+            card.style.transform = "translateY(0)";
+            card.style.boxShadow = "none";
+        }
+    });
+    
+    // Evento de selección
+    card.addEventListener("click", () => {
+        seleccionarPersonaje(personaje);
+    });
+    
+    gridPersonajes.appendChild(card);
+});
+
+// Función para seleccionar personaje
+function seleccionarPersonaje(personaje) {
+    // Quitar selección anterior
+    document.querySelectorAll(".character-card").forEach(c => {
+        const card = c;
+        const indicador = card.querySelector("div:last-child");
+        card.style.background = "rgba(255, 255, 255, 0.1)";
+        card.style.border = "2px solid rgba(255, 255, 255, 0.2)";
+        card.style.transform = "translateY(0)";
+        indicador.style.opacity = "0";
+        indicador.style.transform = "scale(0)";
+    });
+    
+    // Aplicar selección actual
+    const cardSeleccionado = document.querySelector(`[data-id="${personaje.id}"]`);
+    if (cardSeleccionado) {
+        const indicador = cardSeleccionado.querySelector("div:last-child");
+        cardSeleccionado.style.background = "rgba(255, 255, 255, 0.3)";
+        cardSeleccionado.style.border = `2px solid ${personaje.color}`;
+        cardSeleccionado.style.transform = "translateY(-5px)";
+        indicador.style.opacity = "1";
+        indicador.style.transform = "scale(1)";
+    }
+    
+    personajeSeleccionado = personaje;
+    btnSeleccionar.disabled = false;
+    btnSeleccionar.style.opacity = "1";
+    btnSeleccionar.style.cursor = "pointer";
+    btnSeleccionar.textContent = `✅ JUGAR COMO ${personaje.nombre}`;
+    
+    mostrarNotificacion(`¡${personaje.nombre} seleccionado!`);
+}
+
+// Función para selección aleatoria
+btnAleatorio.addEventListener("click", () => {
+    const personajeAleatorio = personajes[Math.floor(Math.random() * personajes.length)];
+    seleccionarPersonaje(personajeAleatorio);
+});
+
+// Función para aplicar selección
+btnSeleccionar.addEventListener("click", () => {
+    if (personajeSeleccionado) {
+        aplicarPersonajeSeleccionado(personajeSeleccionado);
+        cerrarMenuPersonajes();
+    }
+});
+
+// Función para cerrar menú
+btnCerrarMenu.addEventListener("click", cerrarMenuPersonajes);
+
+// Función para aplicar el personaje seleccionado
+function aplicarPersonajeSeleccionado(personaje) {
+    console.log(`🎮 Personaje seleccionado: ${personaje.nombre}`);
+    console.log(`📁 Sprite: ${personaje.sprite}`);
+    
+    // Actualizar el sprite del jugador
+    imagenes.jugador = new Image();
+    imagenes.jugador.src = personaje.sprite;
+    imagenes.jugador.onload = () => {
+        console.log(`✅ Sprite cargado: ${personaje.sprite}`);
+    };
+    imagenes.jugador.onerror = (err) => {
+        console.error(`❌ Error al cargar sprite: ${personaje.sprite}`, err);
+    };
+    
+    // Actualizar color del jugador
+    jugador.color = personaje.color;
+    jugador.nombrePersonaje = personaje.nombre;
+    
+    // Notificar al servidor
+    if (ws.readyState === WebSocket.OPEN && miIdJugador) {
+        ws.send(JSON.stringify({
+            tipo: 'actualizar_personaje',
+            personaje: personaje.nombre,
+            sprite: personaje.sprite,
+            color: personaje.color
+        }));
+    }
+    
+    mostrarNotificacion(`¡Ahora eres ${personaje.nombre}!`);
+}
+
+// Función para mostrar notificación
+function mostrarNotificacion(mensaje) {
+    const notificacion = document.createElement("div");
+    notificacion.textContent = mensaje;
+    notificacion.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        z-index: 1001;
+        animation: slideIn 0.3s ease;
+        font-weight: bold;
+        max-width: 300px;
+    `;
+    
+    document.body.appendChild(notificacion);
+    
+    setTimeout(() => {
+        notificacion.style.animation = "slideOut 0.3s ease";
+        setTimeout(() => notificacion.remove(), 300);
+    }, 2000);
+}
+
+// Estilos de animación
+const estilosAnimacion = document.createElement("style");
+estilosAnimacion.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(estilosAnimacion);
+
+// Construir el menú
+menuContainer.appendChild(tituloMenu);
+menuContainer.appendChild(subtituloMenu);
+menuContainer.appendChild(gridPersonajes);
+contenedorBotones.appendChild(btnAleatorio);
+contenedorBotones.appendChild(btnSeleccionar);
+contenedorBotones.appendChild(btnCerrarMenu);
+menuContainer.appendChild(contenedorBotones);
+
+// Agregar al DOM
+document.body.appendChild(menuContainer);
+
+// Función para abrir menú
+function abrirMenuPersonajes() {
+    menuPersonajesAbierto = true;
+    menuContainer.style.display = "flex";
+    menuContainer.style.animation = "fadeIn 0.3s ease";
+    
+    // Agregar animación de entrada
+    if (!document.querySelector('#menu-animation')) {
+        const animStyle = document.createElement('style');
+        animStyle.id = 'menu-animation';
+        animStyle.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: scale(0.95); }
+                to { opacity: 1; transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(animStyle);
+    }
+}
+
+// Función para cerrar menú
+function cerrarMenuPersonajes() {
+    menuPersonajesAbierto = false;
+    menuContainer.style.animation = "fadeOut 0.3s ease";
+    
+    setTimeout(() => {
+        menuContainer.style.display = "none";
+    }, 300);
+    
+    // Agregar animación de salida
+    if (!document.querySelector('#menu-animation-out')) {
+        const animStyle = document.createElement('style');
+        animStyle.id = 'menu-animation-out';
+        animStyle.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; transform: scale(1); }
+                to { opacity: 0; transform: scale(0.95); }
+            }
+        `;
+        document.head.appendChild(animStyle);
+    }
+}
+
+// ============================================
+// NUEVO: BOTÓN DE PERSONAJES EN EL HEADER
+// ============================================
+
+// Crear botón de personajes inmediatamente
+const crearBotonPersonajes = () => {
+    // Si ya existe el botón, no crear otro
+    if (document.getElementById('btn-personajes-menu')) {
+        return;
+    }
+    
+    // Crear botón de personajes
+    const btnPersonajes = document.createElement("button");
+    btnPersonajes.id = "btn-personajes-menu";
+    btnPersonajes.innerHTML = "👤 Personajes";
+    btnPersonajes.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 120px;
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        z-index: 1000;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    `;
+
+    btnPersonajes.onmouseenter = () => {
+        btnPersonajes.style.transform = "translateY(-2px)";
+        btnPersonajes.style.boxShadow = "0 4px 15px rgba(0,0,0,0.4)";
+    };
+
+    btnPersonajes.onmouseleave = () => {
+        btnPersonajes.style.transform = "translateY(0)";
+        btnPersonajes.style.boxShadow = "0 2px 10px rgba(0,0,0,0.3)";
+    };
+
+    btnPersonajes.addEventListener("click", abrirMenuPersonajes);
+
+    // Agregar al body inmediatamente
+    document.body.appendChild(btnPersonajes);
+    console.log('Botón de personajes creado');
+};
+
+// Crear botón inmediatamente y también después de que cargue la página
+crearBotonPersonajes();
+document.addEventListener('DOMContentLoaded', crearBotonPersonajes);
+window.addEventListener('load', crearBotonPersonajes);
+
+// ============================================
+// FIN DEL NUEVO SISTEMA DE PERSONAJES
+// ============================================
 
 // obtener datos del usuario
 let miUsername = "Cargando...";
@@ -12,6 +577,13 @@ fetch('/api/user')
     .then(data => {
         miUsername = data.username;
         console.log('Usuario logueado:', miUsername);
+        
+        // Cargar personaje guardado si existe
+        const personajeGuardado = localStorage.getItem('personaje_seleccionado');
+        if (personajeGuardado) {
+            const personaje = JSON.parse(personajeGuardado);
+            aplicarPersonajeSeleccionado(personaje);
+        }
     })
     .catch(err => {
         console.error('Error obteniendo usuario:', err);
@@ -134,7 +706,8 @@ const jugador = {
     dir: 0,
     step: 1,
     dinero: 0,
-    color: "#FF0000"
+    color: "#FF0000",
+    nombrePersonaje: "Zero"
 };
 
 function validarCoordenadas(x, y, label = "posición") {
@@ -361,7 +934,7 @@ ws.onmessage = (evento) => {
 				otrosJugadoresPos.set(datos.jugador.id, {
 					id: datos.jugador.id,
 					x: datos.jugador.realX,
-					y: datos.jugador.realY
+				 y: datos.jugador.realY
 				});
 			}
 			break;
@@ -780,6 +1353,7 @@ function dibujar() {
     ctx.fillText("Escenario: " + escenarioActual, 10, 50);
     ctx.fillText("Pos: " + jugador.x.toFixed(1) + ", " + jugador.y.toFixed(1), 10, 70);
     ctx.fillText("Usuario: " + miUsername, 10, 90);
+    ctx.fillText("Personaje: " + jugador.nombrePersonaje, 10, 110);
 }
 
 bucleJuego();
