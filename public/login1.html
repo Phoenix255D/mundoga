@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mundoga Login</title>
+
+    <style>
+        .login-container {
+            position: relative;
+            width: 1024px;
+            height: 576px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .login-img {
+            width: 1024px;
+            height: 576px;
+            display: block;
+        }
+
+        .login-form {
+            position: absolute;
+            top: 280px;
+            left: 360px;
+            width: 280px;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            font-family: 'Trebuchet MS';
+        }
+
+        input{
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 20px;
+            background: linear-gradient(to bottom, #bcdcf8, #e5f3ff);
+            border: 2px solid #10206a;
+            border-radius: 10px;
+            font-family: 'Trebuchet MS';
+
+        }
+
+        input::placeholder {
+            color: rgb(51, 51, 51);
+            opacity: 1;
+        }
+
+        button {
+            width: 30%;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #10206a;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, #7ebbf0, #bee2ff);
+            font-family: 'Trebuchet MS';
+            font-weight:bold;
+        }
+
+        button:hover {
+            background: linear-gradient(to bottom, #6ab5f7, #9fd2fb);
+            transform: scale(1.10);
+            cursor: pointer;
+        }
+
+        a {
+            color: #006;
+        }
+    </style>
+
+</head>
+<body>
+
+    <div class="login-container">
+
+        <img src="escenarios/login1.png" alt="Login" class="login-img">
+
+        <div class="login-form">
+            <form action="/login" method="POST">
+                <input type="text" name="username" placeholder="Usuario" required><br>
+                <input type="password" name="password" placeholder="Contraseña" required><br>
+                <button type="submit">Iniciar</button>
+            </form>
+
+            <p>¿No tienes cuenta? <a href="/registro">Crear cuenta</a></p>
+        </div>
+
+    </div>
+
+</body>
+</html>
