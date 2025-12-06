@@ -10,56 +10,48 @@ const personajes = [
         nombre: "Zero",
         sprite: "sprites/Zero.png",
         color: "#000000",
-        descripcion: "Personaje misterioso"
     },
     {
         id: 2,
         nombre: "Pingüino Negro",
         sprite: "sprites/penguin_black.png",
         color: "#000000",
-        descripcion: "Elegante y sigiloso"
     },
     {
         id: 3,
         nombre: "Pingüino Azul",
         sprite: "sprites/penguin_blue.png",
         color: "#0000FF",
-        descripcion: "Fresco como el hielo"
     },
     {
         id: 4,
         nombre: "Pingüino Fosfo",
         sprite: "sprites/penguin_fosfo.png",
         color: "#00FF00",
-        descripcion: "Brilla en la oscuridad"
     },
     {
         id: 5,
         nombre: "Pingüino Gris",
         sprite: "sprites/penguin_grey.png",
         color: "#808080",
-        descripcion: "Neutral y equilibrado"
     },
     {
         id: 6,
         nombre: "Pingüino Rosa",
         sprite: "sprites/penguin_pink.png",
         color: "#FFC0CB",
-        descripcion: "Dulce y adorable"
     },
     {
         id: 7,
         nombre: "Pingüino Rosa2",
         sprite: "sprites/penguin_pink2.png",
         color: "#FF69B4",
-        descripcion: "Rosa intenso"
     },
     {
         id: 8,
         nombre: "Pingüino Morado",
         sprite: "sprites/penguin_purple.png",
         color: "#800080",
-        descripcion: "Real y majestuoso"
     }
 ];
 
@@ -72,7 +64,8 @@ menuContainer.id = "personajes-menu";
 
 // Crear título
 const tituloMenu = document.createElement("h1");
-tituloMenu.textContent = "SELECCIONA TU PERSONAJE";
+tituloMenu.textContent = "Elige tu skin";
+
 
 // Crear grid de personajes
 const gridPersonajes = document.createElement("div");
@@ -85,13 +78,13 @@ contenedorBotones.className = "contenedor-botones";
 // Crear botón seleccionar
 const btnSeleccionar = document.createElement("button");
 btnSeleccionar.className = "btn-seleccionar";
-btnSeleccionar.textContent = "SELECCIONAR";
+btnSeleccionar.textContent = "Seleccionar";
 btnSeleccionar.disabled = true;
 
 // Crear botón cerrar
 const btnCerrarMenu = document.createElement("button");
 btnCerrarMenu.className = "btn-cerrar-menu";
-btnCerrarMenu.textContent = "CERRAR";
+btnCerrarMenu.textContent = "Cerrar";
 
 // Crear tarjetas de personajes
 personajes.forEach(personaje => {
@@ -232,7 +225,6 @@ function mostrarNotificacion(mensaje) {
 
 // Ensamblar el menú
 menuContainer.appendChild(tituloMenu);
-menuContainer.appendChild(subtituloMenu);
 menuContainer.appendChild(gridPersonajes);
 contenedorBotones.appendChild(btnSeleccionar);
 contenedorBotones.appendChild(btnCerrarMenu);
