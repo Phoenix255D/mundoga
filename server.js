@@ -67,7 +67,6 @@ aplicacion.post("/login", (req, res) => {
     );
 });
 
-// Página de registro (GET)
 aplicacion.get("/registro", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "registro.html"));
 });
@@ -95,7 +94,7 @@ aplicacion.post("/registro", (req, res) => {
         [username],
         (err, result) => {
             if (err) {
-                console.error("❌ Error al verificar usuario:", err);
+                console.error("Error al verificar usuario:", err);
                 return res.send(`<h3>Error: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
             }
             
@@ -109,7 +108,7 @@ aplicacion.post("/registro", (req, res) => {
                 "SELECT MAX(id) as maxId FROM usuarios",
                 (err, result) => {
                     if (err) {
-                        console.error("❌ Error al obtener último ID:", err);
+                        console.error("Error al obtener último ID:", err);
                         return res.send(`<h3>Error: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
                     }
                     
@@ -121,11 +120,11 @@ aplicacion.post("/registro", (req, res) => {
                         [nuevoId, username, password],
                         (err, result) => {
                             if (err) {
-                                console.error("❌ Error al crear cuenta:", err);
+                                console.error("Error al crear cuenta:", err);
                                 return res.send(`<h3>Error: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
                             }
                             
-                            console.log("✅ Usuario creado exitosamente:", username, "con ID:", nuevoId);
+                            console.log("Usuario creado exitosamente:", username, "con ID:", nuevoId);
                             res.send("<h3>Cuenta creada exitosamente</h3><a href='/login'>Ir a iniciar sesión</a>");
                         }
                     );
@@ -155,7 +154,6 @@ aplicacion.use("/fondos", express.static(path.join(__dirname, "public", "fondos"
 aplicacion.use(requireLogin);
 aplicacion.use(express.static(path.join(__dirname, "public")));
 
-// API para obtener datos del usuario
 aplicacion.get("/api/user", (req, res) => {
     res.json({
         username: req.session.user.username,
@@ -164,7 +162,6 @@ aplicacion.get("/api/user", (req, res) => {
     });
 });
 
-// NUEVO: API para actualizar la skin del usuario
 aplicacion.post("/api/user/skin", express.json(), (req, res) => {
     const { id_skin } = req.body;
     const userId = req.session.user.id;
@@ -183,7 +180,7 @@ aplicacion.post("/api/user/skin", express.json(), (req, res) => {
             }
             
             req.session.user.id_skin = id_skin;
-            console.log(`✅ Skin actualizada para usuario ${userId}: ${id_skin}`);
+            console.log(`Skin actualizada para usuario ${userId}: ${id_skin}`);
             res.json({ success: true, id_skin });
         }
     );
