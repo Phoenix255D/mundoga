@@ -153,11 +153,11 @@ function requireLogin(req, res, next) {
     if (!req.session.user) return res.redirect("/login");
     next();
 }
-
+aplicacion.use(express.static(path.join(__dirname, 'public')));
 aplicacion.use(requireLogin);
 
-// Servir carpeta public
-aplicacion.use(express.static(path.join(__dirname, 'public')));
+
+
 
 // API para obtener datos del usuario
 aplicacion.get("/api/user", (req, res) => {
@@ -344,3 +344,4 @@ const intervalo = setInterval(() => {
 servidorWS.on("close", () => {
     clearInterval(intervalo);
 });
+
