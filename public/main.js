@@ -345,7 +345,7 @@ function cargarSpriteJugador(jugadorId, spriteUrl) {
     if (spritesJugadores.has(jugadorId)) {
         const spriteExistente = spritesJugadores.get(jugadorId);
         if (spriteExistente.src === spriteUrl) {
-            return; /
+            return; 
         }
     }
     
