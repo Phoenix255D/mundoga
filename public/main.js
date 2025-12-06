@@ -72,11 +72,7 @@ menuContainer.id = "personajes-menu";
 
 // Crear título
 const tituloMenu = document.createElement("h1");
-tituloMenu.textContent = "🎮 SELECCIONA TU PERSONAJE";
-
-// Crear subtítulo
-const subtituloMenu = document.createElement("h2");
-subtituloMenu.textContent = "Elige el personaje que más te guste";
+tituloMenu.textContent = "Elige tu personaje";
 
 // Crear grid de personajes
 const gridPersonajes = document.createElement("div");
@@ -89,15 +85,12 @@ contenedorBotones.className = "contenedor-botones";
 // Crear botón seleccionar
 const btnSeleccionar = document.createElement("button");
 btnSeleccionar.className = "btn-seleccionar";
-btnSeleccionar.textContent = "✨ SELECCIONAR";
+btnSeleccionar.textContent = "seleccionar";
 btnSeleccionar.disabled = true;
-
-// Crear botón cerrar
 const btnCerrarMenu = document.createElement("button");
 btnCerrarMenu.className = "btn-cerrar-menu";
-btnCerrarMenu.textContent = "❌ CERRAR";
+btnCerrarMenu.textContent = "Cerrar";
 
-// Crear tarjetas de personajes
 personajes.forEach(personaje => {
     const card = document.createElement("div");
     card.className = "character-card";
@@ -154,7 +147,7 @@ function seleccionarPersonaje(personaje) {
     
     personajeSeleccionado = personaje;
     btnSeleccionar.disabled = false;
-    btnSeleccionar.textContent = `✨ JUGAR COMO ${personaje.nombre}`;
+    btnSeleccionar.textContent = `JUGAR COMO ${personaje.nombre}`;
     
     mostrarNotificacion(`¡${personaje.nombre} seleccionado!`);
 }
@@ -172,16 +165,14 @@ btnCerrarMenu.addEventListener("click", cerrarMenuPersonajes);
 // Función para aplicar personaje seleccionado
 async function aplicarPersonajeSeleccionado(personaje) {
     console.log(`Personaje seleccionado: ${personaje.nombre}`);
-    console.log(`✨ Sprite: ${personaje.sprite}`);
-    
-    // Actualizar el sprite del jugador local
+    console.log(`Sprite: ${personaje.sprite}`);
     imagenes.jugador = new Image();
     imagenes.jugador.src = personaje.sprite;
     imagenes.jugador.onload = () => {
-        console.log(`✅ Sprite cargado: ${personaje.sprite}`);
+        console.log(`Sprite cargado: ${personaje.sprite}`);
     };
     imagenes.jugador.onerror = (err) => {
-        console.error(`❌ Error al cargar sprite: ${personaje.sprite}`, err);
+        console.error(`Error al cargar sprite: ${personaje.sprite}`, err);
     };
     
     jugador.color = personaje.color;
@@ -200,13 +191,12 @@ async function aplicarPersonajeSeleccionado(personaje) {
         
         const data = await response.json();
         if (data.success) {
-            console.log('✅ Skin guardada en BD:', personaje.id);
+            console.log('Skin guardada en la base de datos:', personaje.id);
         }
     } catch (error) {
-        console.error('❌ Error guardando skin:', error);
+        console.error('Error guardando skin:', error);
     }
-    
-    // Notificar al servidor
+    // esto de aca notifica al servidor
     if (ws.readyState === WebSocket.OPEN && miIdJugador) {
         ws.send(JSON.stringify({
             tipo: 'actualizar_personaje',
@@ -219,7 +209,6 @@ async function aplicarPersonajeSeleccionado(personaje) {
     mostrarNotificacion(`¡Ahora eres ${personaje.nombre}!`);
 }
 
-// Función para mostrar notificación
 function mostrarNotificacion(mensaje) {
     const notificacion = document.createElement("div");
     notificacion.className = "notificacion slide-in";
@@ -234,7 +223,6 @@ function mostrarNotificacion(mensaje) {
     }, 2000);
 }
 
-// Ensamblar el menú
 menuContainer.appendChild(tituloMenu);
 menuContainer.appendChild(subtituloMenu);
 menuContainer.appendChild(gridPersonajes);
@@ -244,14 +232,12 @@ menuContainer.appendChild(contenedorBotones);
 
 document.body.appendChild(menuContainer);
 
-// Función para abrir el menú
 function abrirMenuPersonajes() {
     menuPersonajesAbierto = true;
     menuContainer.style.display = "flex";
     menuContainer.classList.add("fade-in");
 }
 
-// Función para cerrar el menú
 function cerrarMenuPersonajes() {
     menuPersonajesAbierto = false;
     menuContainer.classList.remove("fade-in");
@@ -271,24 +257,20 @@ const crearBotonPersonajes = () => {
     
     const btnPersonajes = document.createElement("button");
     btnPersonajes.id = "btn-personajes-menu";
-    btnPersonajes.innerHTML = "🎭 Personajes";
+    btnPersonajes.innerHTML = "Personajes";
     
     btnPersonajes.addEventListener("click", abrirMenuPersonajes);
     
     document.body.appendChild(btnPersonajes);
-    console.log('✅ Botón de personajes creado');
+    console.log('Botón de personajes creado');
 };
 
-// Inicializar
 crearBotonPersonajes();
 document.addEventListener('DOMContentLoaded', crearBotonPersonajes);
 window.addEventListener('load', crearBotonPersonajes);
-
-// Variables globales
 let miUsername = "Cargando...";
 let miIdSkin = 1;
 
-// Cargar datos del usuario
 fetch('/api/user')
     .then(res => res.json())
     .then(data => {
@@ -296,17 +278,15 @@ fetch('/api/user')
         miIdSkin = data.id_skin || 1;
         console.log('Usuario logueado:', miUsername, 'Skin:', miIdSkin);
         
-        // Aplicar skin guardada
         const personaje = personajes.find(p => p.id === miIdSkin);
         if (personaje) {
-            // Actualizar jugador local
             imagenes.jugador = new Image();
             imagenes.jugador.src = personaje.sprite;
             jugador.color = personaje.color;
             jugador.nombrePersonaje = personaje.nombre;
             jugador.id_skin = personaje.id;
             
-            console.log('✅ Skin cargada desde BD:', personaje.nombre);
+            console.log('Skin cargada desde la base de datos:', personaje.nombre);
         }
     })
     .catch(err => {
@@ -325,7 +305,6 @@ const tamano = 32;
 let miIdJugador = null;
 const otrosJugadores = new Map();
 const otrosJugadoresPos = new Map();
-// NUEVO: Mapas para sprites individuales
 const spritesJugadores = new Map();
 
 // variables en el chat
@@ -400,10 +379,10 @@ function cargarSpriteJugador(jugadorId, spriteUrl) {
     
     const img = new Image();
     img.onload = () => {
-        console.log(`✅ Sprite cargado para jugador ${jugadorId}:`, spriteUrl);
+        console.log(`Sprite cargado para jugador ${jugadorId}:`, spriteUrl);
     };
     img.onerror = (err) => {
-        console.error(`❌ Error cargando sprite para jugador ${jugadorId}:`, spriteUrl, err);
+        console.error(`Error cargando sprite para jugador ${jugadorId}:`, spriteUrl, err);
     };
     img.src = spriteUrl;
     spritesJugadores.set(jugadorId, img);
@@ -478,8 +457,6 @@ let ultimaPosicionEnviada = { x: jugador.x, y: jugador.y, dir: jugador.dir, step
 
 window.addEventListener("keydown", e => teclas[e.key] = true);
 window.addEventListener("keyup", e => teclas[e.key] = false);
-
-// funciones del chat
 function actualizarEstadoConexion(conectado) {
     estadoConexion = conectado;
     estadoConexionElem.textContent = conectado ? "Conectado" : "Desconectado";
@@ -574,7 +551,6 @@ ws.onmessage = (evento) => {
             inicializarChat();
 
             if (ws.readyState === WebSocket.OPEN) {
-                // Obtener personaje actual
                 const personajeActual = personajes.find(p => p.id === jugador.id_skin) || personajes[0];
                 
                 ws.send(JSON.stringify({
@@ -654,7 +630,6 @@ ws.onmessage = (evento) => {
                         y: j.realY
                     });
                     
-                    // Cargar sprite individual
                     cargarSpriteJugador(j.id, j.sprite || 'sprites/Zero.png');
                 });
             }
@@ -687,7 +662,6 @@ ws.onmessage = (evento) => {
                     y: datos.jugador.realY
                 });
                 
-                // Cargar sprite individual
                 cargarSpriteJugador(datos.jugador.id, datos.jugador.sprite || 'sprites/Zero.png');
             }
             break;
@@ -697,7 +671,6 @@ ws.onmessage = (evento) => {
                 break;
             }
             
-            // actualizar fantasma en minijuego
             if (juegoN === 2) {
                 if (datos.x > 50) {
                     updateRemoteFrog(datos.x, datos.y);
@@ -771,7 +744,7 @@ ws.onmessage = (evento) => {
                 jugadorConPersonaje.sprite = datos.sprite;
                 jugadorConPersonaje.color = datos.color;
                 cargarSpriteJugador(datos.idJugador, datos.sprite);
-                console.log(`✅ Personaje actualizado para jugador ${datos.idJugador}: skin ${datos.id_skin}`);
+                console.log(`Personaje actualizado para jugador ${datos.idJugador}: skin ${datos.id_skin}`);
             }
             break;
 
@@ -1024,14 +997,12 @@ function dibujar() {
         }
     }
 
-    // CAMBIO CRÍTICO: Dibujar otros jugadores con sus sprites individuales
     otrosJugadores.forEach((otroJugador) => {
         if (otroJugador.escenario === escenarioActual && otroJugador.id != jugador) {
             let getX = otrosJugadoresPos.get(otroJugador.id).x;
             let getY = otrosJugadoresPos.get(otroJugador.id).y;
             let oStep = 1;
             
-            // Obtener sprite individual del jugador
             const spriteJugador = spritesJugadores.get(otroJugador.id);
             
             if (spriteJugador && spriteJugador.complete) {
@@ -1056,7 +1027,6 @@ function dibujar() {
                     });
                 }
                 
-                // Usar el sprite individual del jugador
                 ctx.drawImage(
                     spriteJugador, 
                     (oStep || 1) * tamano, 
@@ -1070,7 +1040,6 @@ function dibujar() {
                 );
                 ctx.globalAlpha = 1.0;
             } else {
-                // Fallback: dibujar cuadrado de color
                 ctx.fillStyle = otroJugador.color;
                 ctx.fillRect(getX * tamano, getY * tamano, tamano, tamano);
             }
