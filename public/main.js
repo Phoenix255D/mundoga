@@ -1,5 +1,6 @@
 import { iniciarJuego, bucleTest } from "./miniGames/mini.js";
 import { initFrog, update, getFrogPosition, updateRemoteFrog, hideRemoteFrog } from "./miniGames/frogger/main.js";
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -9,56 +10,56 @@ const personajes = [
         nombre: "Zero",
         sprite: "sprites/Zero.png",
         color: "#000000",
-        descripcion: "a"
+        descripcion: "Personaje misterioso"
     },
     {
         id: 2,
         nombre: "Pingüino Negro",
         sprite: "sprites/penguin_black.png",
         color: "#000000",
-        descripcion: "a"
+        descripcion: "Elegante y sigiloso"
     },
     {
         id: 3,
         nombre: "Pingüino Azul",
         sprite: "sprites/penguin_blue.png",
         color: "#0000FF",
-        descripcion: "a"
+        descripcion: "Fresco como el hielo"
     },
     {
         id: 4,
         nombre: "Pingüino Fosfo",
         sprite: "sprites/penguin_fosfo.png",
         color: "#00FF00",
-        descripcion: "a"
+        descripcion: "Brilla en la oscuridad"
     },
     {
         id: 5,
         nombre: "Pingüino Gris",
         sprite: "sprites/penguin_grey.png",
         color: "#808080",
-        descripcion: "a a"
+        descripcion: "Neutral y equilibrado"
     },
     {
         id: 6,
         nombre: "Pingüino Rosa",
         sprite: "sprites/penguin_pink.png",
         color: "#FFC0CB",
-        descripcion: "a a a"
+        descripcion: "Dulce y adorable"
     },
     {
         id: 7,
         nombre: "Pingüino Rosa2",
         sprite: "sprites/penguin_pink2.png",
         color: "#FF69B4",
-        descripcion: "a a"
+        descripcion: "Rosa intenso"
     },
     {
         id: 8,
         nombre: "Pingüino Morado",
         sprite: "sprites/penguin_purple.png",
         color: "#800080",
-        descripcion: "a a"
+        descripcion: "Real y majestuoso"
     }
 ];
 
@@ -71,7 +72,7 @@ menuContainer.id = "personajes-menu";
 
 // Crear título
 const tituloMenu = document.createElement("h1");
-tituloMenu.textContent = " SELECCIONA TU PERSONAJE";
+tituloMenu.textContent = "🎮 SELECCIONA TU PERSONAJE";
 
 // Crear subtítulo
 const subtituloMenu = document.createElement("h2");
@@ -88,13 +89,13 @@ contenedorBotones.className = "contenedor-botones";
 // Crear botón seleccionar
 const btnSeleccionar = document.createElement("button");
 btnSeleccionar.className = "btn-seleccionar";
-btnSeleccionar.textContent = " SELECCIONAR";
+btnSeleccionar.textContent = "✨ SELECCIONAR";
 btnSeleccionar.disabled = true;
 
 // Crear botón cerrar
 const btnCerrarMenu = document.createElement("button");
 btnCerrarMenu.className = "btn-cerrar-menu";
-btnCerrarMenu.textContent = " CERRAR";
+btnCerrarMenu.textContent = "❌ CERRAR";
 
 // Crear tarjetas de personajes
 personajes.forEach(personaje => {
@@ -153,7 +154,7 @@ function seleccionarPersonaje(personaje) {
     
     personajeSeleccionado = personaje;
     btnSeleccionar.disabled = false;
-    btnSeleccionar.textContent = ` JUGAR COMO ${personaje.nombre}`;
+    btnSeleccionar.textContent = `✨ JUGAR COMO ${personaje.nombre}`;
     
     mostrarNotificacion(`¡${personaje.nombre} seleccionado!`);
 }
@@ -169,27 +170,47 @@ btnSeleccionar.addEventListener("click", () => {
 btnCerrarMenu.addEventListener("click", cerrarMenuPersonajes);
 
 // Función para aplicar personaje seleccionado
-function aplicarPersonajeSeleccionado(personaje) {
+async function aplicarPersonajeSeleccionado(personaje) {
     console.log(`Personaje seleccionado: ${personaje.nombre}`);
-    console.log(` Sprite: ${personaje.sprite}`);
+    console.log(`✨ Sprite: ${personaje.sprite}`);
     
-    // Actualizar el sprite del jugador
+    // Actualizar el sprite del jugador local
     imagenes.jugador = new Image();
     imagenes.jugador.src = personaje.sprite;
     imagenes.jugador.onload = () => {
-        console.log(` Sprite cargado: ${personaje.sprite}`);
+        console.log(`✅ Sprite cargado: ${personaje.sprite}`);
     };
     imagenes.jugador.onerror = (err) => {
-        console.error(` Error al cargar sprite: ${personaje.sprite}`, err);
+        console.error(`❌ Error al cargar sprite: ${personaje.sprite}`, err);
     };
     
     jugador.color = personaje.color;
     jugador.nombrePersonaje = personaje.nombre;
+    jugador.id_skin = personaje.id;
     
+    // Guardar en la base de datos
+    try {
+        const response = await fetch('/api/user/skin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id_skin: personaje.id })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            console.log('✅ Skin guardada en BD:', personaje.id);
+        }
+    } catch (error) {
+        console.error('❌ Error guardando skin:', error);
+    }
+    
+    // Notificar al servidor
     if (ws.readyState === WebSocket.OPEN && miIdJugador) {
         ws.send(JSON.stringify({
             tipo: 'actualizar_personaje',
-            personaje: personaje.nombre,
+            id_skin: personaje.id,
             sprite: personaje.sprite,
             color: personaje.color
         }));
@@ -250,12 +271,12 @@ const crearBotonPersonajes = () => {
     
     const btnPersonajes = document.createElement("button");
     btnPersonajes.id = "btn-personajes-menu";
-    btnPersonajes.innerHTML = " Personajes";
+    btnPersonajes.innerHTML = "🎭 Personajes";
     
     btnPersonajes.addEventListener("click", abrirMenuPersonajes);
     
     document.body.appendChild(btnPersonajes);
-    console.log(' Botón de personajes creado');
+    console.log('✅ Botón de personajes creado');
 };
 
 // Inicializar
@@ -263,21 +284,29 @@ crearBotonPersonajes();
 document.addEventListener('DOMContentLoaded', crearBotonPersonajes);
 window.addEventListener('load', crearBotonPersonajes);
 
-
-
-
-
+// Variables globales
 let miUsername = "Cargando...";
+let miIdSkin = 1;
+
+// Cargar datos del usuario
 fetch('/api/user')
     .then(res => res.json())
     .then(data => {
         miUsername = data.username;
-        console.log('Usuario logueado:', miUsername);
+        miIdSkin = data.id_skin || 1;
+        console.log('Usuario logueado:', miUsername, 'Skin:', miIdSkin);
         
-        const personajeGuardado = localStorage.getItem('personaje_seleccionado');
-        if (personajeGuardado) {
-            const personaje = JSON.parse(personajeGuardado);
-            aplicarPersonajeSeleccionado(personaje);
+        // Aplicar skin guardada
+        const personaje = personajes.find(p => p.id === miIdSkin);
+        if (personaje) {
+            // Actualizar jugador local
+            imagenes.jugador = new Image();
+            imagenes.jugador.src = personaje.sprite;
+            jugador.color = personaje.color;
+            jugador.nombrePersonaje = personaje.nombre;
+            jugador.id_skin = personaje.id;
+            
+            console.log('✅ Skin cargada desde BD:', personaje.nombre);
         }
     })
     .catch(err => {
@@ -296,16 +325,17 @@ const tamano = 32;
 let miIdJugador = null;
 const otrosJugadores = new Map();
 const otrosJugadoresPos = new Map();
+// NUEVO: Mapas para sprites individuales
+const spritesJugadores = new Map();
 
 // variables en el chat
-let miNombreJugador = "Jugador"
+let miNombreJugador = "Jugador";
 let estadoConexion = null;
 
 const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
 const chatSend = document.getElementById('chatSend');
 const estadoConexionElem = document.getElementById('estadoConexion');
-
 
 let escenarioActual = "lobby";
 let imagenesListas = false;
@@ -359,6 +389,26 @@ class Mapa {
     }
 }
 
+// NUEVA FUNCIÓN: Cargar sprite de un jugador
+function cargarSpriteJugador(jugadorId, spriteUrl) {
+    if (spritesJugadores.has(jugadorId)) {
+        const spriteExistente = spritesJugadores.get(jugadorId);
+        if (spriteExistente.src === spriteUrl) {
+            return; // Ya está cargado
+        }
+    }
+    
+    const img = new Image();
+    img.onload = () => {
+        console.log(`✅ Sprite cargado para jugador ${jugadorId}:`, spriteUrl);
+    };
+    img.onerror = (err) => {
+        console.error(`❌ Error cargando sprite para jugador ${jugadorId}:`, spriteUrl, err);
+    };
+    img.src = spriteUrl;
+    spritesJugadores.set(jugadorId, img);
+}
+
 function cargarImagenes() {
     const rutasImagenes = {
         lobby: "escenarios/lobby.png",
@@ -402,7 +452,8 @@ const jugador = {
     step: 1,
     dinero: 0,
     color: "#FF0000",
-    nombrePersonaje: "Zero"
+    nombrePersonaje: "Zero",
+    id_skin: 1
 };
 
 function validarCoordenadas(x, y, label = "posición") {
@@ -448,7 +499,6 @@ function agregarMensajeChat(nombre, texto, esMio = false) {
     `;
 
     chatMessages.appendChild(mensajeDiv);
-
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
@@ -457,10 +507,8 @@ function enviarMensajeChat() {
     if (!texto) return;
 
     if (ws.readyState === WebSocket.OPEN && miIdJugador) {
-        // mostrar mensaje inmediatamente
         agregarMensajeChat(miNombreJugador, texto, true);
 
-        // enviar al servidor
         ws.send(JSON.stringify({
             tipo: 'chat',
             jugadorId: miIdJugador,
@@ -469,7 +517,6 @@ function enviarMensajeChat() {
             escenario: escenarioActual
         }));
 
-        // limpiar input
         chatInput.value = '';
         chatInput.focus();
     } else {
@@ -490,7 +537,6 @@ function inicializarChat() {
         agregarMensajeChat("Sistema", `¡Bienvenido ${miNombreJugador}! Escribe en el chat para hablar con otros jugadores.`, false);
     }, 1000);
 }
-
 
 ws.onopen = () => {
     console.log('WebSocket conectado');
@@ -528,6 +574,9 @@ ws.onmessage = (evento) => {
             inicializarChat();
 
             if (ws.readyState === WebSocket.OPEN) {
+                // Obtener personaje actual
+                const personajeActual = personajes.find(p => p.id === jugador.id_skin) || personajes[0];
+                
                 ws.send(JSON.stringify({
                     tipo: 'mover',
                     x: jugador.x,
@@ -538,15 +587,18 @@ ws.onmessage = (evento) => {
                     step: jugador.step,
                     escenario: escenarioActual
                 }));
-				
-            setTimeout(() => {
-                if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({
-                        tipo: 'actualizar_username',
-                        username: miUsername
-                    }));
-                }
-            }, 500);
+                
+                setTimeout(() => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            tipo: 'actualizar_username',
+                            username: miUsername,
+                            id_skin: jugador.id_skin,
+                            sprite: personajeActual.sprite,
+                            color: personajeActual.color
+                        }));
+                    }
+                }, 500);
                 
                 ultimaPosicionEnviada = { 
                     x: jugador.x, 
@@ -558,90 +610,95 @@ ws.onmessage = (evento) => {
                     escenario: escenarioActual 
                 };
             }
-			
             break;
             
-			case 'listaJugadores':
-		{
-			const nuevosIds = new Set((datos.jugadores || []).map(j => j.id).filter(id => id !== miIdJugador));
-			
-			for (const [id] of otrosJugadores) {
-				if (!nuevosIds.has(id)) {
-					otrosJugadores.delete(id);
-					otrosJugadoresPos.delete(id);
-				}
-			}
-			
-			(datos.jugadores || []).forEach(j => {
-				if (!j || !j.id) {
-					return;
-				}
-				
-				if (j.id === miIdJugador) {
-					return;
-				}
+        case 'listaJugadores':
+            {
+                const nuevosIds = new Set((datos.jugadores || []).map(j => j.id).filter(id => id !== miIdJugador));
+                
+                for (const [id] of otrosJugadores) {
+                    if (!nuevosIds.has(id)) {
+                        otrosJugadores.delete(id);
+                        otrosJugadoresPos.delete(id);
+                        spritesJugadores.delete(id);
+                    }
+                }
+                
+                (datos.jugadores || []).forEach(j => {
+                    if (!j || !j.id || j.id === miIdJugador) {
+                        return;
+                    }
 
-				if (!validarCoordenadas(j.x, j.y, `jugador ${j.id}`)) {
-					return;
-				}
+                    if (!validarCoordenadas(j.x, j.y, `jugador ${j.id}`)) {
+                        return;
+                    }
 
-				otrosJugadores.set(j.id, {
-					id: j.id,
-					x: j.x,
-					y: j.y,
-					realX: j.realX,
-					realY: j.realY,
-					dir: j.dir,
-					step: j.step ?? 1,
-					escenario: j.escenario,
-					username: j.username,  
-					color: "#0000FF"
-				});
-				otrosJugadoresPos.set(j.id,{
-					id: j.id,
-					x: j.realX,
-					y: j.realY
-				});
-			});
-            agregarMensajeChat("Sistema", `${datos.jugador.nombre} se ha unido al juego`, false);
-
-		}
-		break;
+                    otrosJugadores.set(j.id, {
+                        id: j.id,
+                        x: j.x,
+                        y: j.y,
+                        realX: j.realX,
+                        realY: j.realY,
+                        dir: j.dir,
+                        step: j.step ?? 1,
+                        escenario: j.escenario,
+                        username: j.username,
+                        id_skin: j.id_skin || 1,
+                        sprite: j.sprite || 'sprites/Zero.png',
+                        color: j.color || "#0000FF"
+                    });
+                    
+                    otrosJugadoresPos.set(j.id, {
+                        id: j.id,
+                        x: j.realX,
+                        y: j.realY
+                    });
+                    
+                    // Cargar sprite individual
+                    cargarSpriteJugador(j.id, j.sprite || 'sprites/Zero.png');
+                });
+            }
+            break;
             
-				case 'jugadorUnido':
-			if (datos.jugador && datos.jugador.id !== miIdJugador) {
-				if (!validarCoordenadas(datos.jugador.x, datos.jugador.y, `jugadorUnido ${datos.jugador.id}`)) {
-					return;
-				}
-				
-				otrosJugadores.delete(datos.jugador.id);
-				otrosJugadoresPos.delete(datos.jugador.id);
-				otrosJugadores.set(datos.jugador.id, {
-					id: datos.jugador.id,
-					x: datos.jugador.x,
-					y: datos.jugador.y,
-					dir: datos.jugador.dir,
-					step: datos.jugador.step ?? 1,
-					escenario: datos.jugador.escenario,
-					username: datos.jugador.username,  
-					color: "#0000FF"
-				});
-				otrosJugadoresPos.set(datos.jugador.id, {
-					id: datos.jugador.id,
-					x: datos.jugador.realX,
-				 y: datos.jugador.realY
-				});
-			}
-			break;
+        case 'jugadorUnido':
+            if (datos.jugador && datos.jugador.id !== miIdJugador) {
+                if (!validarCoordenadas(datos.jugador.x, datos.jugador.y, `jugadorUnido ${datos.jugador.id}`)) {
+                    return;
+                }
+                
+                otrosJugadores.set(datos.jugador.id, {
+                    id: datos.jugador.id,
+                    x: datos.jugador.x,
+                    y: datos.jugador.y,
+                    realX: datos.jugador.realX,
+                    realY: datos.jugador.realY,
+                    dir: datos.jugador.dir,
+                    step: datos.jugador.step ?? 1,
+                    escenario: datos.jugador.escenario,
+                    username: datos.jugador.username,
+                    id_skin: datos.jugador.id_skin || 1,
+                    sprite: datos.jugador.sprite || 'sprites/Zero.png',
+                    color: datos.jugador.color || "#0000FF"
+                });
+                
+                otrosJugadoresPos.set(datos.jugador.id, {
+                    id: datos.jugador.id,
+                    x: datos.jugador.realX,
+                    y: datos.jugador.realY
+                });
+                
+                // Cargar sprite individual
+                cargarSpriteJugador(datos.jugador.id, datos.jugador.sprite || 'sprites/Zero.png');
+            }
+            break;
             
-				case 'jugadorMovido':
-			if (datos.idJugador === miIdJugador) {
-				break;
-			}
+        case 'jugadorMovido':
+            if (datos.idJugador === miIdJugador) {
+                break;
+            }
             
             // actualizar fantasma en minijuego
             if (juegoN === 2) {
-                // ocultar usando la funcion si las coordenadas son muy bajas
                 if (datos.x > 50) {
                     updateRemoteFrog(datos.x, datos.y);
                 } else {
@@ -650,58 +707,71 @@ ws.onmessage = (evento) => {
                 break;
             }
 
-			let otroJugador = otrosJugadores.get(datos.idJugador);
-			let otroJugadorPos = otrosJugadoresPos.get(datos.idJugador);
-			if (!otroJugador) {
-				return;
-			}
+            let otroJugador = otrosJugadores.get(datos.idJugador);
+            if (!otroJugador) {
+                return;
+            }
 
-			if (!validarCoordenadas(datos.x, datos.y, `jugadorMovido ${datos.idJugador}`)) {
-				return;
-			}
+            if (!validarCoordenadas(datos.x, datos.y, `jugadorMovido ${datos.idJugador}`)) {
+                return;
+            }
 
-			otroJugador.x = datos.x;
-			otroJugador.y = datos.y;
-			otroJugador.realX = datos.realX;
-			otroJugador.realY = datos.realY;
-			otroJugador.dir = datos.dir;
-			otroJugador.step = datos.step ?? 1;
-			otroJugador.escenario = datos.escenario;
-			
-			// actualizar username si viene en los datos
-			if (datos.username) {  
-				otroJugador.username = datos.username;
-			}
-			
-			otrosJugadoresPos.set(datos.idJugador, {
-				id: datos.idJugador,
-				x: datos.realX,
-				y: datos.realY
-			});
-
-			break;
+            otroJugador.x = datos.x;
+            otroJugador.y = datos.y;
+            otroJugador.realX = datos.realX;
+            otroJugador.realY = datos.realY;
+            otroJugador.dir = datos.dir;
+            otroJugador.step = datos.step ?? 1;
+            otroJugador.escenario = datos.escenario;
+            
+            if (datos.username) {
+                otroJugador.username = datos.username;
+            }
+            
+            otrosJugadoresPos.set(datos.idJugador, {
+                id: datos.idJugador,
+                x: datos.realX,
+                y: datos.realY
+            });
+            break;
             
         case 'jugadorSalio':
             const jugadorSaliente = otrosJugadores.get(datos.idJugador);
             if (jugadorSaliente) {
-                agregarMensajeChat("Sistema", `${jugadorSaliente.nombre} ha salido del juego`, false);
+                agregarMensajeChat("Sistema", `${jugadorSaliente.username} ha salido del juego`, false);
             }
             otrosJugadores.delete(datos.idJugador);
             otrosJugadoresPos.delete(datos.idJugador);
+            spritesJugadores.delete(datos.idJugador);
             break;
 
         case 'chat':
             if (datos.jugadorId !== miIdJugador && datos.escenario === escenarioActual) {
-                    agregarMensajeChat(datos.nombre, datos.texto, false);
-                }
-
+                agregarMensajeChat(datos.nombre, datos.texto, false);
+            }
             break;
-
 
         case 'jugadorActualizado':
             let jugadorActualizado = otrosJugadores.get(datos.idJugador);
             if (jugadorActualizado) {
                 jugadorActualizado.username = datos.username;
+                if (datos.id_skin) {
+                    jugadorActualizado.id_skin = datos.id_skin;
+                    jugadorActualizado.sprite = datos.sprite;
+                    jugadorActualizado.color = datos.color;
+                    cargarSpriteJugador(datos.idJugador, datos.sprite);
+                }
+            }
+            break;
+
+        case 'personajeActualizado':
+            let jugadorConPersonaje = otrosJugadores.get(datos.idJugador);
+            if (jugadorConPersonaje) {
+                jugadorConPersonaje.id_skin = datos.id_skin;
+                jugadorConPersonaje.sprite = datos.sprite;
+                jugadorConPersonaje.color = datos.color;
+                cargarSpriteJugador(datos.idJugador, datos.sprite);
+                console.log(`✅ Personaje actualizado para jugador ${datos.idJugador}: skin ${datos.id_skin}`);
             }
             break;
 
@@ -752,7 +822,6 @@ let juegoN = 0;
 let ii = 0;
 const states = [0, 1, 2, 1];
 
-
 function actualizar() {
     if (!validarCoordenadas(jugador.x, jugador.y, "actualizar - jugador") || 
         !validarCoordenadas(jugador.realX, jugador.realY, "actualizar - jugador.real")) {
@@ -786,7 +855,6 @@ function actualizar() {
             jugador.dir = 0; 
             move = true; 
         }
-        
     }
 
     if (move == true) {
@@ -795,7 +863,7 @@ function actualizar() {
         jugador.x -= (jugador.realX - xNext) * jugador.velocidad;
         jugador.y -= (jugador.realY - yNext) * jugador.velocidad; 
 
-    if (approximatelyEqual(jugador.x, xNext) && approximatelyEqual(jugador.y, yNext)) {
+        if (approximatelyEqual(jugador.x, xNext) && approximatelyEqual(jugador.y, yNext)) {
             jugador.realX = xNext;
             jugador.realY = yNext;
             jugador.x = Math.floor(jugador.realX);
@@ -805,7 +873,6 @@ function actualizar() {
             if (!pulsaTecla()) {
                 move = false;
             }
-            
         }
 
         currentIndex += 0.12;
@@ -816,8 +883,8 @@ function actualizar() {
     }
     
     if (approximatelyEqual(jugador.x, xNext) || approximatelyEqual(jugador.y, yNext)) {
-                ii = 0;
-        }
+        ii = 0;
+    }
 
     if (teclas[" "] && press == false) {
         press = true;
@@ -845,12 +912,10 @@ function actualizar() {
     }
 
     if (jugando == true) {
-        
         switch (juegoN) {
             case 1: jugando = bucleTest(); break;
             case 2: 
                 jugando = update();
-                // enviar posicion en minijuego
                 const fPos = getFrogPosition();
                 if (ws.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({
@@ -906,8 +971,6 @@ function actualizar() {
     }
 
     if (collidedDoor && collidedDoor.tipo === "pared") {
-        //move = false;
-        //dirC = true;
         xNext += jugador.realX - xNext;
         yNext += jugador.realY - yNext;
         jugador.realX = xNext;
@@ -917,31 +980,30 @@ function actualizar() {
     }
 
     if(pulsaTecla() && ii == 0){
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    tipo: 'mover',
-                    x: xNext,
-                    y: yNext,
-                    realX: jugador.realX,
-                    realY: jugador.realY,
-                    dir: jugador.dir,
-                    step: jugador.step,
-                    escenario: escenarioActual
-                }));
-                
-                ultimaPosicionEnviada = { 
-                    x: xNext, 
-                    y: yNext,
-                    realX: jugador.realX,
-                    realY: jugador.realY,
-                    dir: jugador.dir, 
-                    step: jugador.step, 
-                    escenario: escenarioActual 
-                };
-            }
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                tipo: 'mover',
+                x: xNext,
+                y: yNext,
+                realX: jugador.realX,
+                realY: jugador.realY,
+                dir: jugador.dir,
+                step: jugador.step,
+                escenario: escenarioActual
+            }));
+            
+            ultimaPosicionEnviada = { 
+                x: xNext, 
+                y: yNext,
+                realX: jugador.realX,
+                realY: jugador.realY,
+                dir: jugador.dir, 
+                step: jugador.step, 
+                escenario: escenarioActual 
+            };
+        }
         ii++;
     }
-
 }
 
 function dibujar() {
@@ -962,15 +1024,20 @@ function dibujar() {
         }
     }
 
+    // CAMBIO CRÍTICO: Dibujar otros jugadores con sus sprites individuales
     otrosJugadores.forEach((otroJugador) => {
         if (otroJugador.escenario === escenarioActual && otroJugador.id != jugador) {
             let getX = otrosJugadoresPos.get(otroJugador.id).x;
             let getY = otrosJugadoresPos.get(otroJugador.id).y;
             let oStep = 1;
-            if (imagenesListas && imagenes.jugador && imagenes.jugador.complete) {
+            
+            // Obtener sprite individual del jugador
+            const spriteJugador = spritesJugadores.get(otroJugador.id);
+            
+            if (spriteJugador && spriteJugador.complete) {
                 ctx.globalAlpha = 0.7;
 
-                if(!approximatelyEqual(otroJugador.x,otrosJugadoresPos.get(otroJugador.id).x)  || !approximatelyEqual(otroJugador.y,otrosJugadoresPos.get(otroJugador.id).y)){
+                if(!approximatelyEqual(otroJugador.x, getX) || !approximatelyEqual(otroJugador.y, getY)){
                     getX -= (otroJugador.realX - otroJugador.x) * 0.08;
                     getY -= (otroJugador.realY - otroJugador.y) * 0.08; 
                     otrosJugadoresPos.set(otroJugador.id, {
@@ -981,28 +1048,31 @@ function dibujar() {
 
                     currentIndex += 0.5;
                     oStep = states[Math.floor(currentIndex) % 4];
-                }else{
+                } else {
                     otrosJugadoresPos.set(otroJugador.id, {
                         id: otroJugador.id,
                         x: otroJugador.x,
                         y: otroJugador.y
                     });
                 }
+                
+                // Usar el sprite individual del jugador
                 ctx.drawImage(
-                    imagenes.jugador, 
+                    spriteJugador, 
                     (oStep || 1) * tamano, 
                     (otroJugador.dir || 0) * tamano, 
                     tamano, 
                     tamano, 
-                    otrosJugadoresPos.get(otroJugador.id).x * tamano, 
-                    otrosJugadoresPos.get(otroJugador.id).y * tamano, 
+                    getX * tamano, 
+                    getY * tamano, 
                     tamano, 
                     tamano
                 );
                 ctx.globalAlpha = 1.0;
             } else {
+                // Fallback: dibujar cuadrado de color
                 ctx.fillStyle = otroJugador.color;
-                ctx.fillRect(otroJugador.x * tamano, otroJugador.y * tamano, tamano, tamano);
+                ctx.fillRect(getX * tamano, getY * tamano, tamano, tamano);
             }
             
             ctx.fillStyle = "white";
@@ -1010,9 +1080,9 @@ function dibujar() {
             ctx.lineWidth = 2;
             ctx.font = "12px Arial";
             const nombreOtro = otroJugador.username;
-			ctx.strokeText(nombreOtro, otrosJugadoresPos.get(otroJugador.id).x * tamano, otrosJugadoresPos.get(otroJugador.id).y * tamano - 5);
-			ctx.fillText(nombreOtro, otrosJugadoresPos.get(otroJugador.id).x * tamano, otrosJugadoresPos.get(otroJugador.id).y * tamano - 5);
-			}
+            ctx.strokeText(nombreOtro, getX * tamano, getY * tamano - 5);
+            ctx.fillText(nombreOtro, getX * tamano, getY * tamano - 5);
+        }
     });
     
     const playerPixelX = jugador.x * tamano;
@@ -1040,7 +1110,7 @@ function dibujar() {
     ctx.lineWidth = 2;
     ctx.font = "12px Arial";
     ctx.strokeText(miUsername, playerPixelX, playerPixelY - 5);
-	ctx.fillText(miUsername, playerPixelX, playerPixelY - 5);
+    ctx.fillText(miUsername, playerPixelX, playerPixelY - 5);
     
     ctx.fillStyle = "black";
     ctx.font = "20px Arial";
