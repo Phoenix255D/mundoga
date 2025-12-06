@@ -66,27 +66,34 @@ const personajes = [
 let menuPersonajesAbierto = false;
 let personajeSeleccionado = null;
 
+// Crear contenedor del menú
 const menuContainer = document.createElement("div");
 menuContainer.id = "personajes-menu";
 
+// Crear título
 const tituloMenu = document.createElement("h1");
 tituloMenu.textContent = "SELECCIONA TU PERSONAJE";
 
+// Crear grid de personajes
 const gridPersonajes = document.createElement("div");
 gridPersonajes.className = "grid-personajes";
 
+// Crear contenedor de botones
 const contenedorBotones = document.createElement("div");
 contenedorBotones.className = "contenedor-botones";
 
+// Crear botón seleccionar
 const btnSeleccionar = document.createElement("button");
 btnSeleccionar.className = "btn-seleccionar";
-btnSeleccionar.textContent = "Seleccionar";
+btnSeleccionar.textContent = "SELECCIONAR";
 btnSeleccionar.disabled = true;
 
+// Crear botón cerrar
 const btnCerrarMenu = document.createElement("button");
 btnCerrarMenu.className = "btn-cerrar-menu";
-btnCerrarMenu.textContent = "Cerrar";
+btnCerrarMenu.textContent = "CERRAR";
 
+// Crear tarjetas de personajes
 personajes.forEach(personaje => {
     const card = document.createElement("div");
     card.className = "character-card";
