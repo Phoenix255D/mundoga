@@ -22,7 +22,6 @@ const db = mysql.createPool({
     queueLimit: 0
 });
 
-
 // body parser y sesiones
 aplicacion.use(bodyParser.urlencoded({ extended: true }));
 
@@ -39,7 +38,6 @@ const servidorWS = new WebSocket.Server({
     server: servidor,
     path: "/ws"
 });
-
 
 // Página de login (GET)
 aplicacion.get("/login", (req, res) => {
@@ -97,7 +95,7 @@ aplicacion.post("/registro", (req, res) => {
         [username],
         (err, result) => {
             if (err) {
-                console.error(" Error al verificar usuario:", err);
+                console.error("❌ Error al verificar usuario:", err);
                 return res.send(`<h3>Error: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
             }
             
@@ -111,7 +109,7 @@ aplicacion.post("/registro", (req, res) => {
                 "SELECT MAX(id) as maxId FROM usuarios",
                 (err, result) => {
                     if (err) {
-                        console.error(" Error al obtener último ID:", err);
+                        console.error("❌ Error al obtener último ID:", err);
                         return res.send(`<h3>Error: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
                     }
                     
@@ -119,15 +117,15 @@ aplicacion.post("/registro", (req, res) => {
                     console.log("Nuevo ID será:", nuevoId);
                     
                     db.query(
-                        "INSERT INTO usuarios (id, username, password) VALUES (?, ?, ?)",
+                        "INSERT INTO usuarios (id, username, password, id_skin) VALUES (?, ?, ?, 1)",
                         [nuevoId, username, password],
                         (err, result) => {
                             if (err) {
-                                console.error(" Error al crear cuenta:", err);
+                                console.error("❌ Error al crear cuenta:", err);
                                 return res.send(`<h3>Error: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
                             }
                             
-                            console.log(" Usuario creado exitosamente:", username, "con ID:", nuevoId);
+                            console.log("✅ Usuario creado exitosamente:", username, "con ID:", nuevoId);
                             res.send("<h3>Cuenta creada exitosamente</h3><a href='/login'>Ir a iniciar sesión</a>");
                         }
                     );
@@ -148,7 +146,6 @@ aplicacion.get("/logout", (req, res) => {
     });
 });
 
-
 function requireLogin(req, res, next) {
     if (!req.session.user) return res.redirect("/login");
     next();
@@ -158,21 +155,43 @@ aplicacion.use("/fondos", express.static(path.join(__dirname, "public", "fondos"
 aplicacion.use(requireLogin);
 aplicacion.use(express.static(path.join(__dirname, "public")));
 
-
-
-
 // API para obtener datos del usuario
 aplicacion.get("/api/user", (req, res) => {
     res.json({
         username: req.session.user.username,
-        id: req.session.user.id
+        id: req.session.user.id,
+        id_skin: req.session.user.id_skin || 1
     });
+});
+
+// NUEVO: API para actualizar la skin del usuario
+aplicacion.post("/api/user/skin", express.json(), (req, res) => {
+    const { id_skin } = req.body;
+    const userId = req.session.user.id;
+    
+    if (!id_skin || id_skin < 1 || id_skin > 8) {
+        return res.status(400).json({ error: "ID de skin inválido" });
+    }
+    
+    db.query(
+        "UPDATE usuarios SET id_skin = ? WHERE id = ?",
+        [id_skin, userId],
+        (err, result) => {
+            if (err) {
+                console.error("Error actualizando skin:", err);
+                return res.status(500).json({ error: "Error actualizando skin" });
+            }
+            
+            req.session.user.id_skin = id_skin;
+            console.log(`✅ Skin actualizada para usuario ${userId}: ${id_skin}`);
+            res.json({ success: true, id_skin });
+        }
+    );
 });
 
 const jugadores = new Map();
 
 servidorWS.on('connection', (ws) => {
-
     ws.isAlive = true;
 
     ws.on('pong', () => {
@@ -191,7 +210,10 @@ servidorWS.on('connection', (ws) => {
         step: 0,
         escenario: 'lobby',
         dinero: 100,
-        username: 'Conectando...', // NUEVO
+        username: 'Conectando...',
+        id_skin: 1,  // NUEVO: skin por defecto
+        sprite: 'sprites/Zero.png',  // NUEVO: sprite por defecto
+        color: '#000000',  // NUEVO: color por defecto
         ws: ws
     };
 
@@ -208,30 +230,82 @@ servidorWS.on('connection', (ws) => {
 
     transmitir({
         tipo: 'listaJugadores',
-        jugadores: Array.from(jugadores.values())
+        jugadores: Array.from(jugadores.values()).map(j => ({
+            id: j.id,
+            x: j.x,
+            y: j.y,
+            realX: j.realX,
+            realY: j.realY,
+            dir: j.dir,
+            step: j.step,
+            escenario: j.escenario,
+            username: j.username,
+            id_skin: j.id_skin,
+            sprite: j.sprite,
+            color: j.color
+        }))
     });
 
     transmitir({
         tipo: 'jugadorUnido',
-        jugador: nuevoJugador
+        jugador: {
+            id: nuevoJugador.id,
+            x: nuevoJugador.x,
+            y: nuevoJugador.y,
+            realX: nuevoJugador.realX,
+            realY: nuevoJugador.realY,
+            dir: nuevoJugador.dir,
+            step: nuevoJugador.step,
+            escenario: nuevoJugador.escenario,
+            username: nuevoJugador.username,
+            id_skin: nuevoJugador.id_skin,
+            sprite: nuevoJugador.sprite,
+            color: nuevoJugador.color
+        }
     }, ws);
 
     ws.on('message', (mensaje) => {
         try {
             const datos = JSON.parse(mensaje);
-            console.log(mensaje);
 
-            // NUEVO: Manejar actualización de username
+            // NUEVO: Manejar actualización de username Y skin
             if (datos.tipo === 'actualizar_username') {
                 const jugador = jugadores.get(idJugador);
                 if (jugador) {
                     jugador.username = datos.username;
-                    console.log('Username actualizado:', idJugador, datos.username);
+                    jugador.id_skin = datos.id_skin || jugador.id_skin;
+                    jugador.sprite = datos.sprite || jugador.sprite;
+                    jugador.color = datos.color || jugador.color;
+                    
+                    console.log('Usuario actualizado:', idJugador, datos.username, 'skin:', jugador.id_skin);
                     
                     transmitir({
                         tipo: 'jugadorActualizado',
                         idJugador: idJugador,
-                        username: datos.username
+                        username: datos.username,
+                        id_skin: jugador.id_skin,
+                        sprite: jugador.sprite,
+                        color: jugador.color
+                    });
+                }
+            }
+
+            // NUEVO: Manejar actualización de personaje
+            if (datos.tipo === 'actualizar_personaje') {
+                const jugador = jugadores.get(idJugador);
+                if (jugador) {
+                    jugador.id_skin = datos.id_skin;
+                    jugador.sprite = datos.sprite;
+                    jugador.color = datos.color;
+                    
+                    console.log('Personaje actualizado:', idJugador, 'skin:', datos.id_skin);
+                    
+                    transmitir({
+                        tipo: 'personajeActualizado',
+                        idJugador: idJugador,
+                        id_skin: datos.id_skin,
+                        sprite: datos.sprite,
+                        color: datos.color
                     });
                 }
             }
@@ -266,8 +340,7 @@ servidorWS.on('connection', (ws) => {
                     const mensajeChat = {
                         tipo: 'chat',
                         jugadorId: datos.jugadorId,
-                        // El nombre se toma del objeto jugador del servidor, que ya fue actualizado con el username.
-                        nombre: datos.nombre || jugador.username, 
+                        nombre: datos.nombre || jugador.username,
                         texto: datos.texto,
                         escenario: datos.escenario || jugador.escenario
                     };
@@ -298,7 +371,7 @@ servidorWS.on('connection', (ws) => {
         transmitir({
             tipo: 'jugadorSalio',
             idJugador: idJugador,
-            username: jugadorSaliendo ? jugadorSaliendo.username : 'Desconocido' 
+            username: jugadorSaliendo ? jugadorSaliendo.username : 'Desconocido'
         });
     });
 });
@@ -346,5 +419,3 @@ const intervalo = setInterval(() => {
 servidorWS.on("close", () => {
     clearInterval(intervalo);
 });
-
-
