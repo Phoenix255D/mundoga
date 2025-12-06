@@ -87,10 +87,14 @@ personajes.forEach(personaje => {
     avatarContainer.className = "avatar-container";
     avatarContainer.style.background = `${personaje.color}30`;
     
-    const spritePreview = document.createElement("div");
+    const spritePreview = document.createElement("img");
     spritePreview.className = "sprite-preview";
-    spritePreview.style.backgroundColor = personaje.color;
-    spritePreview.textContent = "🐧";
+    spritePreview.src = `sprites/${personaje.id}.png`;
+    spritePreview.alt = personaje.nombre;
+    spritePreview.style.imageRendering = "pixelated";
+    spritePreview.style.width = "100%";
+    spritePreview.style.height = "100%";
+    spritePreview.style.objectFit = "contain";
     
     avatarContainer.appendChild(spritePreview);
     
