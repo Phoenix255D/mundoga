@@ -166,7 +166,6 @@ aplicacion.get("/api/user", (req, res) => {
     res.json({
         username: req.session.user.username,
         id: req.session.user.id
-        id_skin: req.session.user.id_skin
     });
 });
 
@@ -181,21 +180,20 @@ servidorWS.on('connection', (ws) => {
     });
 
     const idJugador = generarId();
-    const nuevoJugador = {
-    id: idJugador,
-    x: 10,
-    y: 10,
-    realX: 10,
-    realY: 10,
-    dir: 0,
-    step: 0,
-    escenario: 'lobby',
-    dinero: 100,
-    username: req?.session?.user?.username || 'Conectando...',
-    id_skin: req?.session?.user?.id_skin || 1,
-    ws: ws
-    };
 
+    const nuevoJugador = {
+        id: idJugador,
+        x: 10,
+        y: 10,
+        realX: 10,
+        realY: 10,
+        dir: 0,
+        step: 0,
+        escenario: 'lobby',
+        dinero: 100,
+        username: 'Conectando...', // NUEVO
+        ws: ws
+    };
 
     jugadores.set(idJugador, nuevoJugador);
 
@@ -223,6 +221,7 @@ servidorWS.on('connection', (ws) => {
             const datos = JSON.parse(mensaje);
             console.log(mensaje);
 
+            // NUEVO: Manejar actualización de username
             if (datos.tipo === 'actualizar_username') {
                 const jugador = jugadores.get(idJugador);
                 if (jugador) {
@@ -236,21 +235,7 @@ servidorWS.on('connection', (ws) => {
                     });
                 }
             }
-            if (datos.tipo === 'actualizar_skin') {
-                const jugador = jugadores.get(idJugador);
-                if (jugador) {
-                    jugador.id_skin = datos.id_skin;
-            
-                    transmitir({
-                        tipo: 'skin_actualizada',
-                        id_jugador: idJugador,
-                        id_skin: datos.id_skin
-                    });
-                }
-            }
 
-
-            
             if (datos.tipo === 'mover') {
                 const jugador = jugadores.get(idJugador);
                 if (jugador) {
@@ -361,6 +346,5 @@ const intervalo = setInterval(() => {
 servidorWS.on("close", () => {
     clearInterval(intervalo);
 });
-
 
 
