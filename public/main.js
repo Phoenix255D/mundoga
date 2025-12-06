@@ -58,35 +58,26 @@ const personajes = [
 let menuPersonajesAbierto = false;
 let personajeSeleccionado = null;
 
-// Crear contenedor del menú
 const menuContainer = document.createElement("div");
 menuContainer.id = "personajes-menu";
 
-// Crear título
 const tituloMenu = document.createElement("h1");
 tituloMenu.textContent = "Elige tu skin";
-
-
-// Crear grid de personajes
 const gridPersonajes = document.createElement("div");
 gridPersonajes.className = "grid-personajes";
 
-// Crear contenedor de botones
 const contenedorBotones = document.createElement("div");
 contenedorBotones.className = "contenedor-botones";
 
-// Crear botón seleccionar
 const btnSeleccionar = document.createElement("button");
 btnSeleccionar.className = "btn-seleccionar";
 btnSeleccionar.textContent = "Seleccionar";
 btnSeleccionar.disabled = true;
 
-// Crear botón cerrar
 const btnCerrarMenu = document.createElement("button");
 btnCerrarMenu.className = "btn-cerrar-menu";
 btnCerrarMenu.textContent = "Cerrar";
 
-// Crear tarjetas de personajes
 personajes.forEach(personaje => {
     const card = document.createElement("div");
     card.className = "character-card";
@@ -118,7 +109,6 @@ personajes.forEach(personaje => {
     card.appendChild(descripcion);
     card.appendChild(indicadorSeleccion);
     
-    // Evento de selección
     card.addEventListener("click", () => {
         seleccionarPersonaje(personaje);
     });
@@ -126,14 +116,11 @@ personajes.forEach(personaje => {
     gridPersonajes.appendChild(card);
 });
 
-// Función para seleccionar personaje
 function seleccionarPersonaje(personaje) {
-    // Quitar selección anterior
     document.querySelectorAll(".character-card").forEach(card => {
         card.classList.remove("selected");
     });
     
-    // Aplicar selección actual
     const cardSeleccionado = document.querySelector(`[data-id="${personaje.id}"]`);
     if (cardSeleccionado) {
         cardSeleccionado.classList.add("selected");
@@ -143,12 +130,11 @@ function seleccionarPersonaje(personaje) {
     
     personajeSeleccionado = personaje;
     btnSeleccionar.disabled = false;
-    btnSeleccionar.textContent = `JUGAR COMO ${personaje.nombre}`;
+    btnSeleccionar.textContent = `Jugar como: ${personaje.nombre}`;
     
     mostrarNotificacion(`¡${personaje.nombre} seleccionado!`);
 }
 
-// Event listeners de botones
 btnSeleccionar.addEventListener("click", () => {
     if (personajeSeleccionado) {
         aplicarPersonajeSeleccionado(personajeSeleccionado);
@@ -158,12 +144,9 @@ btnSeleccionar.addEventListener("click", () => {
 
 btnCerrarMenu.addEventListener("click", cerrarMenuPersonajes);
 
-// Función para aplicar personaje seleccionado
 async function aplicarPersonajeSeleccionado(personaje) {
     console.log(`Personaje seleccionado: ${personaje.nombre}`);
     console.log(`Sprite: ${personaje.sprite}`);
-    
-    // Actualizar el sprite del jugador local
     imagenes.jugador = new Image();
     imagenes.jugador.src = personaje.sprite;
     imagenes.jugador.onload = () => {
@@ -172,12 +155,9 @@ async function aplicarPersonajeSeleccionado(personaje) {
     imagenes.jugador.onerror = (err) => {
         console.error(`Error al cargar sprite: ${personaje.sprite}`, err);
     };
-    
     jugador.color = personaje.color;
     jugador.nombrePersonaje = personaje.nombre;
     jugador.id_skin = personaje.id;
-    
-    // Guardar en la base de datos
     try {
         const response = await fetch('/api/user/skin', {
             method: 'POST',
@@ -194,8 +174,6 @@ async function aplicarPersonajeSeleccionado(personaje) {
     } catch (error) {
         console.error('Error guardando skin:', error);
     }
-    
-    // Notificar al servidor
     if (ws.readyState === WebSocket.OPEN && miIdJugador) {
         ws.send(JSON.stringify({
             tipo: 'actualizar_personaje',
@@ -207,8 +185,6 @@ async function aplicarPersonajeSeleccionado(personaje) {
     
     mostrarNotificacion(`¡Ahora eres ${personaje.nombre}!`);
 }
-
-// Función para mostrar notificación
 function mostrarNotificacion(mensaje) {
     const notificacion = document.createElement("div");
     notificacion.className = "notificacion slide-in";
@@ -223,7 +199,6 @@ function mostrarNotificacion(mensaje) {
     }, 2000);
 }
 
-// Ensamblar el menú
 menuContainer.appendChild(tituloMenu);
 menuContainer.appendChild(gridPersonajes);
 contenedorBotones.appendChild(btnSeleccionar);
@@ -232,14 +207,12 @@ menuContainer.appendChild(contenedorBotones);
 
 document.body.appendChild(menuContainer);
 
-// Función para abrir el menú
 function abrirMenuPersonajes() {
     menuPersonajesAbierto = true;
     menuContainer.style.display = "flex";
     menuContainer.classList.add("fade-in");
 }
 
-// Función para cerrar el menú
 function cerrarMenuPersonajes() {
     menuPersonajesAbierto = false;
     menuContainer.classList.remove("fade-in");
@@ -250,8 +223,6 @@ function cerrarMenuPersonajes() {
         menuContainer.classList.remove("fade-out");
     }, 300);
 }
-
-// Crear botón de personajes en el header
 const crearBotonPersonajes = () => {
     if (document.getElementById('btn-personajes-menu')) {
         return;
@@ -267,16 +238,13 @@ const crearBotonPersonajes = () => {
     console.log('Botón de personajes creado');
 };
 
-// Inicializar
 crearBotonPersonajes();
 document.addEventListener('DOMContentLoaded', crearBotonPersonajes);
 window.addEventListener('load', crearBotonPersonajes);
 
-// Variables globales
 let miUsername = "Cargando...";
 let miIdSkin = 1;
 
-// Cargar datos del usuario
 fetch('/api/user')
     .then(res => res.json())
     .then(data => {
@@ -284,10 +252,8 @@ fetch('/api/user')
         miIdSkin = data.id_skin || 1;
         console.log('Usuario logueado:', miUsername, 'Skin:', miIdSkin);
         
-        // Aplicar skin guardada
         const personaje = personajes.find(p => p.id === miIdSkin);
         if (personaje) {
-            // Actualizar jugador local
             imagenes.jugador = new Image();
             imagenes.jugador.src = personaje.sprite;
             jugador.color = personaje.color;
@@ -313,10 +279,8 @@ const tamano = 32;
 let miIdJugador = null;
 const otrosJugadores = new Map();
 const otrosJugadoresPos = new Map();
-// NUEVO: Mapas para sprites individuales
 const spritesJugadores = new Map();
 
-// variables en el chat
 let miNombreJugador = "Jugador";
 let estadoConexion = null;
 
@@ -377,12 +341,11 @@ class Mapa {
     }
 }
 
-// NUEVA FUNCIÓN: Cargar sprite de un jugador
 function cargarSpriteJugador(jugadorId, spriteUrl) {
     if (spritesJugadores.has(jugadorId)) {
         const spriteExistente = spritesJugadores.get(jugadorId);
         if (spriteExistente.src === spriteUrl) {
-            return; // Ya está cargado
+            return; /
         }
     }
     
@@ -467,7 +430,6 @@ let ultimaPosicionEnviada = { x: jugador.x, y: jugador.y, dir: jugador.dir, step
 window.addEventListener("keydown", e => teclas[e.key] = true);
 window.addEventListener("keyup", e => teclas[e.key] = false);
 
-// funciones del chat
 function actualizarEstadoConexion(conectado) {
     estadoConexion = conectado;
     estadoConexionElem.textContent = conectado ? "Conectado" : "Desconectado";
@@ -562,7 +524,6 @@ ws.onmessage = (evento) => {
             inicializarChat();
 
             if (ws.readyState === WebSocket.OPEN) {
-                // Obtener personaje actual
                 const personajeActual = personajes.find(p => p.id === jugador.id_skin) || personajes[0];
                 
                 ws.send(JSON.stringify({
@@ -620,6 +581,7 @@ ws.onmessage = (evento) => {
                     if (!validarCoordenadas(j.x, j.y, `jugador ${j.id}`)) {
                         return;
                     }
+                    const esNuevoJugador = !otrosJugadores.has(j.id);
 
                     otrosJugadores.set(j.id, {
                         id: j.id,
@@ -641,9 +603,10 @@ ws.onmessage = (evento) => {
                         x: j.realX,
                         y: j.realY
                     });
-                    
-                    // Cargar sprite individual
                     cargarSpriteJugador(j.id, j.sprite || 'sprites/Zero.png');
+					if (esNuevoJugador && j.username) {
+                        agregarMensajeChat("Sistema", `${j.username} se ha unido al juego`, false);
+                    }
                 });
             }
             break;
@@ -674,9 +637,10 @@ ws.onmessage = (evento) => {
                     x: datos.jugador.realX,
                     y: datos.jugador.realY
                 });
-                
-                // Cargar sprite individual
                 cargarSpriteJugador(datos.jugador.id, datos.jugador.sprite || 'sprites/Zero.png');
+                if (datos.jugador.username) {
+                    agregarMensajeChat("Sistema", `${datos.jugador.username} se ha unido al juego`, false);
+                }
             }
             break;
             
@@ -684,8 +648,6 @@ ws.onmessage = (evento) => {
             if (datos.idJugador === miIdJugador) {
                 break;
             }
-            
-            // actualizar fantasma en minijuego
             if (juegoN === 2) {
                 if (datos.x > 50) {
                     updateRemoteFrog(datos.x, datos.y);
@@ -1044,7 +1006,6 @@ function dibujar() {
                     });
                 }
                 
-                // Usar el sprite individual del jugador
                 ctx.drawImage(
                     spriteJugador, 
                     (oStep || 1) * tamano, 
@@ -1058,7 +1019,6 @@ function dibujar() {
                 );
                 ctx.globalAlpha = 1.0;
             } else {
-                // Fallback: dibujar cuadrado de color
                 ctx.fillStyle = otroJugador.color;
                 ctx.fillRect(getX * tamano, getY * tamano, tamano, tamano);
             }
