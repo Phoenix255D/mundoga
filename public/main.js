@@ -249,6 +249,7 @@ fetch('/api/user')
     .then(res => res.json())
     .then(data => {
         miUsername = data.username;
+        miNombreJugador = data.username; 
         miIdSkin = data.id_skin || 1;
         console.log('Usuario logueado:', miUsername, 'Skin:', miIdSkin);
         
@@ -266,6 +267,7 @@ fetch('/api/user')
     .catch(err => {
         console.error('Error obteniendo usuario:', err);
         miUsername = "Usuario";
+        miNombreJugador = "Usuario";  
     });
 
 if (!window.__WS__) {
