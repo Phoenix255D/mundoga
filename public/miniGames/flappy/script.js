@@ -1,5 +1,4 @@
 // miniGames/flappy/script.js
-export { initFlappy, update };
 import { teclas } from "/main.js";
 
 let canvas, ctx;
@@ -36,7 +35,7 @@ backgroundImage.src = 'imagenes/fondo.png';
 pipeTopImage.src = 'imagenes/tubo.png';
 pipeBottomImage.src = 'imagenes/tubo.png';
 
-function initFlappy() {
+export function initFlappy() {
     console.log('Iniciando Flappy Bird...');
     
     // Obtener el canvas del juego principal
@@ -70,7 +69,7 @@ function initFlappy() {
     console.log('Flappy Bird iniciado correctamente');
 }
 
-function update() {
+export function update() {
     if (!juega) {
         return false;
     }
@@ -274,8 +273,8 @@ function draw() {
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 3;
     ctx.font = 'bold 24px Arial';
-    ctx.strokeText(`Score: ${score_val}`, 10, 30);
-    ctx.fillText(`Score: ${score_val}`, 10, 30);
+    ctx.strokeText('Score: ' + score_val, 10, 30);
+    ctx.fillText('Score: ' + score_val, 10, 30);
     
     // Instrucciones
     ctx.font = '16px Arial';
