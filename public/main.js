@@ -929,6 +929,7 @@ function actualizar() {
                 escenario: escenarioActual 
             };
         }
+        cargarEscenario();
     }
 
     if (collidedDoor && collidedDoor.tipo === "pared") {

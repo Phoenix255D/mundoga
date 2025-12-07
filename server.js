@@ -22,6 +22,7 @@ const db = mysql.createPool({
     queueLimit: 0
 });
 
+
 // body parser y sesiones
 aplicacion.use(bodyParser.urlencoded({ extended: true }));
 
