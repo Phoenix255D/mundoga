@@ -82,11 +82,11 @@ personajes.forEach(personaje => {
     const card = document.createElement("div");
     card.className = "character-card";
     card.dataset.id = personaje.id;
-    
+
     const avatarContainer = document.createElement("div");
     avatarContainer.className = "avatar-container";
     avatarContainer.style.background = `${personaje.color}30`;
-    
+
     const spritePreview = document.createElement("img");
     spritePreview.className = "sprite-preview";
     spritePreview.src = `sprites/${personaje.id}.png`;
@@ -95,28 +95,28 @@ personajes.forEach(personaje => {
     spritePreview.style.width = "100%";
     spritePreview.style.height = "100%";
     spritePreview.style.objectFit = "contain";
-    
+
     avatarContainer.appendChild(spritePreview);
-    
+
     const nombre = document.createElement("h3");
     nombre.textContent = personaje.nombre;
-    
+
     const descripcion = document.createElement("p");
     descripcion.textContent = personaje.descripcion;
-    
+
     const indicadorSeleccion = document.createElement("div");
     indicadorSeleccion.className = "indicador-seleccion";
     indicadorSeleccion.style.background = personaje.color;
-    
+
     card.appendChild(avatarContainer);
     card.appendChild(nombre);
     card.appendChild(descripcion);
     card.appendChild(indicadorSeleccion);
-    
+
     card.addEventListener("click", () => {
         seleccionarPersonaje(personaje);
     });
-    
+
     gridPersonajes.appendChild(card);
 });
 
@@ -124,18 +124,18 @@ function seleccionarPersonaje(personaje) {
     document.querySelectorAll(".character-card").forEach(card => {
         card.classList.remove("selected");
     });
-    
+
     const cardSeleccionado = document.querySelector(`[data-id="${personaje.id}"]`);
     if (cardSeleccionado) {
         cardSeleccionado.classList.add("selected");
         const border = personaje.color;
         cardSeleccionado.style.borderColor = border;
     }
-    
+
     personajeSeleccionado = personaje;
     btnSeleccionar.disabled = false;
     btnSeleccionar.textContent = `Jugar como: ${personaje.nombre}`;
-    
+
     mostrarNotificacion(`¡${personaje.nombre} seleccionado!`);
 }
 
@@ -170,7 +170,7 @@ async function aplicarPersonajeSeleccionado(personaje) {
             },
             body: JSON.stringify({ id_skin: personaje.id })
         });
-        
+
         const data = await response.json();
         if (data.success) {
             console.log('Skin guardada en BD:', personaje.id);
@@ -186,16 +186,16 @@ async function aplicarPersonajeSeleccionado(personaje) {
             color: personaje.color
         }));
     }
-    
+
     mostrarNotificacion(`¡Ahora eres ${personaje.nombre}!`);
 }
 function mostrarNotificacion(mensaje) {
     const notificacion = document.createElement("div");
     notificacion.className = "notificacion slide-in";
     notificacion.textContent = mensaje;
-    
+
     document.body.appendChild(notificacion);
-    
+
     setTimeout(() => {
         notificacion.classList.remove("slide-in");
         notificacion.classList.add("slide-out");
@@ -221,7 +221,7 @@ function cerrarMenuPersonajes() {
     menuPersonajesAbierto = false;
     menuContainer.classList.remove("fade-in");
     menuContainer.classList.add("fade-out");
-    
+
     setTimeout(() => {
         menuContainer.style.display = "none";
         menuContainer.classList.remove("fade-out");
@@ -231,13 +231,13 @@ const crearBotonPersonajes = () => {
     if (document.getElementById('btn-personajes-menu')) {
         return;
     }
-    
+
     const btnPersonajes = document.createElement("button");
     btnPersonajes.id = "btn-personajes-menu";
     btnPersonajes.innerHTML = "Personajes";
-    
+
     btnPersonajes.addEventListener("click", abrirMenuPersonajes);
-    
+
     document.body.appendChild(btnPersonajes);
     console.log('Botón de personajes creado');
 };
@@ -253,10 +253,10 @@ fetch('/api/user')
     .then(res => res.json())
     .then(data => {
         miUsername = data.username;
-        miNombreJugador = data.username; 
+        miNombreJugador = data.username;
         miIdSkin = data.id_skin || 1;
         console.log('Usuario logueado:', miUsername, 'Skin:', miIdSkin);
-        
+
         const personaje = personajes.find(p => p.id === miIdSkin);
         if (personaje) {
             imagenes.jugador = new Image();
@@ -264,14 +264,14 @@ fetch('/api/user')
             jugador.color = personaje.color;
             jugador.nombrePersonaje = personaje.nombre;
             jugador.id_skin = personaje.id;
-            
+
             console.log('Skin cargada desde BD:', personaje.nombre);
         }
     })
     .catch(err => {
         console.error('Error obteniendo usuario:', err);
         miUsername = "Usuario";
-        miNombreJugador = "Usuario";  
+        miNombreJugador = "Usuario";
     });
 
 if (!window.__WS__) {
@@ -312,13 +312,13 @@ class Mapa {
     constructor() {
         this.scenes = {
             lobby: {
-                puerta: {x: 0, y: 14, w: 1, h: 2, tipo: "puerta", destino: "iglu", posx: 30, posy: 14, message: "puerta"},
-                puerta2: {x: 10, y: 6, w: 3, h: 3, tipo: "pared", destino: "iglu", posx: 2, posy: 10},
-                puerta3: {x: 15, y: 10, w: 2, h: 2, tipo: "pared", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "pared Interactiva"},
-                frogger: {x: 12, y: 15, w: 2, h: 2, tipo: "pared", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva"},
+                puerta: { x: 0, y: 14, w: 1, h: 2, tipo: "puerta", destino: "iglu", posx: 30, posy: 14, message: "puerta" },
+                puerta2: { x: 10, y: 6, w: 3, h: 3, tipo: "pared", destino: "iglu", posx: 2, posy: 10 },
+                puerta3: { x: 15, y: 10, w: 2, h: 2, tipo: "pared", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "pared Interactiva" },
+                frogger: { x: 12, y: 15, w: 2, h: 2, tipo: "pared", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva" },
             },
             iglu: {
-                puerta: {x: 31, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 1, posy: 14, message: "puerta"}
+                puerta: { x: 31, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 1, posy: 14, message: "puerta" }
             }
         };
     }
@@ -326,17 +326,17 @@ class Mapa {
     getScene(sceneName) {
         return this.scenes[sceneName];
     }
-    
+
     getDoors(sceneName) {
         return Object.values(this.scenes[sceneName] || {});
     }
-    
+
     *getAllDoors(sceneName) {
         for (const door of Object.values(this.scenes[sceneName] || {})) {
             yield door;
         }
     }
-    
+
     checkDoorCollisions(sceneName, playerRect) {
         for (const door of this.getAllDoors(sceneName)) {
             if (colision(playerRect, door)) {
@@ -351,10 +351,10 @@ function cargarSpriteJugador(jugadorId, spriteUrl) {
     if (spritesJugadores.has(jugadorId)) {
         const spriteExistente = spritesJugadores.get(jugadorId);
         if (spriteExistente.src === spriteUrl) {
-            return; 
+            return;
         }
     }
-    
+
     const img = new Image();
     img.onload = () => {
         console.log(`Sprite cargado para jugador ${jugadorId}:`, spriteUrl);
@@ -372,10 +372,10 @@ function cargarImagenes() {
         iglu: "escenarios/iglu.png",
         jugador: "sprites/Zero.png"
     };
-    
+
     let cargadas = 0;
     const total = Object.keys(rutasImagenes).length;
-    
+
     Object.keys(rutasImagenes).forEach(nombre => {
         const img = new Image();
         img.onload = () => {
@@ -416,17 +416,17 @@ const jugador = {
 function validarCoordenadas(x, y, label = "posición") {
     const MAX_COORD = 1000;
     const MIN_COORD = -10;
-    
+
     if (isNaN(x) || isNaN(y)) {
-        console.error(`Coordenadas NaN detectadas en ${label}:`, {x, y});
+        console.error(`Coordenadas NaN detectadas en ${label}:`, { x, y });
         return false;
     }
-    
+
     if (x > MAX_COORD || x < MIN_COORD || y > MAX_COORD || y < MIN_COORD) {
-        console.error(`Coordenadas fuera de rango en ${label}:`, {x, y});
+        console.error(`Coordenadas fuera de rango en ${label}:`, { x, y });
         return false;
     }
-    
+
     return true;
 }
 
@@ -446,7 +446,7 @@ function agregarMensajeChat(nombre, texto, esMio = false) {
     const mensajeDiv = document.createElement('div');
     mensajeDiv.className = `message ${esMio ? 'mio' : ''}`;
 
-    const hora = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     mensajeDiv.innerHTML = `
         <span class="username">${nombre}</span>
@@ -500,15 +500,15 @@ ws.onopen = () => {
 
 ws.onmessage = (evento) => {
     const datos = JSON.parse(evento.data);
-    
-    switch(datos.tipo) {
+
+    switch (datos.tipo) {
         case 'iniciar':
             miIdJugador = datos.idJugador;
-            
+
             if (datos.jugador) {
                 const newX = datos.jugador.x ?? jugador.x;
                 const newY = datos.jugador.y ?? jugador.y;
-                
+
                 if (validarCoordenadas(newX, newY, "iniciar")) {
                     jugador.x = newX;
                     jugador.y = newY;
@@ -522,16 +522,16 @@ ws.onmessage = (evento) => {
                     console.error('Posición inicial inválida del servidor, manteniendo predeterminada');
                 }
             }
-            
+
             if (otrosJugadores.has(miIdJugador)) {
                 otrosJugadores.delete(miIdJugador);
             }
-            
+
             inicializarChat();
 
             if (ws.readyState === WebSocket.OPEN) {
                 const personajeActual = personajes.find(p => p.id === jugador.id_skin) || personajes[0];
-                
+
                 ws.send(JSON.stringify({
                     tipo: 'mover',
                     x: jugador.x,
@@ -542,7 +542,7 @@ ws.onmessage = (evento) => {
                     step: jugador.step,
                     escenario: escenarioActual
                 }));
-                
+
                 setTimeout(() => {
                     if (ws.readyState === WebSocket.OPEN) {
                         ws.send(JSON.stringify({
@@ -554,23 +554,23 @@ ws.onmessage = (evento) => {
                         }));
                     }
                 }, 500);
-                
-                ultimaPosicionEnviada = { 
-                    x: jugador.x, 
+
+                ultimaPosicionEnviada = {
+                    x: jugador.x,
                     y: jugador.y,
                     realX: jugador.x,
                     realY: jugador.y,
-                    dir: jugador.dir, 
-                    step: jugador.step, 
-                    escenario: escenarioActual 
+                    dir: jugador.dir,
+                    step: jugador.step,
+                    escenario: escenarioActual
                 };
             }
             break;
-            
+
         case 'listaJugadores':
             {
                 const nuevosIds = new Set((datos.jugadores || []).map(j => j.id).filter(id => id !== miIdJugador));
-                
+
                 for (const [id] of otrosJugadores) {
                     if (!nuevosIds.has(id)) {
                         otrosJugadores.delete(id);
@@ -578,7 +578,7 @@ ws.onmessage = (evento) => {
                         spritesJugadores.delete(id);
                     }
                 }
-                
+
                 (datos.jugadores || []).forEach(j => {
                     if (!j || !j.id || j.id === miIdJugador) {
                         return;
@@ -603,26 +603,26 @@ ws.onmessage = (evento) => {
                         sprite: j.sprite || 'sprites/Zero.png',
                         color: j.color || "#0000FF"
                     });
-                    
+
                     otrosJugadoresPos.set(j.id, {
                         id: j.id,
                         x: j.realX,
                         y: j.realY
                     });
                     cargarSpriteJugador(j.id, j.sprite || 'sprites/Zero.png');
-					if (esNuevoJugador && j.username) {
+                    if (esNuevoJugador && j.username) {
                         agregarMensajeChat("Sistema", `${j.username} se ha unido al juego`, false);
                     }
                 });
             }
             break;
-            
+
         case 'jugadorUnido':
             if (datos.jugador && datos.jugador.id !== miIdJugador) {
                 if (!validarCoordenadas(datos.jugador.x, datos.jugador.y, `jugadorUnido ${datos.jugador.id}`)) {
                     return;
                 }
-                
+
                 otrosJugadores.set(datos.jugador.id, {
                     id: datos.jugador.id,
                     x: datos.jugador.x,
@@ -637,7 +637,7 @@ ws.onmessage = (evento) => {
                     sprite: datos.jugador.sprite || 'sprites/Zero.png',
                     color: datos.jugador.color || "#0000FF"
                 });
-                
+
                 otrosJugadoresPos.set(datos.jugador.id, {
                     id: datos.jugador.id,
                     x: datos.jugador.realX,
@@ -649,7 +649,14 @@ ws.onmessage = (evento) => {
                 }
             }
             break;
-            
+
+        case 'froggerInit':
+            if (juegoN === 2 && jugando) {
+                initFrog(datos.state);
+            }
+            break;
+
+
         case 'jugadorMovido':
             if (datos.idJugador === miIdJugador) {
                 break;
@@ -679,18 +686,18 @@ ws.onmessage = (evento) => {
             otroJugador.dir = datos.dir;
             otroJugador.step = datos.step ?? 1;
             otroJugador.escenario = datos.escenario;
-            
+
             if (datos.username) {
                 otroJugador.username = datos.username;
             }
-            
+
             otrosJugadoresPos.set(datos.idJugador, {
                 id: datos.idJugador,
                 x: datos.realX,
                 y: datos.realY
             });
             break;
-            
+
         case 'jugadorSalio':
             const jugadorSaliente = otrosJugadores.get(datos.idJugador);
             if (jugadorSaliente) {
@@ -720,6 +727,8 @@ ws.onmessage = (evento) => {
             }
             break;
 
+
+
         case 'personajeActualizado':
             let jugadorConPersonaje = otrosJugadores.get(datos.idJugador);
             if (jugadorConPersonaje) {
@@ -740,17 +749,17 @@ ws.onerror = (error) => {
     console.error('Error de conexión WebSocket:', error);
 };
 
-ws.onclose = () => {};
+ws.onclose = () => { };
 
 function bucleJuego() {
     actualizar();
-    if (jugando == false) { 
+    if (jugando == false) {
         dibujar();
     }
     requestAnimationFrame(bucleJuego);
 }
 
-function approximatelyEqual(v1, v2, epsilon = 0.1) { 
+function approximatelyEqual(v1, v2, epsilon = 0.1) {
     return Math.abs(v1 - v2) < epsilon;
 }
 
@@ -779,7 +788,7 @@ let ii = 0;
 const states = [0, 1, 2, 1];
 
 function actualizar() {
-    if (!validarCoordenadas(jugador.x, jugador.y, "actualizar - jugador") || 
+    if (!validarCoordenadas(jugador.x, jugador.y, "actualizar - jugador") ||
         !validarCoordenadas(jugador.realX, jugador.realY, "actualizar - jugador.real")) {
         console.error('COORDENADAS CORRUPTAS DETECTADAS - RESETEANDO');
         jugador.x = 10;
@@ -794,30 +803,30 @@ function actualizar() {
     }
 
     if (dirC == true) {
-        if (teclas["ArrowRight"]) { 
-            xNext = Math.floor(jugador.realX) + 1; 
-            jugador.dir = 2; 
-            move = true; 
-        } else if (teclas["ArrowLeft"]) { 
-            xNext = Math.floor(jugador.realX) - 1; 
-            jugador.dir = 1; 
-            move = true; 
-        } else if (teclas["ArrowUp"]) { 
-            yNext = Math.floor(jugador.realY) - 1; 
-            jugador.dir = 3; 
-            move = true; 
-        } else if (teclas["ArrowDown"]) { 
-            yNext = Math.floor(jugador.realY) + 1; 
-            jugador.dir = 0; 
-            move = true; 
+        if (teclas["ArrowRight"]) {
+            xNext = Math.floor(jugador.realX) + 1;
+            jugador.dir = 2;
+            move = true;
+        } else if (teclas["ArrowLeft"]) {
+            xNext = Math.floor(jugador.realX) - 1;
+            jugador.dir = 1;
+            move = true;
+        } else if (teclas["ArrowUp"]) {
+            yNext = Math.floor(jugador.realY) - 1;
+            jugador.dir = 3;
+            move = true;
+        } else if (teclas["ArrowDown"]) {
+            yNext = Math.floor(jugador.realY) + 1;
+            jugador.dir = 0;
+            move = true;
         }
     }
 
     if (move == true) {
         dirC = false;
-        
+
         jugador.x -= (jugador.realX - xNext) * jugador.velocidad;
-        jugador.y -= (jugador.realY - yNext) * jugador.velocidad; 
+        jugador.y -= (jugador.realY - yNext) * jugador.velocidad;
 
         if (approximatelyEqual(jugador.x, xNext) && approximatelyEqual(jugador.y, yNext)) {
             jugador.realX = xNext;
@@ -837,7 +846,7 @@ function actualizar() {
         jugador.step = 1;
         currentIndex = 0;
     }
-    
+
     if (approximatelyEqual(jugador.x, xNext) || approximatelyEqual(jugador.y, yNext)) {
         ii = 0;
     }
@@ -857,7 +866,11 @@ function actualizar() {
             jugando = true;
             juegoN = hita.juegoNum;
             if (juegoN === 2) {
-                initFrog();
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ tipo: 'joinFrogger' }));
+                } else {
+                    initFrog();
+                }
             }
             if (jugando == false) {
                 dirC = true;
@@ -870,7 +883,7 @@ function actualizar() {
     if (jugando == true) {
         switch (juegoN) {
             case 1: jugando = bucleTest(); break;
-            case 2: 
+            case 2:
                 jugando = update();
                 const fPos = getFrogPosition();
                 if (ws.readyState === WebSocket.OPEN) {
@@ -901,11 +914,11 @@ function actualizar() {
         jugador.realY = collidedDoor.posy;
         jugador.x = collidedDoor.posx;
         jugador.y = collidedDoor.posy;
-        
+
         move = false;
         dirC = true;
         escenarioActual = collidedDoor.destino;
-        
+
         if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({
                 tipo: 'mover',
@@ -915,13 +928,13 @@ function actualizar() {
                 step: jugador.step,
                 escenario: escenarioActual
             }));
-            
-            ultimaPosicionEnviada = { 
-                x: jugador.x, 
-                y: jugador.y, 
-                dir: jugador.dir, 
-                step: jugador.step, 
-                escenario: escenarioActual 
+
+            ultimaPosicionEnviada = {
+                x: jugador.x,
+                y: jugador.y,
+                dir: jugador.dir,
+                step: jugador.step,
+                escenario: escenarioActual
             };
         }
     }
@@ -935,7 +948,7 @@ function actualizar() {
         jugador.y = jugador.realY;
     }
 
-    if(pulsaTecla() && ii == 0){
+    if (pulsaTecla() && ii == 0) {
         if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({
                 tipo: 'mover',
@@ -947,15 +960,15 @@ function actualizar() {
                 step: jugador.step,
                 escenario: escenarioActual
             }));
-            
-            ultimaPosicionEnviada = { 
-                x: xNext, 
+
+            ultimaPosicionEnviada = {
+                x: xNext,
                 y: yNext,
                 realX: jugador.realX,
                 realY: jugador.realY,
-                dir: jugador.dir, 
-                step: jugador.step, 
-                escenario: escenarioActual 
+                dir: jugador.dir,
+                step: jugador.step,
+                escenario: escenarioActual
             };
         }
         ii++;
@@ -980,22 +993,22 @@ function dibujar() {
         }
     }
 
-    // CAMBIO CRÍTICO: Dibujar otros jugadores con sus sprites individuales
+    // dibujar otros jugadores con sus sprites individuales
     otrosJugadores.forEach((otroJugador) => {
         if (otroJugador.escenario === escenarioActual && otroJugador.id != jugador) {
             let getX = otrosJugadoresPos.get(otroJugador.id).x;
             let getY = otrosJugadoresPos.get(otroJugador.id).y;
             let oStep = 1;
-            
+
             // Obtener sprite individual del jugador
             const spriteJugador = spritesJugadores.get(otroJugador.id);
-            
+
             if (spriteJugador && spriteJugador.complete) {
                 ctx.globalAlpha = 0.7;
 
-                if(!approximatelyEqual(otroJugador.x, getX) || !approximatelyEqual(otroJugador.y, getY)){
+                if (!approximatelyEqual(otroJugador.x, getX) || !approximatelyEqual(otroJugador.y, getY)) {
                     getX -= (otroJugador.realX - otroJugador.x) * 0.08;
-                    getY -= (otroJugador.realY - otroJugador.y) * 0.08; 
+                    getY -= (otroJugador.realY - otroJugador.y) * 0.08;
                     otrosJugadoresPos.set(otroJugador.id, {
                         id: otroJugador.id,
                         x: getX,
@@ -1011,16 +1024,16 @@ function dibujar() {
                         y: otroJugador.y
                     });
                 }
-                
+
                 ctx.drawImage(
-                    spriteJugador, 
-                    (oStep || 1) * tamano, 
-                    (otroJugador.dir || 0) * tamano, 
-                    tamano, 
-                    tamano, 
-                    getX * tamano, 
-                    getY * tamano, 
-                    tamano, 
+                    spriteJugador,
+                    (oStep || 1) * tamano,
+                    (otroJugador.dir || 0) * tamano,
+                    tamano,
+                    tamano,
+                    getX * tamano,
+                    getY * tamano,
+                    tamano,
                     tamano
                 );
                 ctx.globalAlpha = 1.0;
@@ -1028,7 +1041,7 @@ function dibujar() {
                 ctx.fillStyle = otroJugador.color;
                 ctx.fillRect(getX * tamano, getY * tamano, tamano, tamano);
             }
-            
+
             ctx.fillStyle = "white";
             ctx.strokeStyle = "black";
             ctx.lineWidth = 2;
@@ -1038,20 +1051,20 @@ function dibujar() {
             ctx.fillText(nombreOtro, getX * tamano, getY * tamano - 5);
         }
     });
-    
+
     const playerPixelX = jugador.x * tamano;
     const playerPixelY = jugador.y * tamano;
-    
+
     if (imagenesListas && imagenes.jugador && imagenes.jugador.complete) {
         ctx.drawImage(
-            imagenes.jugador, 
-            jugador.step * tamano, 
-            jugador.dir * tamano, 
-            tamano, 
-            tamano, 
-            playerPixelX, 
-            playerPixelY, 
-            tamano, 
+            imagenes.jugador,
+            jugador.step * tamano,
+            jugador.dir * tamano,
+            tamano,
+            tamano,
+            playerPixelX,
+            playerPixelY,
+            tamano,
             tamano
         );
     } else {
@@ -1065,7 +1078,7 @@ function dibujar() {
     ctx.font = "12px Arial";
     ctx.strokeText(miUsername, playerPixelX, playerPixelY - 5);
     ctx.fillText(miUsername, playerPixelX, playerPixelY - 5);
-    
+
     ctx.fillStyle = "black";
     ctx.font = "20px Arial";
     ctx.fillText("Dinero: " + jugador.dinero.toFixed(1), 10, 30);
