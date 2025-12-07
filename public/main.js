@@ -1,6 +1,7 @@
 import { iniciarJuego, bucleTest } from "./miniGames/mini.js";
 import { initFrog, update, getFrogPosition, updateRemoteFrog, hideRemoteFrog } from "./miniGames/frogger/main.js";
 import { initFishing, update as updateFishing } from "./miniGames/fishing/fishing.js";
+import { initFlappy, update as updateFlappy } from "./miniGames/flappy/script.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -327,7 +328,8 @@ class Mapa {
                 puerta: { x: 0, y: 11, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 30, posy: 11, message: "puerta" },
                 fishing: { x: 13, y: 8, w: 1, h: 1, inix: 2, iniy: 8, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "fishing", juego: true, juegoNum: 3, posx: 2, posy: 10, message: "Pesca" },
                 frogger: { x: 10, y: 9, w: 1, h: 1, tipo: "pared",inix: 4, iniy: 12, rutaImagen: "escenarios/outside.png", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "Frogger" },
-
+				flappy: { x: 16, y: 8, w: 1, h: 1, tipo: "pared",inix: 6, iniy: 8, rutaImagen: "escenarios/outside.png", nombre: "flappy", juego: true, juegoNum: 4, posx: 2, posy: 10, color: "#70c5ce", message: "Flappy Bird" 
+    }
             }
         };
     }
@@ -888,6 +890,9 @@ function actualizar() {
             }
             if (juegoN === 3) {
                 initFishing();
+            }
+			if (juegoN === 4) {
+                initFlappy();
             }
             if (jugando == false) {
                 dirC = true;
