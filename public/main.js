@@ -320,7 +320,7 @@ class Mapa {
             },
             iglu: {
                 puerta: { x: 31, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 1, posy: 14, message: "puerta" }
-            }
+            },
 			juegos: {
                 puerta: { x: 0, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 1, posy: 14, message: "puerta" }
             }
@@ -1109,3 +1109,4 @@ function dibujar() {
 }
 
 bucleJuego();
+
