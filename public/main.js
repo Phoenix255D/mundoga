@@ -316,9 +316,13 @@ class Mapa {
                 puerta2: { x: 12, y: 7, w: 3, h: 4, tipo: "pared",nombre: "puerta2", destino: "iglu", inix: 12, iniy: 12, rutaImagen:"escenarios/arboles.png" },
                 puerta3: { x: 16, y: 10, w: 1, h: 1, inix: 8, iniy: 4, rutaImagen:"escenarios/outside.png", tipo: "pared",nombre: "puerta3", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "pared Interactiva" },
                 frogger: { x: 12, y: 15, w: 2, h: 2, tipo: "pared",nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva" },
+				puerta4: { x: 31, y: 14, w: 1, h: 2, tipo: "puerta",nombre: "puerta", destino: "juegos", posx: 30, posy: 14, message: "puerta" },
             },
             iglu: {
                 puerta: { x: 31, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 1, posy: 14, message: "puerta" }
+            }
+			juegos: {
+                puerta: { x: 0, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 1, posy: 14, message: "puerta" }
             }
         };
     }
@@ -370,6 +374,7 @@ function cargarImagenes() {
     const rutasImagenes = {
         lobby: "escenarios/lobby.png",
         iglu: "escenarios/iglu.png",
+		juegos: "escenarios/juegos.png",
         jugador: "sprites/Zero.png"
     };
 
