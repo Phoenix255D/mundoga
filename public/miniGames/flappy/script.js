@@ -3,7 +3,6 @@ import { teclas } from "/main.js";
 
 let canvas, ctx;
 let juega = true;
-let firstFrame = true;
 let bird = {
     x: 150,
     y: 200,
@@ -20,7 +19,6 @@ let coins = [];
 let score_val = 0;
 let isFlapping = false;
 let pipe_separation = 0;
-let wasSpacePressed = false;
 
 const backgroundImage = new Image();
 const pipeTopImage = new Image();
@@ -35,28 +33,31 @@ const pipe_top_offset = 12;
 backgroundImage.src = 'imagenes/fondo.png';
 pipeTopImage.src = 'imagenes/tubo.png';
 pipeBottomImage.src = 'imagenes/tubo.png';
+// Al inicio del archivo, después de las importaciones
+let requestId = null; // Para controlar el loop de animación
 
 export function initFlappy() {
     console.log('Iniciando Flappy Bird...');
+    
+    // Cancelar cualquier animación previa
+    if (requestId) {
+        cancelAnimationFrame(requestId);
+        requestId = null;
+    }
     
     canvas = document.getElementById("game");
     ctx = canvas.getContext("2d");
     
     juega = true;
-    firstFrame = true;
-    wasSpacePressed = false;
     
-    bird = {
-        x: 150,
-        y: 200,
-        dy: 0,
-        width: 34,
-        height: 24,
-        visible: true,
-        image: new Image(),
-        imageFlap: new Image()
-    };
-    
+    bird.x = 150;
+    bird.y = 200;
+    bird.dy = 0;
+    bird.width = 34;
+    bird.height = 24;
+    bird.visible = true;
+    bird.image = new Image();
+    bird.imageFlap = new Image();
     bird.image.src = 'sprites/3.png';
     bird.imageFlap.src = 'sprites/3.png';
     
@@ -66,36 +67,38 @@ export function initFlappy() {
     isFlapping = false;
     pipe_separation = 0;
     
+    // Limpiar todas las teclas al iniciar
+    Object.keys(teclas).forEach(key => teclas[key] = false);
+    
     console.log('Flappy Bird iniciado');
 }
 
 export function update() {
     if (!juega) {
+        // Limpiar teclas al salir
+        teclas["ArrowUp"] = false;
+        teclas["Escape"] = false;
+        teclas["x"] = false;
+        teclas["X"] = false;
         return false;
     }
     
-    // Ignorar input en el primer frame para evitar salto inicial
-    if (firstFrame) {
-        firstFrame = false;
-        wasSpacePressed = teclas[" "];
-        draw();
-        return true;
-    }
-    
-    // Detectar salto solo cuando se presiona (edge detection)
-    const isSpacePressed = teclas[" "] || teclas["ArrowUp"];
-    
-    if (isSpacePressed && !wasSpacePressed) {
+    // Control de salto - Verifica que la tecla esté presionada Y que el pájaro no esté en el tope
+    if (teclas["ArrowUp"] && bird.y > 10) {
         bird.dy = -4.5;
         isFlapping = true;
         setTimeout(() => { isFlapping = false; }, 100);
+        // IMPORTANTE: Limpiar inmediatamente para evitar saltos múltiples
+        teclas["ArrowUp"] = false;
     }
-    
-    wasSpacePressed = isSpacePressed;
     
     // Salir del juego
     if (teclas["Escape"] || teclas["x"] || teclas["X"]) {
         juega = false;
+        // Limpiar teclas
+        teclas["Escape"] = false;
+        teclas["x"] = false;
+        teclas["X"] = false;
         return false;
     }
     
@@ -104,7 +107,7 @@ export function update() {
     bird.dy += gravity;
     bird.y += bird.dy;
     
-    // Límite superior
+    // Límite superior con pequeño margen
     if (bird.y <= 0) {
         bird.y = 0;
         bird.dy = 0;
@@ -113,10 +116,11 @@ export function update() {
     // Límite inferior (game over)
     if (bird.y + bird.height >= canvas.height) {
         juega = false;
+        teclas["ArrowUp"] = false;
         return false;
     }
     
-    // Crear nuevos pipes
+    // Crear nuevos pipes (reducir frecuencia para evitar sobrecarga)
     pipe_separation++;
     if (pipe_separation > 120) {
         pipe_separation = 0;
@@ -143,6 +147,7 @@ export function update() {
             isTop: false
         });
         
+        // Monedas opcionales
         if (Math.random() < 0.5) {
             const coinImg = new Image();
             coinImg.src = 'imagenes/huevomoneda.webp';
@@ -153,6 +158,11 @@ export function update() {
                 image: coinImg
             });
         }
+    }
+    
+    // Limitar número de pipes para evitar sobrecarga
+    if (pipes.length > 20) {
+        pipes.splice(0, pipes.length - 20);
     }
     
     // Mover y colisionar pipes
@@ -172,6 +182,7 @@ export function update() {
             bird.y + bird.height > pipes[i].y
         ) {
             juega = false;
+            teclas["ArrowUp"] = false;
             return false;
         }
         
@@ -180,6 +191,11 @@ export function update() {
             score_val++;
             pipes[i].scored = true;
         }
+    }
+    
+    // Limitar número de monedas
+    if (coins.length > 10) {
+        coins.splice(0, coins.length - 10);
     }
     
     // Mover y colisionar monedas
@@ -204,77 +220,4 @@ export function update() {
     
     draw();
     return juega;
-}
-
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Fondo
-    if (backgroundImage.complete && backgroundImage.width > 0) {
-        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-    } else {
-        ctx.fillStyle = '#70c5ce';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-    
-    // Pipes
-    for (const pipe of pipes) {
-        if (pipe.isTop) {
-            if (pipeTopImage.complete && pipeTopImage.width > 0) {
-                ctx.save();
-                ctx.translate(pipe.x, pipe.height);
-                ctx.scale(1, -1);
-                const numRepeat = Math.ceil(pipe.height / pipeTopImage.height);
-                for (let i = 0; i < numRepeat; i++) {
-                    ctx.drawImage(pipeTopImage, 0, i * pipeTopImage.height, pipe.width, pipeTopImage.height);
-                }
-                ctx.restore();
-            } else {
-                ctx.fillStyle = '#5cb85c';
-                ctx.fillRect(pipe.x, pipe.y, pipe.width, pipe.height);
-            }
-        } else {
-            if (pipeBottomImage.complete && pipeBottomImage.width > 0) {
-                const numRepeat = Math.ceil(pipe.height / pipeBottomImage.height);
-                for (let i = 0; i < numRepeat; i++) {
-                    ctx.drawImage(pipeBottomImage, pipe.x, pipe.y + (i * pipeBottomImage.height), pipe.width, pipeBottomImage.height);
-                }
-            } else {
-                ctx.fillStyle = '#5cb85c';
-                ctx.fillRect(pipe.x, pipe.y, pipe.width, pipe.height);
-            }
-        }
-    }
-    
-    // Monedas
-    for (const coin of coins) {
-        if (coin.image.complete) {
-            ctx.drawImage(coin.image, coin.x, coin.y, coin.size, coin.size);
-        }
-    }
-    
-    // Pájaro
-    if (bird.visible) {
-        const birdImage = isFlapping ? bird.imageFlap : bird.image;
-        if (birdImage.complete) {
-            ctx.drawImage(birdImage, bird.x, bird.y, bird.width, bird.height);
-        } else {
-            ctx.fillStyle = '#FFD700';
-            ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
-        }
-    }
-    
-    // UI
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 3;
-    ctx.font = 'bold 24px Arial';
-    ctx.strokeText('Score: ' + score_val, 10, 30);
-    ctx.fillText('Score: ' + score_val, 10, 30);
-    
-    ctx.font = '16px Arial';
-    ctx.lineWidth = 2;
-    const instruccion = 'ESPACIO para saltar - ESC para salir';
-    ctx.strokeText(instruccion, 10, canvas.height - 10);
-    ctx.fillText(instruccion, 10, canvas.height - 10);
 }
