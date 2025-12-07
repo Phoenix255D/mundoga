@@ -922,6 +922,7 @@ function actualizar() {
                 }
                 break;
             case 3: jugando = updateFishing(); break;
+			case 4: jugando = updateFlappy(); break;
         }
         if (jugando == false) {
             dirC = true;
@@ -1122,5 +1123,6 @@ function dibujar() {
     ctx.fillText("Usuario: " + miUsername, 10, 90);
     ctx.fillText("Personaje: " + jugador.nombrePersonaje, 10, 110);
 }
+
 
 bucleJuego();
