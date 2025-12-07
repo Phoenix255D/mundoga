@@ -822,7 +822,7 @@ function actualizar() {
         return;
     }
 
-    if (dirC == true) {
+     if (dirC == true && !jugando) {
         if (teclas["ArrowRight"]) {
             xNext = Math.floor(jugador.realX) + 1;
             jugador.dir = 2;
@@ -922,10 +922,21 @@ function actualizar() {
                 }
                 break;
             case 3: jugando = updateFishing(); break;
-			case 4: jugando = updateFlappy(); break;
+			case 4: 
+                jugando = updateFlappy(); 
+                // Limpiar teclas del juego principal mientras se juega flappy
+                if (jugando) {
+                    teclas["ArrowLeft"] = false;
+                    teclas["ArrowRight"] = false;
+                    teclas["ArrowDown"] = false;
+                    // ArrowUp se limpia dentro del juego flappy
+                }
+                break;
         }
         if (jugando == false) {
             dirC = true;
+            // Limpiar TODAS las teclas al salir de cualquier minijuego
+            Object.keys(teclas).forEach(key => teclas[key] = false);
         }
     }
 
@@ -1126,3 +1137,4 @@ function dibujar() {
 
 
 bucleJuego();
+
