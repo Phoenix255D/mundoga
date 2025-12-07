@@ -22,7 +22,15 @@ const db = mysql.createPool({
     queueLimit: 0
 });
 
-
+/*
+const db = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "mundoga",
+    port: 3306
+});
+*/
 // estado compartido de Frogger
 let froggerState = {
     seeds: [],

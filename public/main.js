@@ -326,7 +326,7 @@ class Mapa {
             juegos: {
                 puerta: { x: 0, y: 11, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 30, posy: 11, message: "puerta" },
                 fishing: { x: 13, y: 8, w: 1, h: 1, inix: 2, iniy: 8, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "fishing", juego: true, juegoNum: 3, posx: 2, posy: 10, message: "Pesca" },
-                frogger: { x: 10, y: 9, w: 1, h: 1, tipo: "pared",inix: 4, iniy: 12, rutaImagen: "escenarios/outside.png", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva" },
+                frogger: { x: 10, y: 9, w: 1, h: 1, tipo: "pared",inix: 4, iniy: 12, rutaImagen: "escenarios/outside.png", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "Frogger" },
 
             }
         };
@@ -965,6 +965,15 @@ function actualizar() {
         jugador.realY = yNext;
         jugador.x = jugador.realX;
         jugador.y = jugador.realY;
+    }
+
+    if(xNext < 0 || xNext > 31 || yNext < 0|| yNext > 17){
+        xNext += jugador.realX - xNext;
+        yNext += jugador.realY - yNext;
+        jugador.realX = xNext;
+        jugador.realY = yNext;
+        jugador.x = jugador.realX;
+        jugador.y = jugador.realY;  
     }
 
     if (pulsaTecla() && ii == 0) {
