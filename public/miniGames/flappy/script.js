@@ -20,6 +20,7 @@ let score_val = 0;
 let isFlapping = false;
 let pipe_separation = 0;
 let lastJumpTime = 0;
+let lastSpaceState = false;
 
 const backgroundImage = new Image();
 const pipeTopImage = new Image();
@@ -65,6 +66,7 @@ export function initFlappy() {
     isFlapping = false;
     pipe_separation = 0;
     lastJumpTime = 0;
+    lastSpaceState = false;
     
     console.log('Flappy Bird iniciado correctamente');
 }
@@ -74,14 +76,17 @@ export function update() {
         return false;
     }
     
-    // Control de salto con debounce
-    const now = Date.now();
-    if ((teclas[" "] || teclas["ArrowUp"]) && now - lastJumpTime > 150) {
+    // Detectar edge (presión nueva de la tecla)
+    const spacePressed = teclas[" "] || teclas["ArrowUp"];
+    
+    if (spacePressed && !lastSpaceState) {
+        // Solo salta en el edge (cuando se presiona, no cuando se mantiene)
         bird.dy = -4;
         isFlapping = true;
-        lastJumpTime = now;
         setTimeout(() => { isFlapping = false; }, 100);
     }
+    
+    lastSpaceState = spacePressed;
     
     // Salir del juego
     if (teclas["Escape"] || teclas["x"] || teclas["X"]) {
@@ -101,7 +106,7 @@ export function update() {
     }
     
     if (bird.y + bird.height >= canvas.height) {
-        console.log('¡Colisión con el suelo!');
+        console.log('Colision con el suelo!');
         juega = false;
         return false;
     }
@@ -168,7 +173,7 @@ export function update() {
             bird.y < pipe.y + pipe.height &&
             bird.y + bird.height > pipe.y
         ) {
-            console.log('¡Colisión con pipe!');
+            console.log('Colision con pipe!');
             juega = false;
             return false;
         }
@@ -279,6 +284,6 @@ function draw() {
     // Instrucciones
     ctx.font = '16px Arial';
     ctx.lineWidth = 2;
-    ctx.strokeText('Espacio/↑ para saltar - ESC para salir', 10, canvas.height - 10);
-    ctx.fillText('Espacio/↑ para saltar - ESC para salir', 10, canvas.height - 10);
+    ctx.strokeText('Espacio/Flecha arriba para saltar - ESC para salir', canvas.width / 2 - 200, canvas.height - 10);
+    ctx.fillText('Espacio/Flecha arriba para saltar - ESC para salir', canvas.width / 2 - 200, canvas.height - 10);
 }
