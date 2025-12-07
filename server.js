@@ -9,7 +9,7 @@ const bodyParser = require("body-parser");
 const mysql = require("mysql2");
 
 const aplicacion = express();
-/*
+
 // cosa para mysql
 const db = mysql.createPool({
     host: process.env.MYSQLHOST,
@@ -21,15 +21,7 @@ const db = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
-*/
 
-const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "mundoga",
-    port: 3306
-});
 
 // estado compartido de Frogger
 let froggerState = {
