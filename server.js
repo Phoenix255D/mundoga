@@ -8,39 +8,19 @@ const session = require("express-session");
 const bodyParser = require("body-parser");
 const mysql = require("mysql2");
 
-// estado compartido de Frogger
-let froggerState = {
-    seeds: [],
-    startTime: Date.now()
-};
-
-function generateFroggerState() {
-    froggerState.seeds = [];
-    // generar suficientes semillas para todos los carriles/coches
-    for (let i = 0; i < 50; i++) {
-        froggerState.seeds.push(Math.random());
-    }
-    froggerState.startTime = Date.now();
-    console.log("Nuevo estado de Frogger generado");
-}
-
-// Generar estado inicial
-generateFroggerState();
-
 const aplicacion = express();
 
 // cosa para mysql
 const db = mysql.createPool({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "mundoga",
-    port: 3306,
+    host: process.env.MYSQLHOST,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
+    port: process.env.MYSQLPORT,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
 });
-
 
 // body parser y sesiones
 aplicacion.use(bodyParser.urlencoded({ extended: true }));
@@ -67,7 +47,7 @@ aplicacion.get("/login", (req, res) => {
 // Procesar login (POST)
 aplicacion.post("/login", (req, res) => {
     const { username, password } = req.body;
-
+    
     db.query(
         "SELECT * FROM usuarios WHERE username = ? AND password = ?",
         [username, password],
@@ -76,12 +56,12 @@ aplicacion.post("/login", (req, res) => {
                 console.error("Error en login:", err);
                 return res.send("<h3>Error en el servidor</h3><a href='/login'>Intentar de nuevo</a>");
             }
-
+            
             if (result.length === 1) {
                 req.session.user = result[0];
                 return res.redirect("/");
             }
-
+            
             res.send("<h3>Usuario o contraseña incorrectos</h3><a href='/login'>Intentar de nuevo</a>");
         }
     );
@@ -94,20 +74,20 @@ aplicacion.get("/registro", (req, res) => {
 // Procesar registro (POST)
 aplicacion.post("/registro", (req, res) => {
     const { username, password, confirm_password } = req.body;
-
+    
     console.log("=== INTENTO DE REGISTRO ===");
     console.log("Username:", username);
-
+    
     if (!username || !password || !confirm_password) {
         console.log("Error: Campos vacíos");
         return res.send("<h3>Todos los campos son obligatorios</h3><a href='/registro'>Intentar de nuevo</a>");
     }
-
+    
     if (password !== confirm_password) {
         console.log("Error: Contraseñas no coinciden");
         return res.send("<h3>Las contraseñas no coinciden</h3><a href='/registro'>Intentar de nuevo</a>");
     }
-
+    
     console.log("Verificando si usuario existe...");
     db.query(
         "SELECT * FROM usuarios WHERE username = ?",
@@ -117,12 +97,12 @@ aplicacion.post("/registro", (req, res) => {
                 console.error("Error al verificar usuario:", err);
                 return res.send(`<h3>Error: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
             }
-
+            
             if (result.length > 0) {
                 console.log("Usuario ya existe");
                 return res.send("<h3>El usuario ya existe</h3><a href='/registro'>Intentar de nuevo</a>");
             }
-
+            
             console.log("Obteniendo último ID...");
             db.query(
                 "SELECT MAX(id) as maxId FROM usuarios",
@@ -131,10 +111,10 @@ aplicacion.post("/registro", (req, res) => {
                         console.error("Error al obtener último ID:", err);
                         return res.send(`<h3>Error: ${err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
                     }
-
+                    
                     const nuevoId = (result[0].maxId || 0) + 1;
                     console.log("Nuevo ID será:", nuevoId);
-
+                    
                     db.query(
                         "INSERT INTO usuarios (id, username, password, id_skin) VALUES (?, ?, ?, 1)",
                         [nuevoId, username, password],
@@ -143,7 +123,7 @@ aplicacion.post("/registro", (req, res) => {
                                 console.error("Error al crear cuenta:", err);
                                 return res.send(`<h3>Error: ${err.sqlMessage || err.message}</h3><a href='/registro'>Intentar de nuevo</a>`);
                             }
-
+                            
                             console.log("Usuario creado exitosamente:", username, "con ID:", nuevoId);
                             res.send("<h3>Cuenta creada exitosamente</h3><a href='/login'>Ir a iniciar sesión</a>");
                         }
@@ -185,11 +165,11 @@ aplicacion.get("/api/user", (req, res) => {
 aplicacion.post("/api/user/skin", express.json(), (req, res) => {
     const { id_skin } = req.body;
     const userId = req.session.user.id;
-
+    
     if (!id_skin || id_skin < 1 || id_skin > 8) {
         return res.status(400).json({ error: "ID de skin inválido" });
     }
-
+    
     db.query(
         "UPDATE usuarios SET id_skin = ? WHERE id = ?",
         [id_skin, userId],
@@ -198,7 +178,7 @@ aplicacion.post("/api/user/skin", express.json(), (req, res) => {
                 console.error("Error actualizando skin:", err);
                 return res.status(500).json({ error: "Error actualizando skin" });
             }
-
+            
             req.session.user.id_skin = id_skin;
             console.log(`Skin actualizada para usuario ${userId}: ${id_skin}`);
             res.json({ success: true, id_skin });
@@ -228,9 +208,9 @@ servidorWS.on('connection', (ws) => {
         escenario: 'lobby',
         dinero: 100,
         username: 'Conectando...',
-        id_skin: 1,  // skin por defecto
-        sprite: 'sprites/Zero.png',  // sprite por defecto
-        color: '#000000',  // color por defecto
+        id_skin: 1,  // NUEVO: skin por defecto
+        sprite: 'sprites/Zero.png',  // NUEVO: sprite por defecto
+        color: '#000000',  // NUEVO: color por defecto
         ws: ws
     };
 
@@ -285,7 +265,7 @@ servidorWS.on('connection', (ws) => {
         try {
             const datos = JSON.parse(mensaje);
 
-            // manejar actualización de username y skin
+            // NUEVO: Manejar actualización de username Y skin
             if (datos.tipo === 'actualizar_username') {
                 const jugador = jugadores.get(idJugador);
                 if (jugador) {
@@ -293,9 +273,9 @@ servidorWS.on('connection', (ws) => {
                     jugador.id_skin = datos.id_skin || jugador.id_skin;
                     jugador.sprite = datos.sprite || jugador.sprite;
                     jugador.color = datos.color || jugador.color;
-
+                    
                     console.log('Usuario actualizado:', idJugador, datos.username, 'skin:', jugador.id_skin);
-
+                    
                     transmitir({
                         tipo: 'jugadorActualizado',
                         idJugador: idJugador,
@@ -307,16 +287,16 @@ servidorWS.on('connection', (ws) => {
                 }
             }
 
-            // manejar actualización de personaje
+            // NUEVO: Manejar actualización de personaje
             if (datos.tipo === 'actualizar_personaje') {
                 const jugador = jugadores.get(idJugador);
                 if (jugador) {
                     jugador.id_skin = datos.id_skin;
                     jugador.sprite = datos.sprite;
                     jugador.color = datos.color;
-
+                    
                     console.log('Personaje actualizado:', idJugador, 'skin:', datos.id_skin);
-
+                    
                     transmitir({
                         tipo: 'personajeActualizado',
                         idJugador: idJugador,
@@ -325,14 +305,6 @@ servidorWS.on('connection', (ws) => {
                         color: datos.color
                     });
                 }
-            }
-
-            if (datos.tipo === 'joinFrogger') {
-                console.log('Jugador solicitó unirse a Frogger:', idJugador);
-                ws.send(JSON.stringify({
-                    tipo: 'froggerInit',
-                    state: froggerState
-                }));
             }
 
             if (datos.tipo === 'mover') {
