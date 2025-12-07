@@ -1,367 +1,314 @@
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+// miniGames/flappy/script.js
 
-// Configurar canvas al tamaño completo de la ventana
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let move_speed = 3, grativy = 0.5;
-let sound_point = new Audio('sonidos/punto.mp3');
-let sound_die = new Audio('sonidos/morir.mp3');
-let sound_egg = new Audio('sonidos/huevo.mp3');
-
-let score_val = document.querySelector('.score_val');
-let message = document.querySelector('.message');
-let score_title = document.querySelector('.score_title');
-let menu = document.querySelector('.menu');
-
-let game_state = 'Menu';
-message.style.display = 'none';
-
-let pipe_offset = 8;
-let pipe_top_offset = 70;
-let pipe_gap = 35;
-
-let selectedCharacter = 'Bird';
-let characterOptions = document.querySelectorAll('.character-option');
-
-var audio = new Audio('8bits music.m4a');
-
-// Objeto bird para canvas
+let canvas, ctx;
+let game_state = 'Play';
 let bird = {
-    x: canvas.width / 4,
-    y: canvas.height * 0.4,
-    width: 50,
-    height: 35,
+    x: 150,
+    y: 200,
+    vy: 0,
     dy: 0,
-    visible: false,
+    width: 34,
+    height: 24,
+    visible: true,
     image: new Image(),
     imageFlap: new Image()
 };
 
-bird.image.src = 'imagenes/Bird.png';
-bird.imageFlap.src = 'imagenes/Bird-2.png';
-
-// Cargar imagen de fondo
-let backgroundImage = new Image();
-backgroundImage.src = 'imagenes/fondo.png';
-
-// Cargar imagen de tubos
-let pipeTopImage = new Image();
-pipeTopImage.src = 'imagenes/pipe-top.png';
-
-let pipeBottomImage = new Image();
-pipeBottomImage.src = 'imagenes/pipe.png';
-
 let pipes = [];
 let coins = [];
+let score_val = 0;
 let isFlapping = false;
 
-characterOptions.forEach(option => {
-    option.addEventListener('click', () => {
-        characterOptions.forEach(opt => opt.classList.remove('selected'));
-        option.classList.add('selected');
-        selectedCharacter = option.getAttribute('data-character');
-        bird.image.src = `imagenes/${selectedCharacter}.png`;
-        
-        if(selectedCharacter === 'Bird') {
-            bird.imageFlap.src = 'imagenes/Bird-2.png';
-        } else if(selectedCharacter === 'staraptor') {
-            bird.imageFlap.src = 'imagenes/staraptor-1.png';
-        } else if(selectedCharacter === 'Bird-5') {
-            bird.imageFlap.src = 'imagenes/Bird-6.png';
-        } else if(selectedCharacter === 'pajaro_verde') {
-            bird.imageFlap.src = 'imagenes/pajaro_verde2.png';
-        }
-    });
-});
+const backgroundImage = new Image();
+const pipeTopImage = new Image();
+const pipeBottomImage = new Image();
 
-document.getElementById('facil').addEventListener('click', () => {
-    move_speed = 4;
-    pipe_offset = 35;  // Tubos mucho más cerca del centro
-    pipe_top_offset = 25;  // Tubos superiores más abajo
-    pipe_gap = 30;  // Espacio grande para pasar
-    iniciarJuego();
-});
+// Variables de configuración de pipes
+const pipe_gap = 35;
+const pipe_offset = 10;
+const pipe_top_offset = 12;
 
-document.getElementById('normal').addEventListener('click', () => {
-    move_speed = 4;
-    pipe_offset = 38;  // Tubos muy cerca del centro
-    pipe_top_offset = 28;  // Tubos superiores menos abajo
-    pipe_gap = 25;  // Espacio mediano para pasar
-    iniciarJuego();
-});
+// Precargar imágenes
+backgroundImage.src = 'imagenes/fondo.png';
+pipeTopImage.src = 'imagenes/tubo.png';
+pipeBottomImage.src = 'imagenes/tubo.png';
 
-document.getElementById('dificil').addEventListener('click', () => {
-    move_speed = 6;
-    pipe_offset = 40;  // Tubos extremadamente cerca del centro
-    pipe_top_offset = 30;  // Tubos superiores cerca del centro
-    pipe_gap = 18;  // Espacio pequeño para pasar
-    iniciarJuego();
-});
+// Usar solo la skin del pingüino azul (id 3)
+bird.image.src = 'sprites/3.png';
+bird.imageFlap.src = 'sprites/3.png';
 
-function iniciarJuego(){
-    menu.style.display = 'none';
-    message.style.display = 'block';
-    message.classList.add('messageStyle');
-    message.innerHTML = 'Presione ENTER para comenzar<br><span style="color: red;">&uarr;</span> Flechita arriba para mover';
-    game_state = 'Start';
+export function initFlappy() {
+    console.log('Iniciando Flappy Bird...');
+    
+    // Obtener el canvas del juego principal
+    canvas = document.getElementById("game");
+    ctx = canvas.getContext("2d");
+    
+    // Resetear estado del juego
+    game_state = 'Play';
+    bird = {
+        x: 150,
+        y: 200,
+        vy: 0,
+        dy: 0,
+        width: 34,
+        height: 24,
+        visible: true,
+        image: new Image(),
+        imageFlap: new Image()
+    };
+    
+    bird.image.src = 'sprites/3.png';
+    bird.imageFlap.src = 'sprites/3.png';
+    
+    pipes = [];
+    coins = [];
+    score_val = 0;
+    isFlapping = false;
+    
+    // Iniciar el juego
+    startGame();
+    
+    return true;
 }
 
-document.addEventListener('keydown', (e) => {
-    if(e.key == 'Enter' && game_state != 'Play' && game_state != 'Menu'){
-        let randomNum = Math.floor(Math.random() * 6) + 1;
-        switch(randomNum) {
-            case 1:
-                audio = new Audio('8bits music.m4a');
-                break;
-            case 2:
-                audio = new Audio('01. Jungle Battle (Stage 1).mp3');
-                break;
-            case 3:
-                audio = new Audio('Mario.mp3');
-                break;
-            case 4:
-                audio = new Audio('Tetris.mp3');
-                break;
-            case 5:
-                audio = new Audio('Flappy.mp3');
-                break;
-            case 6:
-                audio = new Audio('poke.mp3');
-                break;
-        }
-        audio.loop = true;
-        audio.play();
-        
-        // Limpiar pipes y coins
-        pipes = [];
-        coins = [];
-        bird.y = canvas.height * 0.4;
-        bird.dy = 0;
-        bird.visible = true;
-        game_state = 'Play';
-        message.innerHTML = '';
-        score_title.innerHTML = 'Puntos : ';
-        score_val.innerHTML = '0';
-        message.classList.remove('messageStyle');
-        play();
+function startGame() {
+    // Configurar controles
+    setupControls();
+    
+    // Iniciar loops del juego
+    move_pipes();
+    apply_gravity();
+    create_pipe();
+    draw();
+}
+
+function setupControls() {
+    // Remover listeners anteriores si existen
+    const oldListener = window.flappyKeyListener;
+    if (oldListener) {
+        window.removeEventListener('keydown', oldListener);
     }
     
-    if((e.key == 'ArrowUp' || e.key == ' ') && game_state == 'Play'){
-        isFlapping = true;
-        bird.dy = -7.6;
-    }
-});
-
-document.addEventListener('keyup', (e) => {
-    if(e.key == 'ArrowUp' || e.key == ' '){
-        isFlapping = false;
-    }
-});
-
-function play(){
-    function move(){
-        if(game_state != 'Play') return;
-
-        for(let i = pipes.length - 1; i >= 0; i--){
-            let pipe = pipes[i];
-            pipe.x -= move_speed;
-
-            if(pipe.x + pipe.width <= 0){
-                pipes.splice(i, 1);
-            } else {
-                // Colisión con pipes
-                if(
-                    bird.x < pipe.x + pipe.width &&
-                    bird.x + bird.width > pipe.x &&
-                    bird.y < pipe.y + pipe.height &&
-                    bird.y + bird.height > pipe.y
-                ){
-                    game_state = 'End';
-                    audio.pause();
-                    message.innerHTML = '¡Te moriste!'.fontcolor('red') + '<br>Presione ENTER para reiniciar';
-                    message.classList.add('messageStyle');
-                    bird.visible = false;
-                    sound_die.play();
-                    return;
-                } else {
-                    if(pipe.x + pipe.width < bird.x && pipe.increase_score == '1'){
-                        score_val.innerHTML = +score_val.innerHTML + 1;
-                        sound_point.play();
-                        pipe.increase_score = '0';
-                        if(score_val.innerHTML < 15){
-                            pipe_gap = pipe_gap - (score_val.innerHTML / 10);
-                        }
-                    }
-                }
-            }
-        }
-        requestAnimationFrame(move);
-    }
-    requestAnimationFrame(move);
-
-    function moveCoins(){
-        if(game_state != 'Play') return;
+    // Crear nuevo listener
+    const keyListener = (e) => {
+        if (game_state !== 'Play') return;
         
-        for(let i = coins.length - 1; i >= 0; i--){
-            let coin = coins[i];
-            coin.x -= move_speed;
-
-            if(coin.x + coin.size <= 0){
-                coins.splice(i, 1);
-            } else {
-                if(
-                    bird.x < coin.x + coin.size &&
-                    bird.x + bird.width > coin.x &&
-                    bird.y < coin.y + coin.size &&
-                    bird.y + bird.height > coin.y
-                ){
-                    sound_egg.play();
-                    score_val.innerHTML = +score_val.innerHTML + 5;
-                    coins.splice(i, 1);
-                }
-            }
+        if (e.key === ' ' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            bird.dy = -4;
+            isFlapping = true;
+            setTimeout(() => { isFlapping = false; }, 100);
         }
-        requestAnimationFrame(moveCoins);
-    }
-    requestAnimationFrame(moveCoins);
-
-    function apply_gravity(){
-        if(game_state != 'Play') return;
-        bird.dy = bird.dy + grativy;
-
-        if(bird.y <= 0 || bird.y + bird.height >= canvas.height){
+        
+        // ESC para salir
+        if (e.key === 'Escape') {
             game_state = 'End';
-            window.location.reload();
+            cleanup();
+        }
+    };
+    
+    window.flappyKeyListener = keyListener;
+    window.addEventListener('keydown', keyListener);
+}
+
+function cleanup() {
+    // Limpiar listener
+    if (window.flappyKeyListener) {
+        window.removeEventListener('keydown', window.flappyKeyListener);
+        window.flappyKeyListener = null;
+    }
+}
+
+function move_pipes() {
+    if (game_state !== 'Play') return;
+    
+    pipes.forEach((pipe, index) => {
+        pipe.x -= 2;
+        
+        if (pipe.x + pipe.width < 0) {
+            pipes.splice(index, 1);
+        }
+        
+        // Colisión con pipes
+        if (
+            bird.x < pipe.x + pipe.width &&
+            bird.x + bird.width > pipe.x &&
+            bird.y < pipe.y + pipe.height &&
+            bird.y + bird.height > pipe.y
+        ) {
+            game_state = 'End';
+            cleanup();
             return;
         }
-        bird.y = bird.y + bird.dy;
-        requestAnimationFrame(apply_gravity);
-    }
-    requestAnimationFrame(apply_gravity);
-
-    let pipe_seperation = 0;
-
-    function create_pipe(){
-        if(game_state != 'Play') return;
-
-        if(pipe_seperation > 115){
-            pipe_seperation = 0;
-
-            let pipe_posi = Math.floor(Math.random() * 70) + pipe_offset;
-            
-            // Pipe superior (colgando desde arriba)
-            let topHeight = (pipe_posi - pipe_top_offset) * canvas.height / 100;
-            pipes.push({
-                x: canvas.width,
-                y: 0,
-                width: 60,
-                height: topHeight,
-                increase_score: '0',
-                isTop: true
-            });
-
-            // Pipe inferior (desde abajo)
-            let bottomY = (pipe_posi + pipe_gap) * canvas.height / 100;
-            pipes.push({
-                x: canvas.width,
-                y: bottomY,
-                width: 60,
-                height: canvas.height - bottomY,
-                increase_score: '1',
-                isTop: false
-            });
-            
-            if(Math.random() < 0.6){
-                let coinImg = new Image();
-                coinImg.src = 'imagenes/huevomoneda.webp';
-                coins.push({
-                    x: canvas.width,
-                    y: (pipe_posi + (pipe_gap / 2)) * canvas.height / 100 - 15,
-                    size: 30,
-                    image: coinImg
-                });
-            }
+        
+        // Aumentar score
+        if (pipe.increase_score === '1' && pipe.x + pipe.width < bird.x && pipe.x + pipe.width > bird.x - 2) {
+            score_val++;
         }
-        pipe_seperation++;
-        requestAnimationFrame(create_pipe);
+    });
+    
+    // Mover monedas
+    coins.forEach((coin, index) => {
+        coin.x -= 2;
+        
+        if (coin.x + coin.size < 0) {
+            coins.splice(index, 1);
+        }
+        
+        // Colisión con monedas
+        if (
+            bird.x < coin.x + coin.size &&
+            bird.x + bird.width > coin.x &&
+            bird.y < coin.y + coin.size &&
+            bird.y + bird.height > coin.y
+        ) {
+            score_val += 5;
+            coins.splice(index, 1);
+        }
+    });
+    
+    requestAnimationFrame(move_pipes);
+}
+
+function apply_gravity() {
+    if (game_state !== 'Play') return;
+    
+    const gravity = 0.3;
+    bird.dy += gravity;
+    
+    // Límites del canvas
+    if (bird.y <= 0 || bird.y + bird.height >= canvas.height) {
+        game_state = 'End';
+        cleanup();
+        return;
     }
+    
+    bird.y = bird.y + bird.dy;
+    requestAnimationFrame(apply_gravity);
+}
+
+let pipe_separation = 0;
+
+function create_pipe() {
+    if (game_state !== 'Play') return;
+    
+    if (pipe_separation > 115) {
+        pipe_separation = 0;
+        
+        let pipe_posi = Math.floor(Math.random() * 70) + pipe_offset;
+        
+        // Pipe superior
+        let topHeight = (pipe_posi - pipe_top_offset) * canvas.height / 100;
+        pipes.push({
+            x: canvas.width,
+            y: 0,
+            width: 60,
+            height: topHeight,
+            increase_score: '0',
+            isTop: true
+        });
+        
+        // Pipe inferior
+        let bottomY = (pipe_posi + pipe_gap) * canvas.height / 100;
+        pipes.push({
+            x: canvas.width,
+            y: bottomY,
+            width: 60,
+            height: canvas.height - bottomY,
+            increase_score: '1',
+            isTop: false
+        });
+        
+        // Agregar moneda ocasionalmente
+        if (Math.random() < 0.6) {
+            let coinImg = new Image();
+            coinImg.src = 'imagenes/huevomoneda.webp';
+            coins.push({
+                x: canvas.width,
+                y: (pipe_posi + (pipe_gap / 2)) * canvas.height / 100 - 15,
+                size: 30,
+                image: coinImg
+            });
+        }
+    }
+    pipe_separation++;
     requestAnimationFrame(create_pipe);
 }
 
-// Función de dibujo en canvas
-function draw(){
+function draw() {
+    if (game_state !== 'Play') return;
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Dibujar fondo (estirado para cubrir todo el canvas)
-    if(backgroundImage.complete && backgroundImage.width > 0){
-        // Estirar la imagen para que cubra todo el canvas
+    // Dibujar fondo
+    if (backgroundImage.complete && backgroundImage.width > 0) {
         ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
     } else {
-        // Fondo celeste mientras carga
         ctx.fillStyle = '#70c5ce';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     
     // Dibujar pipes
     pipes.forEach(pipe => {
-        if(pipe.isTop){
-            // Pipe superior (invertido)
-            if(pipeTopImage.complete && pipeTopImage.width > 0){
+        if (pipe.isTop) {
+            if (pipeTopImage.complete && pipeTopImage.width > 0) {
                 ctx.save();
                 ctx.translate(pipe.x, pipe.height);
                 ctx.scale(1, -1);
-                // Dibujar repetido verticalmente
                 let numRepeat = Math.ceil(pipe.height / pipeTopImage.height);
-                for(let i = 0; i < numRepeat; i++){
+                for (let i = 0; i < numRepeat; i++) {
                     ctx.drawImage(pipeTopImage, 0, i * pipeTopImage.height, pipe.width, pipeTopImage.height);
                 }
                 ctx.restore();
             } else {
-                // Fallback
                 ctx.fillStyle = '#5cb85c';
                 ctx.fillRect(pipe.x, pipe.y, pipe.width, pipe.height);
-                ctx.strokeStyle = '#4a9a4a';
-                ctx.lineWidth = 3;
-                ctx.strokeRect(pipe.x, pipe.y, pipe.width, pipe.height);
             }
         } else {
-            // Pipe inferior (normal)
-            if(pipeBottomImage.complete && pipeBottomImage.width > 0){
-                // Dibujar repetido verticalmente
+            if (pipeBottomImage.complete && pipeBottomImage.width > 0) {
                 let numRepeat = Math.ceil(pipe.height / pipeBottomImage.height);
-                for(let i = 0; i < numRepeat; i++){
+                for (let i = 0; i < numRepeat; i++) {
                     ctx.drawImage(pipeBottomImage, pipe.x, pipe.y + (i * pipeBottomImage.height), pipe.width, pipeBottomImage.height);
                 }
             } else {
-                // Fallback
                 ctx.fillStyle = '#5cb85c';
                 ctx.fillRect(pipe.x, pipe.y, pipe.width, pipe.height);
-                ctx.strokeStyle = '#4a9a4a';
-                ctx.lineWidth = 3;
-                ctx.strokeRect(pipe.x, pipe.y, pipe.width, pipe.height);
             }
         }
     });
     
     // Dibujar monedas
     coins.forEach(coin => {
-        if(coin.image.complete){
+        if (coin.image.complete) {
             ctx.drawImage(coin.image, coin.x, coin.y, coin.size, coin.size);
         }
     });
     
     // Dibujar pájaro
-    if(bird.visible){
+    if (bird.visible) {
         let birdImage = isFlapping ? bird.imageFlap : bird.image;
-        if(birdImage.complete){
+        if (birdImage.complete) {
             ctx.drawImage(birdImage, bird.x, bird.y, bird.width, bird.height);
         }
     }
     
+    // Dibujar score
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 3;
+    ctx.font = 'bold 24px Arial';
+    ctx.strokeText(`Score: ${score_val}`, 10, 30);
+    ctx.fillText(`Score: ${score_val}`, 10, 30);
+    
+    // Instrucciones
+    ctx.font = '16px Arial';
+    ctx.strokeText('Espacio/↑ para saltar - ESC para salir', 10, canvas.height - 10);
+    ctx.fillText('Espacio/↑ para saltar - ESC para salir', 10, canvas.height - 10);
+    
     requestAnimationFrame(draw);
 }
 
-// Iniciar el loop de dibujo
-draw();
+export function update() {
+    return game_state === 'Play';
+}
