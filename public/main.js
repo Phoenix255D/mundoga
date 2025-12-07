@@ -315,18 +315,19 @@ class Mapa {
     constructor() {
         this.scenes = {
             lobby: {
-                puerta: { x: 0, y: 14, w: 1, h: 2, tipo: "puerta", nombre: "puerta", destino: "iglu", posx: 30, posy: 14, message: "puerta" },
-                puerta2: { x: 12, y: 7, w: 3, h: 4, tipo: "pared", nombre: "puerta2", destino: "iglu", inix: 12, iniy: 12, rutaImagen: "escenarios/arboles.png" },
-                puerta3: { x: 16, y: 10, w: 1, h: 1, inix: 8, iniy: 4, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "puerta3", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "pared Interactiva" },
-                frogger: { x: 12, y: 15, w: 2, h: 2, tipo: "pared", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva" },
-                puerta4: { x: 31, y: 14, w: 1, h: 2, tipo: "puerta", nombre: "puerta4", destino: "juegos", posx: 1, posy: 14, message: "puerta" },
+                puerta: { x: 0, y: 11, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", nombre: "puerta", destino: "iglu", posx: 30, posy: 11 },
+                puerta2: { x: 12, y: 7, w: 3, h: 4, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png",tipo: "pared", nombre: "puerta2", destino: "iglu", inix: 12, iniy: 12, rutaImagen: "escenarios/arboles.png" },
+                puerta3: { x: 16, y: 10, w: 1, h: 1, inix: 8, iniy: 4, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "puerta3", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "muñeco Interactivo" },
+                puerta4: { x: 31, y: 11, w: 1, h: 2,inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", nombre: "puerta4", destino: "juegos", posx: 1, posy: 11},
             },
             iglu: {
-                puerta: { x: 31, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 1, posy: 14, message: "puerta" }
+                puerta: { x: 31, y: 14, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 1, posy: 11, message: "puerta" }
             },
             juegos: {
-                puerta: { x: 0, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 30, posy: 14, message: "puerta" },
-                fishing: { x: 22, y: 10, w: 2, h: 2, tipo: "pared", nombre: "fishing", juego: true, juegoNum: 3, posx: 2, posy: 10, color: "#006994", message: "Pesca" },
+                puerta: { x: 0, y: 11, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 30, posy: 11, message: "puerta" },
+                fishing: { x: 13, y: 8, w: 1, h: 1, inix: 2, iniy: 8, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "fishing", juego: true, juegoNum: 3, posx: 2, posy: 10, message: "Pesca" },
+                frogger: { x: 10, y: 9, w: 1, h: 1, tipo: "pared",inix: 4, iniy: 12, rutaImagen: "escenarios/outside.png", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva" },
+
             }
         };
     }

@@ -9,7 +9,7 @@ const bodyParser = require("body-parser");
 const mysql = require("mysql2");
 
 const aplicacion = express();
-
+/*
 // cosa para mysql
 const db = mysql.createPool({
     host: process.env.MYSQLHOST,
@@ -21,6 +21,35 @@ const db = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0
 });
+*/
+
+const db = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "mundoga",
+    port: 3306
+});
+
+// estado compartido de Frogger
+let froggerState = {
+    seeds: [],
+    startTime: Date.now()
+};
+
+function generateFroggerState() {
+    froggerState.seeds = [];
+    // generar suficientes semillas para todos los carriles/coches
+    for (let i = 0; i < 50; i++) {
+        froggerState.seeds.push(Math.random());
+    }
+    froggerState.startTime = Date.now();
+    console.log("Nuevo estado de Frogger generado");
+}
+
+// Generar estado inicial
+generateFroggerState();
+
 
 // body parser y sesiones
 aplicacion.use(bodyParser.urlencoded({ extended: true }));
@@ -306,6 +335,15 @@ servidorWS.on('connection', (ws) => {
                     });
                 }
             }
+
+            if (datos.tipo === 'joinFrogger') {
+                console.log('Jugador solicitó unirse a Frogger:', idJugador);
+                ws.send(JSON.stringify({
+                    tipo: 'froggerInit',
+                    state: froggerState
+                }));
+            }
+
 
             if (datos.tipo === 'mover') {
                 const jugador = jugadores.get(idJugador);
