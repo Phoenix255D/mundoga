@@ -1,11 +1,12 @@
 // miniGames/flappy/script.js
+export { initFlappy, update };
+import { teclas } from "/main.js";
 
 let canvas, ctx;
-let game_state = 'Play';
+let juega = true;
 let bird = {
     x: 150,
     y: 200,
-    vy: 0,
     dy: 0,
     width: 34,
     height: 24,
@@ -19,6 +20,7 @@ let coins = [];
 let score_val = 0;
 let isFlapping = false;
 let pipe_separation = 0;
+let lastJumpTime = 0;
 
 const backgroundImage = new Image();
 const pipeTopImage = new Image();
@@ -29,39 +31,24 @@ const pipe_gap = 35;
 const pipe_offset = 10;
 const pipe_top_offset = 12;
 
-// Variables para controlar los loops
-let animationFrames = {
-    move: null,
-    gravity: null,
-    create: null,
-    draw: null
-};
-
-let isGameRunning = false;
-
 // Precargar imágenes
 backgroundImage.src = 'imagenes/fondo.png';
 pipeTopImage.src = 'imagenes/tubo.png';
 pipeBottomImage.src = 'imagenes/tubo.png';
 
-export function initFlappy() {
+function initFlappy() {
     console.log('Iniciando Flappy Bird...');
-    
-    // Limpiar cualquier instancia anterior
-    cleanup();
     
     // Obtener el canvas del juego principal
     canvas = document.getElementById("game");
     ctx = canvas.getContext("2d");
     
     // Resetear estado del juego
-    game_state = 'Play';
-    isGameRunning = true;
+    juega = true;
     
     bird = {
         x: 150,
         y: 200,
-        vy: 0,
         dy: 0,
         width: 34,
         height: 24,
@@ -78,101 +65,98 @@ export function initFlappy() {
     score_val = 0;
     isFlapping = false;
     pipe_separation = 0;
+    lastJumpTime = 0;
     
-    // Iniciar el juego
-    startGame();
-    
-    return true;
+    console.log('Flappy Bird iniciado correctamente');
 }
 
-function startGame() {
-    // Configurar controles
-    setupControls();
-    
-    // Iniciar loops del juego
-    move_pipes();
-    apply_gravity();
-    create_pipe();
-    draw();
-}
-
-function setupControls() {
-    // Remover listeners anteriores si existen
-    if (window.flappyKeyListener) {
-        window.removeEventListener('keydown', window.flappyKeyListener);
+function update() {
+    if (!juega) {
+        return false;
     }
     
-    // Crear nuevo listener
-    const keyListener = (e) => {
-        if (!isGameRunning) return;
+    // Control de salto con debounce
+    const now = Date.now();
+    if ((teclas[" "] || teclas["ArrowUp"]) && now - lastJumpTime > 150) {
+        bird.dy = -4;
+        isFlapping = true;
+        lastJumpTime = now;
+        setTimeout(() => { isFlapping = false; }, 100);
+    }
+    
+    // Salir del juego
+    if (teclas["Escape"] || teclas["x"] || teclas["X"]) {
+        juega = false;
+        return false;
+    }
+    
+    // Aplicar gravedad
+    const gravity = 0.3;
+    bird.dy += gravity;
+    bird.y += bird.dy;
+    
+    // Límites del canvas
+    if (bird.y <= 0) {
+        bird.y = 0;
+        bird.dy = 0;
+    }
+    
+    if (bird.y + bird.height >= canvas.height) {
+        console.log('¡Colisión con el suelo!');
+        juega = false;
+        return false;
+    }
+    
+    // Incrementar separación de pipes
+    pipe_separation++;
+    
+    // Crear nuevos pipes
+    if (pipe_separation > 115) {
+        pipe_separation = 0;
         
-        if (e.code === 'Space' || e.code === 'ArrowUp') {
-            e.preventDefault();
-            e.stopPropagation();
-            bird.dy = -4;
-            isFlapping = true;
-            setTimeout(() => { isFlapping = false; }, 100);
-        }
+        let pipe_posi = Math.floor(Math.random() * 70) + pipe_offset;
         
-        // ESC para salir
-        if (e.code === 'Escape') {
-            e.preventDefault();
-            e.stopPropagation();
-            endGame();
+        // Pipe superior
+        let topHeight = (pipe_posi - pipe_top_offset) * canvas.height / 100;
+        pipes.push({
+            x: canvas.width,
+            y: 0,
+            width: 60,
+            height: topHeight,
+            scored: false,
+            isTop: true
+        });
+        
+        // Pipe inferior
+        let bottomY = (pipe_posi + pipe_gap) * canvas.height / 100;
+        pipes.push({
+            x: canvas.width,
+            y: bottomY,
+            width: 60,
+            height: canvas.height - bottomY,
+            scored: false,
+            isTop: false
+        });
+        
+        // Agregar moneda ocasionalmente
+        if (Math.random() < 0.6) {
+            let coinImg = new Image();
+            coinImg.src = 'imagenes/huevomoneda.webp';
+            coins.push({
+                x: canvas.width,
+                y: (pipe_posi + (pipe_gap / 2)) * canvas.height / 100 - 15,
+                size: 30,
+                image: coinImg
+            });
         }
-    };
-    
-    window.flappyKeyListener = keyListener;
-    window.addEventListener('keydown', keyListener);
-}
-
-function endGame() {
-    console.log('Finalizando Flappy Bird...');
-    game_state = 'End';
-    isGameRunning = false;
-    cleanup();
-}
-
-function cleanup() {
-    console.log('Limpiando recursos de Flappy Bird...');
-    
-    // Limpiar listener
-    if (window.flappyKeyListener) {
-        window.removeEventListener('keydown', window.flappyKeyListener);
-        window.flappyKeyListener = null;
     }
     
-    // Cancelar todos los animation frames
-    if (animationFrames.move) {
-        cancelAnimationFrame(animationFrames.move);
-        animationFrames.move = null;
-    }
-    if (animationFrames.gravity) {
-        cancelAnimationFrame(animationFrames.gravity);
-        animationFrames.gravity = null;
-    }
-    if (animationFrames.create) {
-        cancelAnimationFrame(animationFrames.create);
-        animationFrames.create = null;
-    }
-    if (animationFrames.draw) {
-        cancelAnimationFrame(animationFrames.draw);
-        animationFrames.draw = null;
-    }
-    
-    isGameRunning = false;
-}
-
-function move_pipes() {
-    if (!isGameRunning || game_state !== 'Play') {
-        animationFrames.move = null;
-        return;
-    }
-    
+    // Mover y verificar colisiones con pipes
     for (let i = pipes.length - 1; i >= 0; i--) {
         const pipe = pipes[i];
         pipe.x -= 2;
         
+        // Eliminar pipes fuera de pantalla
         if (pipe.x + pipe.width < 0) {
             pipes.splice(i, 1);
             continue;
@@ -186,22 +170,23 @@ function move_pipes() {
             bird.y + bird.height > pipe.y
         ) {
             console.log('¡Colisión con pipe!');
-            endGame();
-            return;
+            juega = false;
+            return false;
         }
         
-        // Aumentar score
-        if (pipe.increase_score === '1' && pipe.x + pipe.width < bird.x && pipe.x + pipe.width > bird.x - 2) {
+        // Aumentar score (solo una vez por par de pipes)
+        if (!pipe.scored && !pipe.isTop && pipe.x + pipe.width < bird.x) {
             score_val++;
-            pipe.increase_score = '0'; // Evitar contar múltiples veces
+            pipe.scored = true;
         }
     }
     
-    // Mover monedas
+    // Mover y verificar colisiones con monedas
     for (let i = coins.length - 1; i >= 0; i--) {
         const coin = coins[i];
         coin.x -= 2;
         
+        // Eliminar monedas fuera de pantalla
         if (coin.x + coin.size < 0) {
             coins.splice(i, 1);
             continue;
@@ -219,86 +204,13 @@ function move_pipes() {
         }
     }
     
-    animationFrames.move = requestAnimationFrame(move_pipes);
-}
-
-function apply_gravity() {
-    if (!isGameRunning || game_state !== 'Play') {
-        animationFrames.gravity = null;
-        return;
-    }
+    // Dibujar todo
+    draw();
     
-    const gravity = 0.3;
-    bird.dy += gravity;
-    bird.y += bird.dy;
-    
-    // Límites del canvas
-    if (bird.y <= 0 || bird.y + bird.height >= canvas.height) {
-        console.log('¡Colisión con límites!');
-        endGame();
-        return;
-    }
-    
-    animationFrames.gravity = requestAnimationFrame(apply_gravity);
-}
-
-function create_pipe() {
-    if (!isGameRunning || game_state !== 'Play') {
-        animationFrames.create = null;
-        return;
-    }
-    
-    pipe_separation++;
-    
-    if (pipe_separation > 115) {
-        pipe_separation = 0;
-        
-        let pipe_posi = Math.floor(Math.random() * 70) + pipe_offset;
-        
-        // Pipe superior
-        let topHeight = (pipe_posi - pipe_top_offset) * canvas.height / 100;
-        pipes.push({
-            x: canvas.width,
-            y: 0,
-            width: 60,
-            height: topHeight,
-            increase_score: '0',
-            isTop: true
-        });
-        
-        // Pipe inferior
-        let bottomY = (pipe_posi + pipe_gap) * canvas.height / 100;
-        pipes.push({
-            x: canvas.width,
-            y: bottomY,
-            width: 60,
-            height: canvas.height - bottomY,
-            increase_score: '1',
-            isTop: false
-        });
-        
-        // Agregar moneda ocasionalmente
-        if (Math.random() < 0.6) {
-            let coinImg = new Image();
-            coinImg.src = 'imagenes/huevomoneda.webp';
-            coins.push({
-                x: canvas.width,
-                y: (pipe_posi + (pipe_gap / 2)) * canvas.height / 100 - 15,
-                size: 30,
-                image: coinImg
-            });
-        }
-    }
-    
-    animationFrames.create = requestAnimationFrame(create_pipe);
+    return juega;
 }
 
 function draw() {
-    if (!isGameRunning || game_state !== 'Play') {
-        animationFrames.draw = null;
-        return;
-    }
-    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // Dibujar fondo
@@ -370,10 +282,4 @@ function draw() {
     ctx.lineWidth = 2;
     ctx.strokeText('Espacio/↑ para saltar - ESC para salir', 10, canvas.height - 10);
     ctx.fillText('Espacio/↑ para saltar - ESC para salir', 10, canvas.height - 10);
-    
-    animationFrames.draw = requestAnimationFrame(draw);
-}
-
-export function update() {
-    return isGameRunning && game_state === 'Play';
 }
