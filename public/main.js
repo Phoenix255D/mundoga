@@ -1,5 +1,6 @@
 import { iniciarJuego, bucleTest } from "./miniGames/mini.js";
 import { initFrog, update, getFrogPosition, updateRemoteFrog, hideRemoteFrog } from "./miniGames/frogger/main.js";
+import { initFishing, update as updateFishing } from "./miniGames/fishing/fishing.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -189,6 +190,7 @@ async function aplicarPersonajeSeleccionado(personaje) {
 
     mostrarNotificacion(`¡Ahora eres ${personaje.nombre}!`);
 }
+
 function mostrarNotificacion(mensaje) {
     const notificacion = document.createElement("div");
     notificacion.className = "notificacion slide-in";
@@ -227,6 +229,7 @@ function cerrarMenuPersonajes() {
         menuContainer.classList.remove("fade-out");
     }, 300);
 }
+
 const crearBotonPersonajes = () => {
     if (document.getElementById('btn-personajes-menu')) {
         return;
@@ -312,17 +315,18 @@ class Mapa {
     constructor() {
         this.scenes = {
             lobby: {
-                puerta: { x: 0, y: 14, w: 1, h: 2, tipo: "puerta",nombre: "puerta", destino: "iglu", posx: 30, posy: 14, message: "puerta" },
-                puerta2: { x: 12, y: 7, w: 3, h: 4, tipo: "pared",nombre: "puerta2", destino: "iglu", inix: 12, iniy: 12, rutaImagen:"escenarios/arboles.png" },
-                puerta3: { x: 16, y: 10, w: 1, h: 1, inix: 8, iniy: 4, rutaImagen:"escenarios/outside.png", tipo: "pared",nombre: "puerta3", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "pared Interactiva" },
-                frogger: { x: 12, y: 15, w: 2, h: 2, tipo: "pared",nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva" },
-				puerta4: { x: 31, y: 14, w: 1, h: 2, tipo: "puerta",nombre: "puerta", destino: "juegos", posx: 30, posy: 14, message: "puerta" },
+                puerta: { x: 0, y: 14, w: 1, h: 2, tipo: "puerta", nombre: "puerta", destino: "iglu", posx: 30, posy: 14, message: "puerta" },
+                puerta2: { x: 12, y: 7, w: 3, h: 4, tipo: "pared", nombre: "puerta2", destino: "iglu", inix: 12, iniy: 12, rutaImagen: "escenarios/arboles.png" },
+                puerta3: { x: 16, y: 10, w: 1, h: 1, inix: 8, iniy: 4, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "puerta3", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "pared Interactiva" },
+                frogger: { x: 12, y: 15, w: 2, h: 2, tipo: "pared", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva" },
+                puerta4: { x: 31, y: 14, w: 1, h: 2, tipo: "puerta", nombre: "puerta4", destino: "juegos", posx: 1, posy: 14, message: "puerta" },
             },
             iglu: {
                 puerta: { x: 31, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 1, posy: 14, message: "puerta" }
             },
-			juegos: {
-                puerta: { x: 0, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 1, posy: 14, message: "puerta" }
+            juegos: {
+                puerta: { x: 0, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 30, posy: 14, message: "puerta" },
+                fishing: { x: 22, y: 10, w: 2, h: 2, tipo: "pared", nombre: "fishing", juego: true, juegoNum: 3, posx: 2, posy: 10, color: "#006994", message: "Pesca" },
             }
         };
     }
@@ -374,7 +378,7 @@ function cargarImagenes() {
     const rutasImagenes = {
         lobby: "escenarios/lobby.png",
         iglu: "escenarios/iglu.png",
-		juegos: "escenarios/juegos.png",
+        juegos: "escenarios/juegos.png",
         jugador: "sprites/Zero.png"
     };
 
@@ -400,13 +404,12 @@ function cargarImagenes() {
     });
 }
 
-function cargarEscenario(){
-
+function cargarEscenario() {
     for (const door of mapa.getAllDoors(escenarioActual)) {
-        if(door.rutaImagen){
-        const img = new Image();
-        img.src = door.rutaImagen;
-        imagenes[door.nombre] = img;
+        if (door.rutaImagen) {
+            const img = new Image();
+            img.src = door.rutaImagen;
+            imagenes[door.nombre] = img;
         }
     }
 }
@@ -672,7 +675,6 @@ ws.onmessage = (evento) => {
             }
             break;
 
-
         case 'jugadorMovido':
             if (datos.idJugador === miIdJugador) {
                 break;
@@ -742,8 +744,6 @@ ws.onmessage = (evento) => {
                 }
             }
             break;
-
-
 
         case 'personajeActualizado':
             let jugadorConPersonaje = otrosJugadores.get(datos.idJugador);
@@ -864,7 +864,6 @@ function actualizar() {
         currentIndex = 0;
     }
 
-
     if (teclas[" "] && press == false) {
         press = true;
         switch (jugador.dir) {
@@ -885,6 +884,9 @@ function actualizar() {
                 } else {
                     initFrog();
                 }
+            }
+            if (juegoN === 3) {
+                initFishing();
             }
             if (jugando == false) {
                 dirC = true;
@@ -913,6 +915,7 @@ function actualizar() {
                     }));
                 }
                 break;
+            case 3: jugando = updateFishing(); break;
         }
         if (jugando == false) {
             dirC = true;
@@ -999,28 +1002,25 @@ function dibujar() {
     }
 
     for (const door of mapa.getAllDoors(escenarioActual)) {
-        if(door.rutaImagen){
-        ctx.drawImage(imagenes[door.nombre],door.inix*tamano,door.iniy*tamano,door.w * tamano, door.h * tamano,door.x * tamano, door.y * tamano, door.w * tamano, door.h * tamano);
-
-        }else{
-        ctx.fillStyle = door.color || "#8B4513";
-        ctx.fillRect(door.x * tamano, door.y * tamano, door.w * tamano, door.h * tamano);
-        ctx.fillStyle = "black";
-        ctx.font = "14px Arial";
+        if (door.rutaImagen) {
+            ctx.drawImage(imagenes[door.nombre], door.inix * tamano, door.iniy * tamano, door.w * tamano, door.h * tamano, door.x * tamano, door.y * tamano, door.w * tamano, door.h * tamano);
+        } else {
+            ctx.fillStyle = door.color || "#8B4513";
+            ctx.fillRect(door.x * tamano, door.y * tamano, door.w * tamano, door.h * tamano);
+            ctx.fillStyle = "black";
+            ctx.font = "14px Arial";
         }
         if (door.message != null) {
             ctx.fillText(door.message, (door.x * 32) + 10, (door.y * 32) + 60);
         }
     }
 
-    // dibujar otros jugadores con sus sprites individuales
     otrosJugadores.forEach((otroJugador) => {
         if (otroJugador.escenario === escenarioActual && otroJugador.id != jugador) {
             let getX = otrosJugadoresPos.get(otroJugador.id).x;
             let getY = otrosJugadoresPos.get(otroJugador.id).y;
             let oStep = 1;
 
-            // Obtener sprite individual del jugador
             const spriteJugador = spritesJugadores.get(otroJugador.id);
 
             if (spriteJugador && spriteJugador.complete) {
@@ -1109,4 +1109,3 @@ function dibujar() {
 }
 
 bucleJuego();
-
