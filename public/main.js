@@ -308,10 +308,10 @@ class Mapa {
     constructor() {
         this.scenes = {
             lobby: {
-                puerta: {x: 0, y: 14, w: 1, h: 2, tipo: "puerta", destino: "iglu", posx: 30, posy: 14, message: "puerta"},
-                puerta2: {x: 10, y: 6, w: 3, h: 3, tipo: "pared", destino: "iglu", posx: 2, posy: 10},
-                puerta3: {x: 15, y: 10, w: 2, h: 2, tipo: "pared", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "pared Interactiva"},
-                frogger: {x: 12, y: 15, w: 2, h: 2, tipo: "pared", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva"},
+                puerta: {x: 0, y: 14, w: 1, h: 2, tipo: "puerta",nombre: "puerta", destino: "iglu", posx: 30, posy: 14, message: "puerta"},
+                puerta2: {x: 12, y: 7, w: 3, h: 4, tipo: "pared",nombre: "puerta2", destino: "iglu", inix: 12, iniy: 12, rutaImagen:"escenarios/arboles.png"},
+                puerta3: {x: 16, y: 10, w: 1, h: 1, inix: 8, iniy: 4, rutaImagen:"escenarios/outside.png", tipo: "pared",nombre: "puerta3", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "pared Interactiva"},
+                frogger: {x: 12, y: 15, w: 2, h: 2, tipo: "pared",nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "pared Interactiva"},
             },
             iglu: {
                 puerta: {x: 31, y: 14, w: 1, h: 2, tipo: "puerta", destino: "lobby", posx: 1, posy: 14, message: "puerta"}
@@ -389,6 +389,17 @@ function cargarImagenes() {
         img.src = rutasImagenes[nombre];
         imagenes[nombre] = img;
     });
+}
+
+function cargarEscenario(){
+
+    for (const door of mapa.getAllDoors(escenarioActual)) {
+        if(door.rutaImagen){
+        const img = new Image();
+        img.src = door.rutaImagen;
+        imagenes[door.nombre] = img;
+        }
+    }
 }
 
 cargarImagenes();
@@ -773,6 +784,7 @@ let jugando = false;
 let juegoN = 0;
 let ii = 0;
 const states = [0, 1, 2, 1];
+cargarEscenario();
 
 function actualizar() {
     if (!validarCoordenadas(jugador.x, jugador.y, "actualizar - jugador") || 
@@ -821,7 +833,7 @@ function actualizar() {
             jugador.x = Math.floor(jugador.realX);
             jugador.y = Math.floor(jugador.realY);
             dirC = true;
-
+            ii = 0;
             if (!pulsaTecla()) {
                 move = false;
             }
@@ -834,9 +846,6 @@ function actualizar() {
         currentIndex = 0;
     }
     
-    if (approximatelyEqual(jugador.x, xNext) || approximatelyEqual(jugador.y, yNext)) {
-        ii = 0;
-    }
 
     if (teclas[" "] && press == false) {
         press = true;
@@ -967,10 +976,15 @@ function dibujar() {
     }
 
     for (const door of mapa.getAllDoors(escenarioActual)) {
+        if(door.rutaImagen){
+        ctx.drawImage(imagenes[door.nombre],door.inix*tamano,door.iniy*tamano,door.w * tamano, door.h * tamano,door.x * tamano, door.y * tamano, door.w * tamano, door.h * tamano);
+
+        }else{
         ctx.fillStyle = door.color || "#8B4513";
         ctx.fillRect(door.x * tamano, door.y * tamano, door.w * tamano, door.h * tamano);
         ctx.fillStyle = "black";
         ctx.font = "14px Arial";
+        }
         if (door.message != null) {
             ctx.fillText(door.message, (door.x * 32) + 10, (door.y * 32) + 60);
         }
@@ -990,8 +1004,8 @@ function dibujar() {
                 ctx.globalAlpha = 0.7;
 
                 if(!approximatelyEqual(otroJugador.x, getX) || !approximatelyEqual(otroJugador.y, getY)){
-                    getX -= (otroJugador.realX - otroJugador.x) * 0.08;
-                    getY -= (otroJugador.realY - otroJugador.y) * 0.08; 
+                    getX -= (otroJugador.realX - otroJugador.x) * 0.1;
+                    getY -= (otroJugador.realY - otroJugador.y) * 0.1; 
                     otrosJugadoresPos.set(otroJugador.id, {
                         id: otroJugador.id,
                         x: getX,
