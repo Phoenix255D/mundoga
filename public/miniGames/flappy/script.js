@@ -1,4 +1,4 @@
-// miniGames/flappy/script.js
+
 export { initFlappy, update };
 import { teclas } from "../../main.js";
 
@@ -43,8 +43,6 @@ function initFlappy() {
     
     pipes = [];
     coins = [];
-    
-    // Obtener el sprite del jugador desde el main
     if (window.imagenes && window.imagenes.jugador) {
         playerSprite = window.imagenes.jugador;
     }
@@ -61,14 +59,10 @@ function update() {
         teclas["ArrowUp"] = false;
         teclas[" "] = false;
     }
-    
-    // Salir del juego
     if (teclas["Escape"] || teclas["x"] || teclas["X"]) {
         juega = false;
         return false;
     }
-    
-    // Física del pájaro
     bird.dy += bird.gravity;
     bird.y += bird.dy;
     
@@ -77,20 +71,15 @@ function update() {
         bird.y = 0;
         bird.dy = 0;
     }
-    
     if (bird.y + bird.height >= canvas.height - 50) {
         juega = false;
         return false;
     }
-    
-    // Spawn de tubos
     pipeSpawnTimer++;
     if (pipeSpawnTimer >= pipeSpawnInterval) {
         pipeSpawnTimer = 0;
         spawnPipe();
     }
-    
-    // Actualizar tubos
     for (let i = pipes.length - 1; i >= 0; i--) {
         const pipe = pipes[i];
         pipe.x -= pipeSpeed;
@@ -99,14 +88,10 @@ function update() {
             pipes.splice(i, 1);
             continue;
         }
-        
-        // Colisión con tubos
         if (checkCollision(bird, pipe)) {
             juega = false;
             return false;
         }
-        
-        // Puntaje
         if (!pipe.scored && pipe.x + pipeWidth < bird.x) {
             if (pipe.isTop) {
                 score++;
@@ -114,8 +99,6 @@ function update() {
             }
         }
     }
-    
-    // Actualizar monedas
     for (let i = coins.length - 1; i >= 0; i--) {
         const coin = coins[i];
         coin.x -= pipeSpeed;
@@ -228,7 +211,6 @@ function draw() {
             bird.width, bird.height
         );
     } else {
-        // Fallback: dibujar pájaro simple
         ctx.fillStyle = '#e74c3c';
         ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
         ctx.strokeStyle = '#c0392b';
@@ -256,13 +238,13 @@ function draw() {
     ctx.lineWidth = 3;
     ctx.font = 'bold 32px Arial';
     
-    const scoreText = 'Score: ' + score;
+    const scoreText = 'Puntos: ' + score;
     ctx.strokeText(scoreText, 10, 40);
     ctx.fillText(scoreText, 10, 40);
     
     ctx.font = '16px Arial';
-    ctx.strokeText('Espacio/↑ para saltar', 10, 70);
-    ctx.fillText('Espacio/↑ para saltar', 10, 70);
+    ctx.strokeText('Espacio para reiniciar /↑ para saltar', 10, 70);
+    ctx.fillText('Espacio para reiniciar /↑ para saltar', 10, 70);
     
     ctx.strokeText('ESC para salir', 10, 95);
     ctx.fillText('ESC para salir', 10, 95);
