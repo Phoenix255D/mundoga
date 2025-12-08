@@ -397,49 +397,58 @@ class Mapa {
     }
 
     updateIglooDoors(jugadoresConectados) {
-        const MAX_PUERTAS = 5;
-        const INICIO_X = 5;
-        const INICIO_Y = 8;
-        const ESPACIO = 4;
+    const MAX_PUERTAS = 5;
+    const INICIO_X = 5;
+    const INICIO_Y = 8;
+    const ESPACIO = 4;
 
-        Object.keys(this.scenes.iglu).forEach(key => {
-            if (key.startsWith('puerta_iglu_')) {
-                delete this.scenes.iglu[key];
-            }
-        });
+    console.log('updateIglooDoors llamado con jugadores:', jugadoresConectados.size);
+    console.log('miIdJugador:', miIdJugador);
 
-        let jugadoresFiltrados = Array.from(jugadoresConectados.values())
-            .filter(j => j.id !== miIdJugador);
-
-        if (jugadoresFiltrados.length > MAX_PUERTAS) {
-            jugadoresFiltrados = jugadoresFiltrados
-                .sort(() => Math.random() - 0.5)
-                .slice(0, MAX_PUERTAS);
+    Object.keys(this.scenes.iglu).forEach(key => {
+        if (key.startsWith('puerta_iglu_')) {
+            delete this.scenes.iglu[key];
         }
+    });
 
-        jugadoresFiltrados.forEach((jugador, index) => {
-            const iglooId = `iglu_${jugador.id}`;
-            const puertaNombre = `puerta_iglu_${jugador.id}`;
-            
-            this.scenes.iglu[puertaNombre] = {
-                x: INICIO_X + (index * ESPACIO),
-                y: INICIO_Y,
-                w: 2,
-                h: 2,
-                inix: 10,
-                iniy: 0,
-                rutaImagen: "escenarios/dungeon.png",
-                tipo: "puerta",
-                nombre: puertaNombre,
-                destino: iglooId,
-                posx: 15,
-                posy: 11,
-                message: jugador.username || "Jugador"
-            };
+    let jugadoresFiltrados = Array.from(jugadoresConectados.values())
+        .filter(j => j.id !== miIdJugador);
 
-            this.createPlayerIgloo(jugador.id, jugador.username);
-        });
+    console.log('Jugadores filtrados:', jugadoresFiltrados.length);
+
+    if (jugadoresFiltrados.length > MAX_PUERTAS) {
+        jugadoresFiltrados = jugadoresFiltrados
+            .sort(() => Math.random() - 0.5)
+            .slice(0, MAX_PUERTAS);
     }
+
+    jugadoresFiltrados.forEach((jugador, index) => {
+        const iglooId = `iglu_${jugador.id}`;
+        const puertaNombre = `puerta_iglu_${jugador.id}`;
+        
+        console.log(`Creando puerta ${index + 1}:`, puertaNombre, 'para', jugador.username);
+        
+        this.scenes.iglu[puertaNombre] = {
+            x: INICIO_X + (index * ESPACIO),
+            y: INICIO_Y,
+            w: 2,
+            h: 2,
+            inix: 10,
+            iniy: 0,
+            rutaImagen: "escenarios/dungeon.png",
+            tipo: "puerta",
+            nombre: puertaNombre,
+            destino: iglooId,
+            posx: 15,
+            posy: 11,
+            message: jugador.username || "Jugador"
+        };
+
+        this.createPlayerIgloo(jugador.id, jugador.username);
+    });
+
+    console.log('Puertas en iglu después de actualizar:', Object.keys(this.scenes.iglu));
+}
 }
 function cargarSpriteJugador(jugadorId, spriteUrl) {
     if (spritesJugadores.has(jugadorId)) {
@@ -888,6 +897,7 @@ let currentIndex = 0;
 let press = false;
 
 const mapa = new Mapa();
+console.log('Mapa inicializado');
 let xNext = jugador.realX;
 let yNext = jugador.realY;
 let move = false;
@@ -906,7 +916,6 @@ const states = [0, 1, 2, 1];
 cargarEscenario();
 
 function actualizar() {
-    // Variables a utilizar para el juego de ninja y su uso del mouse
     let mouseX = 0;
     let mouseY = 0;
 
@@ -1045,39 +1054,27 @@ function actualizar() {
     const collidedDoor = mapa.checkDoorCollisions(escenarioActual, jugador);
 
     if (collidedDoor && collidedDoor.tipo === "puerta") {
-        xNext = collidedDoor.posx;
-        yNext = collidedDoor.posy;
-        jugador.realX = collidedDoor.posx;
-        jugador.realY = collidedDoor.posy;
-        jugador.x = collidedDoor.posx;
-        jugador.y = collidedDoor.posy;
+    xNext = collidedDoor.posx;
+    yNext = collidedDoor.posy;
+    jugador.realX = collidedDoor.posx;
+    jugador.realY = collidedDoor.posy;
+    jugador.x = collidedDoor.posx;
+    jugador.y = collidedDoor.posy;
 
-        move = false;
-        dirC = true;
-        escenarioActual = collidedDoor.destino;
-		if (escenarioActual === 'iglu') {
-					mapa.updateIglooDoors(otrosJugadores);
-				}
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({
-                tipo: 'mover',
-                x: jugador.x,
-                y: jugador.y,
-                dir: jugador.dir,
-                step: jugador.step,
-                escenario: escenarioActual
-            }));
-
-            ultimaPosicionEnviada = {
-                x: jugador.x,
-                y: jugador.y,
-                dir: jugador.dir,
-                step: jugador.step,
-                escenario: escenarioActual
-            };
-        }
-        cargarEscenario();
+    move = false;
+    dirC = true;
+    
+    const escenarioAnterior = escenarioActual;
+    escenarioActual = collidedDoor.destino;
+    
+    console.log('Cambio de escenario:', escenarioAnterior, '->', escenarioActual);
+    
+    if (escenarioActual === 'iglu') {
+        console.log('Entrando a iglu, actualizando puertas...');
+        mapa.updateIglooDoors(otrosJugadores);
     }
+    
+    cargarEscenario();
 
     if (collidedDoor && collidedDoor.tipo === "pared") {
         xNext += jugador.realX - xNext;
