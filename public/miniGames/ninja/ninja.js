@@ -1,6 +1,6 @@
 export { initNinja, update };
 
-import { teclas } from "../../main.js";
+import { teclas, getMousePosition } from "../../main.js";
 
 let juega = false;
 let canvas, ctx;
@@ -34,6 +34,10 @@ let messageTimeout = null;
 let currentIndex = 0;
 let press = false;
 
+// Variables del mouse
+let mouseX = 0;
+let mouseY = 0;
+
 // Inicializar el juego Ninja
 function initNinja() {
     canvas = document.getElementById('game');
@@ -52,6 +56,7 @@ function initNinja() {
     isMyTurn = true;
     opponentMoved = false;
     gameMessage = '';
+    press = false; // IMPORTANTE: Resetear press
     
     console.log('Ninja Card Game inicializado');
 }
@@ -59,6 +64,11 @@ function initNinja() {
 // Actualizar el juego Ninja
 function update() {
     if (!juega) return false;
+    
+    // CRÍTICO: Obtener posición del mouse desde main.js
+    const mousePos = getMousePosition();
+    mouseX = mousePos.x;
+    mouseY = mousePos.y;
     
     // Tecla ESC para salir
     if (teclas["Escape"]) {
@@ -68,60 +78,58 @@ function update() {
     }
     
     // Tecla ESPACIO para interacción
-    if (teclas[" "] && press == false) {
+    if (teclas[" "] && !press) {
         press = true;
         
         if (currentState === STATES.MENU) {
-            const centerX = canvas.width / 2;
-            
-            // Verificar clic en botón CONTRA PC
-            if (mouseX >= centerX - 100 && mouseX <= centerX + 100) {
-                if (mouseY >= 300 && mouseY <= 350) {
-                    startGame('single');
-                } else if (mouseY >= 400 && mouseY <= 450) {
-                    startGame('multi');
-                }
-            }
+            handleMenuClick();
         } else if (currentState === STATES.GAME && isMyTurn) {
-            // Verificar clic en cartas
-            for (let i = 0; i < playerHand.length; i++) {
-                const c = playerHand[i];
-                if (mouseX >= c.x && mouseX <= c.x + c.w && 
-                    mouseY >= c.y && mouseY <= c.y + c.h) {
-                    playCard(i);
-                    break;
-                }
-            }
+            handleGameClick();
         } else if (currentState === STATES.GAMEOVER) {
-            // Verificar clic en botón de volver al menú
-            const centerX = canvas.width / 2;
-            if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
-                mouseY >= canvas.height/2 + 50 && mouseY <= canvas.height/2 + 100) {
-                resetGame();
-            }
+            handleGameOverClick();
         }
-    } else if (teclas[" "] == false) {
+    } else if (!teclas[" "]) {
         press = false;
-    }
-    
-    // Actualizar posición del mouse (para simular clics)
-    if (typeof mouseX === 'undefined') {
-        mouseX = canvas.width / 2;
-        mouseY = canvas.height / 2;
     }
     
     draw();
     return true;
 }
 
-// Variables del mouse (se actualizarán desde main.js)
-let mouseX = 0;
-let mouseY = 0;
+// Manejar clics en el menú
+function handleMenuClick() {
+    const centerX = canvas.width / 2;
+    
+    // Verificar clic en botón CONTRA PC
+    if (mouseX >= centerX - 100 && mouseX <= centerX + 100) {
+        if (mouseY >= 300 && mouseY <= 350) {
+            startGame('single');
+        } else if (mouseY >= 400 && mouseY <= 450) {
+            startGame('multi');
+        }
+    }
+}
 
-// Configurar mouse desde el juego principal
-export function setMousePosition(x, y) {
-    mouseX = x;
-    mouseY = y;
+// Manejar clics en el juego
+function handleGameClick() {
+    // Verificar clic en cartas
+    for (let i = 0; i < playerHand.length; i++) {
+        const c = playerHand[i];
+        if (mouseX >= c.x && mouseX <= c.x + c.w && 
+            mouseY >= c.y && mouseY <= c.y + c.h) {
+            playCard(i);
+            break;
+        }
+    }
+}
+
+// Manejar clics en game over
+function handleGameOverClick() {
+    const centerX = canvas.width / 2;
+    if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
+        mouseY >= canvas.height/2 + 50 && mouseY <= canvas.height/2 + 100) {
+        resetGame();
+    }
 }
 
 // Generar carta aleatoria
@@ -145,7 +153,9 @@ function generateRandomCard() {
 // Repartir cartas
 function dealCards(count) {
     const cards = [];
-    for (let i = 0; i < count; i++) cards.push(generateRandomCard());
+    for (let i = 0; i < count; i++) {
+        cards.push(generateRandomCard());
+    }
     return cards;
 }
 
@@ -168,6 +178,9 @@ function startGame(mode) {
             currentState = STATES.GAME;
             playerHand = dealCards(MAX_HAND_SIZE);
             opponentHandCount = 5;
+            playerWonCards = [];
+            opponentWonCards = [];
+            isMyTurn = true;
             showMessage('¡Encontraste un oponente!');
         }, 1500);
     }
@@ -175,18 +188,28 @@ function startGame(mode) {
 
 // Jugar carta
 function playCard(index) {
+    if (index < 0 || index >= playerHand.length) return;
+    
     const card = playerHand[index];
     
     if (gameMode === 'single') {
+        // Remover carta jugada y agregar nueva
         playerHand.splice(index, 1);
         playerHand.push(generateRandomCard());
         
+        // IA juega una carta
         const aiCard = generateRandomCard();
+        opponentHandCount = Math.max(0, opponentHandCount - 1);
+        
+        // Resolver la ronda
         resolveRoundLocal(card, aiCard);
+        
         isMyTurn = false;
         
+        // Restaurar turno después de un segundo
         setTimeout(() => {
             isMyTurn = true;
+            opponentHandCount = Math.min(5, opponentHandCount + 1);
         }, 1000);
     }
 }
@@ -205,7 +228,10 @@ function resolveRoundLocal(pCard, aiCard) {
         showMessage(`¡Empate! ${getElementEmoji(pCard.element)} vs ${getElementEmoji(aiCard.element)}`);
     }
     
-    checkWinCondition();
+    // Verificar condición de victoria después de un pequeño delay
+    setTimeout(() => {
+        checkWinCondition();
+    }, 100);
 }
 
 // Determinar ganador
@@ -235,7 +261,9 @@ function getElementEmoji(element) {
 
 // Mostrar mensaje temporal
 function showMessage(msg) {
-    if (messageTimeout) clearTimeout(messageTimeout);
+    if (messageTimeout) {
+        clearTimeout(messageTimeout);
+    }
     gameMessage = msg;
     messageTimeout = setTimeout(() => {
         gameMessage = '';
@@ -255,9 +283,9 @@ function checkWinCondition() {
 
 // Verificar si hay conjunto ganador
 function hasWinningSet(cards) {
-    let fires = cards.filter(c => c.element === ELEMENTS.FIRE).length;
-    let waters = cards.filter(c => c.element === ELEMENTS.WATER).length;
-    let snows = cards.filter(c => c.element === ELEMENTS.SNOW).length;
+    const fires = cards.filter(c => c.element === ELEMENTS.FIRE).length;
+    const waters = cards.filter(c => c.element === ELEMENTS.WATER).length;
+    const snows = cards.filter(c => c.element === ELEMENTS.SNOW).length;
     
     if (fires >= 1 && waters >= 1 && snows >= 1) return true;
     if (fires >= 3 || waters >= 3 || snows >= 3) return true;
@@ -273,6 +301,7 @@ function resetGame() {
     opponentWonCards = [];
     gameMessage = '';
     isMyTurn = true;
+    press = false;
 }
 
 // Dibujar todo
@@ -301,20 +330,18 @@ function draw() {
         drawMessage();
     }
     
-    // Dibujar instrucciones de salida (igual que Flappy)
+    // Dibujar instrucciones de salida
     drawExitInstructions();
 }
 
 // Dibujar fondo
 function drawBackground() {
-    // Fondo degradado
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     gradient.addColorStop(0, '#0a0a1a');
     gradient.addColorStop(1, '#1a1a3a');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Patrón de dojo
     ctx.strokeStyle = 'rgba(255, 215, 0, 0.2)';
     ctx.lineWidth = 2;
     
@@ -325,7 +352,6 @@ function drawBackground() {
         ctx.stroke();
     }
     
-    // Círculo central
     ctx.beginPath();
     ctx.arc(canvas.width/2, canvas.height/2, 120, 0, Math.PI * 2);
     ctx.strokeStyle = '#FF4500';
@@ -339,24 +365,18 @@ function drawBackground() {
 function drawMenu() {
     const centerX = canvas.width / 2;
     
-    // Título principal
     ctx.fillStyle = '#FF4500';
     ctx.font = 'bold 48px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('NINJA CARD GAME', centerX, 100);
     
-    // Subtítulo
     ctx.fillStyle = '#FFD700';
     ctx.font = '24px Arial';
     ctx.fillText('El juego de cartas ninja', centerX, 140);
     
-    // Botón CONTRA PC
     drawButton(centerX - 100, 300, 200, 50, '#3498db', 'CONTRA PC');
-    
-    // Botón ONLINE
     drawButton(centerX - 100, 400, 200, 50, '#2ecc71', 'ONLINE');
     
-    // Instrucciones
     ctx.fillStyle = '#AAAAAA';
     ctx.font = '16px Arial';
     ctx.textAlign = 'center';
@@ -374,11 +394,9 @@ function drawSearching() {
     ctx.textAlign = 'center';
     ctx.fillText('Buscando oponente...', centerX, centerY - 50);
     
-    // Animación de puntos
     const dots = '.'.repeat(Math.floor(Date.now() / 500) % 4);
     ctx.fillText(dots, centerX, centerY);
     
-    // Dibujar ninjas buscando
     drawNinja(centerX - 100, centerY + 50, true);
     drawNinja(centerX + 100, centerY + 50, false);
 }
@@ -411,8 +429,8 @@ function drawGame() {
     });
     
     // Dibujar ninjas
-    drawNinja(150, 250, true);  // Jugador
-    drawNinja(canvas.width - 150, 150, false);  // Oponente
+    drawNinja(150, 250, true);
+    drawNinja(canvas.width - 150, 150, false);
     
     // Indicador de turno
     if (isMyTurn) {
@@ -458,26 +476,21 @@ function drawButton(x, y, width, height, color, text) {
 
 // Dibujar carta
 function drawCard(x, y, card) {
-    // Fondo de la carta
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(x, y, 70, 100);
     
-    // Borde
     ctx.strokeStyle = card.color;
     ctx.lineWidth = 3;
     ctx.strokeRect(x, y, 70, 100);
     
-    // Cabecera con color del elemento
     ctx.fillStyle = card.color;
     ctx.fillRect(x + 5, y + 5, 60, 20);
     
-    // Elemento (emoji)
     ctx.font = '30px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(getElementEmoji(card.element), x + 35, y + 55);
     
-    // Valor
     ctx.fillStyle = '#000000';
     ctx.font = 'bold 24px Arial';
     ctx.fillText(card.value, x + 35, y + 85);
@@ -524,33 +537,28 @@ function drawNinja(x, y, isPlayer) {
         ctx.scale(-1, 1);
     }
     
-    // Cuerpo
     ctx.fillStyle = isPlayer ? '#3498db' : '#e74c3c';
     ctx.beginPath();
     ctx.ellipse(0, 0, 30, 50, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Panza
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath();
     ctx.ellipse(5, 5, 20, 35, 0, 0, Math.PI * 2);
     ctx.fill();
     
-    // Ojos
     ctx.fillStyle = '#FFFFFF';
     ctx.beginPath();
     ctx.arc(-10, -20, 8, 0, Math.PI * 2);
     ctx.arc(10, -20, 8, 0, Math.PI * 2);
     ctx.fill();
     
-    // Pupilas
     ctx.fillStyle = '#000000';
     ctx.beginPath();
     ctx.arc(-10, -20, 4, 0, Math.PI * 2);
     ctx.arc(10, -20, 4, 0, Math.PI * 2);
     ctx.fill();
     
-    // Pico
     ctx.fillStyle = '#FFA500';
     ctx.beginPath();
     ctx.moveTo(0, -10);
@@ -559,11 +567,9 @@ function drawNinja(x, y, isPlayer) {
     ctx.closePath();
     ctx.fill();
     
-    // Bandana ninja
     ctx.fillStyle = isPlayer ? '#2C3E50' : '#C0392B';
     ctx.fillRect(-25, -35, 50, 10);
     
-    // Cinturón
     ctx.fillStyle = '#000000';
     ctx.fillRect(-35, 25, 70, 5);
     
@@ -580,7 +586,7 @@ function drawMessage() {
     ctx.fillText(gameMessage, canvas.width/2, 185);
 }
 
-// Dibujar instrucciones de salida (igual que Flappy)
+// Dibujar instrucciones de salida
 function drawExitInstructions() {
     ctx.fillStyle = 'white';
     ctx.strokeStyle = 'black';
