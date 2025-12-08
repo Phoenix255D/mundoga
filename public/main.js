@@ -318,9 +318,9 @@ class Mapa {
         this.scenes = {
             lobby: {
                 puerta: { x: 0, y: 11, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", nombre: "puerta", destino: "iglu", posx: 30, posy: 11 },
-                puerta2: { x: 12, y: 7, w: 3, h: 4, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png",tipo: "pared", nombre: "puerta2", destino: "iglu", inix: 12, iniy: 12, rutaImagen: "escenarios/arboles.png" },
+                puerta2: { x: 12, y: 7, w: 3, h: 4, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "pared", nombre: "puerta2", destino: "iglu", inix: 12, iniy: 12, rutaImagen: "escenarios/arboles.png" },
                 puerta3: { x: 16, y: 10, w: 1, h: 1, inix: 8, iniy: 4, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "puerta3", juego: true, juegoNum: 1, posx: 2, posy: 10, message: "muñeco Interactivo" },
-                puerta4: { x: 31, y: 11, w: 1, h: 2,inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", nombre: "puerta4", destino: "juegos", posx: 1, posy: 11},
+                puerta4: { x: 31, y: 11, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", nombre: "puerta4", destino: "juegos", posx: 1, posy: 11 },
             },
             iglu: {
                 puerta: { x: 31, y: 14, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 1, posy: 11, message: "puerta" }
@@ -328,9 +328,10 @@ class Mapa {
             juegos: {
                 puerta: { x: 0, y: 11, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 30, posy: 11, message: "puerta" },
                 fishing: { x: 14, y: 8, w: 1, h: 1, inix: 2, iniy: 8, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "fishing", juego: true, juegoNum: 3, posx: 2, posy: 10, message: "Frogger" },
-                frogger: { x: 8.5, y: 9.5, w: 1, h: 1, tipo: "pared",inix: 4, iniy: 12, rutaImagen: "escenarios/outside.png", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "Flappy Bird" },
-				flappy: { x: 18, y: 7.5, w: 1, h: 1, tipo: "pared",inix: 6, iniy: 8, rutaImagen: "escenarios/outside.png", nombre: "flappy", juego: true, juegoNum: 4, posx: 2, posy: 10, color: "#70c5ce", message: "Pesca"
-    }
+                frogger: { x: 8.5, y: 9.5, w: 1, h: 1, tipo: "pared", inix: 4, iniy: 12, rutaImagen: "escenarios/outside.png", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "Flappy Bird" },
+                flappy: {
+                    x: 18, y: 7.5, w: 1, h: 1, tipo: "pared", inix: 6, iniy: 8, rutaImagen: "escenarios/outside.png", nombre: "flappy", juego: true, juegoNum: 4, posx: 2, posy: 10, color: "#70c5ce", message: "Pesca"
+                }
             }
         };
     }
@@ -823,7 +824,7 @@ function actualizar() {
         return;
     }
 
-     if (dirC == true && !jugando) {
+    if (dirC == true && !jugando) {
         if (teclas["ArrowRight"]) {
             xNext = Math.floor(jugador.realX) + 1;
             jugador.dir = 2;
@@ -892,7 +893,7 @@ function actualizar() {
             if (juegoN === 3) {
                 initFishing();
             }
-			if (juegoN === 4) {
+            if (juegoN === 4) {
                 initFlappy();
             }
             if (jugando == false) {
@@ -923,8 +924,8 @@ function actualizar() {
                 }
                 break;
             case 3: jugando = updateFishing(); break;
-			case 4: 
-                jugando = updateFlappy(); 
+            case 4:
+                jugando = updateFlappy();
                 // Limpiar teclas del juego principal mientras se juega flappy
                 if (jugando) {
                     teclas["ArrowLeft"] = false;
@@ -936,6 +937,7 @@ function actualizar() {
         }
         if (jugando == false) {
             dirC = true;
+            juegoN = 0;
             // Limpiar TODAS las teclas al salir de cualquier minijuego
             Object.keys(teclas).forEach(key => teclas[key] = false);
         }
@@ -985,13 +987,13 @@ function actualizar() {
         jugador.y = jugador.realY;
     }
 
-    if(xNext < 0 || xNext > 31 || yNext < 0|| yNext > 17){
+    if (xNext < 0 || xNext > 31 || yNext < 0 || yNext > 17) {
         xNext += jugador.realX - xNext;
         yNext += jugador.realY - yNext;
         jugador.realX = xNext;
         jugador.realY = yNext;
         jugador.x = jugador.realX;
-        jugador.y = jugador.realY;  
+        jugador.y = jugador.realY;
     }
 
     if (pulsaTecla() && ii == 0) {
@@ -1138,5 +1140,4 @@ function dibujar() {
 
 
 bucleJuego();
-
 
