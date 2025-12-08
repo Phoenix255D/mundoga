@@ -9,7 +9,9 @@ const ctx = canvas.getContext("2d");
 
 let mouseX = 0;
 let mouseY = 0;
-
+export function getMousePosition() {
+    return { x: mouseX, y: mouseY };
+}
 const personajes = [
     {
         id: 1,
@@ -1017,6 +1019,9 @@ function actualizar() {
             if (jugando == false) {
                 dirC = true;
             }
+			if (juegoN === 6) {
+			initNinja();
+			}
         }
     } else if (teclas[" "] == false) {
         press = false;
@@ -1052,6 +1057,16 @@ function actualizar() {
                     // ArrowUp se limpia dentro del juego flappy
                 }
                 break;
+				case 6:
+			jugando = updateNinja();
+			// Limpiar teclas mientras se juega ninja
+			if (jugando) {
+				teclas["ArrowLeft"] = false;
+				teclas["ArrowRight"] = false;
+				teclas["ArrowDown"] = false;
+				teclas["ArrowUp"] = false;
+			}
+			break;
         }
         if (jugando == false) {
             dirC = true;
