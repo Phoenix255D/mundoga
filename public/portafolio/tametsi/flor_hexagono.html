@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscaminas Flor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Tamestsi de flor</h1>
+        
+        <div class="controls">
+            <button onclick="game.restart('medium')">Normal</button>
+        </div>
+        <div class="info">
+            <span>Marcadas: <span id="flagCount">0</span>/<span id="totalMines">0</span></span>
+            <span>Tiempo: <span id="timer">0</span>s</span>
+        </div>
+        <canvas id="gameCanvas" width="700" height="700"></canvas>
+    </div>
+    <div class="overlay" id="overlay"></div>
+    <div class="game-over" id="gameOver">
+        <h2 id="gameOverText"></h2>
+        <p id="gameOverMessage"></p>
+        <button onclick="game.closeGameOver()">Cerrar</button>
+    </div>
+	<div class="controls2">
+            <a href="index.html"><button>salirse</button></a>
+            
+        </div>
+    <script src="hola_flor.js"></script>
+</body>
+</html>

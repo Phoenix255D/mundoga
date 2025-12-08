@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tametsi irregular</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Tametsi irregular</h1>
+        
+         <div class="controls">
+            <button onclick="game.restart('easy')">facil</button>
+            <button onclick="game.restart('medium')">normal</button>
+            <button onclick="game.restart('hard')">dificil</button>
+        </div>
+
+        <div class="info">
+            <span>Marcadas: <span id="flagCount">0</span>/<span id="totalMines">0</span></span>
+            <span>
+	 <div class="controls2">
+    </div>Tiempo: <span id="timer">0</span>s</span>
+        </div>
+
+        <canvas id="gameCanvas" width="700" height="700"></canvas>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+
+    <div class="game-over" id="gameOver">
+        <h2 id="gameOverText"></h2>
+        <p id="gameOverMessage"></p>
+        <button onclick="game.closeGameOver()">Cerrar</button>
+    </div>
+	 
+
+<div class="controls2">
+        <a href="index.html"><button>salirse</button></a>
+    </div>
+    <script src="hola_cuadrados_al_azar.js"></script>
+</body>
+</html>

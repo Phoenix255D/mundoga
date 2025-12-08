@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscaminas Hexagonal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Tametsi pero de hexagonos</h1>
+        
+        <div class="controls">
+            <button onclick="game.restart('easy')">facil</button>
+            <button onclick="game.restart('medium')">normal</button>
+            <button onclick="game.restart('hard')">dificil</button>
+        </div>
+
+        <div class="info">
+    <span>Marcadas: <span id="flagCount">0</span>/<span id="totalMines">0</span></span>
+    <span>Tiempo: <span id="timer">0</span>s</span>
+    <span id="colorCounters" style="display:none;">
+        | 🔴 <span id="redCount">0/0</span>
+        | 🟡 <span id="yellowCount">0/0</span>
+        | 🟣 <span id="purpleCount">0/0</span>
+		| 🟢<span id="greenCount">0/0</span>
+    </span>
+</div>
+
+        <canvas id="gameCanvas" width="900" height="750"></canvas>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="game-over" id="gameOver">
+        <h2 id="gameOverText"></h2>
+        <p id="gameOverMessage"></p>
+        <button onclick="game.closeGameOver()">cerrar</button>
+    </div>
+<div class="controls2">
+            <a href="index.html"><button>salirse</button></a>
+        </div>
+    <script src="hola.js"></script>
+</body>
+</html>
