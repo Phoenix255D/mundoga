@@ -58,22 +58,6 @@ const personajes = [
     }
 ];
 
-// Eventos en relacion al mouse y el juego de yorch
-canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
-});
-
-canvas.addEventListener('click', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
-    // Simular tecla espacio para clic
-    teclas[" "] = true;
-    setTimeout(() => teclas[" "] = false, 100);
-});
-
 let menuPersonajesAbierto = false;
 let personajeSeleccionado = null;
 
@@ -340,7 +324,7 @@ class Mapa {
                 puerta4: { x: 31, y: 11, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", nombre: "puerta4", destino: "juegos", posx: 1, posy: 11 },
             },
             iglu: {
-                puerta: { x: 31, y: 14, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 1, posy: 11, message: "puerta" }
+                puerta: { x: 31, y: 14, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 1, posy: 11, message: "Volver al Lobby" }
             },
             juegos: {
                 puerta: { x: 0, y: 11, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 30, posy: 11, message: "puerta" },
@@ -353,6 +337,85 @@ class Mapa {
                 }
             }
         };
+        this.dynamicIgloos = new Map();
+    }
+
+    createPlayerIgloo(playerId, playerName) {
+        const iglooSceneName = `iglu_${playerId}`;
+        
+        if (!this.scenes[iglooSceneName]) {
+            this.scenes[iglooSceneName] = {
+                puertaSalida: { 
+                    x: 31, y: 14, w: 1, h: 2, 
+                    inix: 10, iniy: 0, 
+                    rutaImagen: "escenarios/dungeon.png", 
+                    tipo: "puerta", 
+                    nombre: "puertaSalida",
+                    destino: "iglu", 
+                    posx: 15, posy: 10, 
+                    message: "Volver" 
+                }
+            };
+            
+            this.dynamicIgloos.set(playerId, {
+                sceneName: iglooSceneName,
+                playerName: playerName
+            });
+            
+            console.log(`Iglú creado para ${playerName}: ${iglooSceneName}`);
+        }
+        
+        return iglooSceneName;
+    }
+
+    updateIglooDoors(connectedPlayers) {
+        const MAX_DOORS = 5;
+        const START_X = 5;
+        const START_Y = 5;
+        const DOOR_SPACING_X = 5;
+        const DOOR_SPACING_Y = 4;
+        
+        const staticDoors = { puerta: this.scenes.iglu.puerta };
+        this.scenes.iglu = staticDoors;
+        
+        let availablePlayers = Array.from(connectedPlayers.entries())
+            .filter(([id]) => id !== miIdJugador)
+            .map(([id, player]) => ({ 
+                id, 
+                name: player.username || `Jugador ${id}` 
+            }));
+        
+        if (availablePlayers.length > MAX_DOORS) {
+            availablePlayers = availablePlayers
+                .sort(() => Math.random() - 0.5)
+                .slice(0, MAX_DOORS);
+        }
+        
+        availablePlayers.forEach((player, index) => {
+            const iglooSceneName = this.createPlayerIgloo(player.id, player.name);
+            
+            const doorX = START_X + (index % 3) * DOOR_SPACING_X;
+            const doorY = START_Y + Math.floor(index / 3) * DOOR_SPACING_Y;
+            
+            this.scenes.iglu[`puerta_${player.id}`] = {
+                x: doorX,
+                y: doorY,
+                w: 2,
+                h: 2,
+                inix: 10,
+                iniy: 0,
+                rutaImagen: "escenarios/dungeon.png",
+                tipo: "puerta",
+                nombre: `puerta_${player.id}`,
+                destino: iglooSceneName,
+                posx: 15,
+                posy: 10,
+                message: `Iglú de ${player.name}`,
+                color: "#4169E1"
+            };
+        });
+        
+        console.log(`Puertas de iglús actualizadas: ${availablePlayers.length} puertas creadas`);
     }
 
     getScene(sceneName) {
@@ -428,6 +491,17 @@ function cargarImagenes() {
     });
 }
 
+function cargarImagenIgluDinamico(sceneName) {
+    if (!imagenes[sceneName]) {
+        const img = new Image();
+        img.src = "escenarios/iglu.png";
+        img.onload = () => {
+            console.log(`Imagen cargada para ${sceneName}`);
+        };
+        imagenes[sceneName] = img;
+    }
+}
+
 function cargarEscenario() {
     for (const door of mapa.getAllDoors(escenarioActual)) {
         if (door.rutaImagen) {
@@ -435,6 +509,10 @@ function cargarEscenario() {
             img.src = door.rutaImagen;
             imagenes[door.nombre] = img;
         }
+    }
+    
+    if (escenarioActual.startsWith('iglu_')) {
+        cargarImagenIgluDinamico(escenarioActual);
     }
 }
 
@@ -657,6 +735,8 @@ ws.onmessage = (evento) => {
                         agregarMensajeChat("Sistema", `${j.username} se ha unido al juego`, false);
                     }
                 });
+                
+                mapa.updateIglooDoors(otrosJugadores);
             }
             break;
 
@@ -690,6 +770,8 @@ ws.onmessage = (evento) => {
                 if (datos.jugador.username) {
                     agregarMensajeChat("Sistema", `${datos.jugador.username} se ha unido al juego`, false);
                 }
+                
+                mapa.updateIglooDoors(otrosJugadores);
             }
             break;
 
@@ -748,6 +830,8 @@ ws.onmessage = (evento) => {
             otrosJugadores.delete(datos.idJugador);
             otrosJugadoresPos.delete(datos.idJugador);
             spritesJugadores.delete(datos.idJugador);
+            
+            mapa.updateIglooDoors(otrosJugadores);
             break;
 
         case 'chat':
@@ -829,10 +913,6 @@ const states = [0, 1, 2, 1];
 cargarEscenario();
 
 function actualizar() {
-    // Variables a utilizar para el juego de ninja y su uso del mouse
-    let mouseX = 0;
-    let mouseY = 0;
-
     if (!validarCoordenadas(jugador.x, jugador.y, "actualizar - jugador") ||
         !validarCoordenadas(jugador.realX, jugador.realY, "actualizar - jugador.real")) {
         console.error('COORDENADAS CORRUPTAS DETECTADAS - RESETEANDO');
@@ -918,6 +998,11 @@ function actualizar() {
             if (juegoN === 4) {
                 initFlappy();
             }
+
+            if (juegoN === 6) {
+                initNinja();
+            }
+
             if (jugando == false) {
                 dirC = true;
             }
@@ -948,20 +1033,31 @@ function actualizar() {
             case 3: jugando = updateFishing(); break;
             case 4:
                 jugando = updateFlappy();
-                // Limpiar teclas del juego principal mientras se juega flappy
                 if (jugando) {
                     teclas["ArrowLeft"] = false;
                     teclas["ArrowRight"] = false;
                     teclas["ArrowDown"] = false;
-                    // ArrowUp se limpia dentro del juego flappy
+                }
+                break;
+            case 6:
+                jugando = updateNinja(); 
+                if (jugando) {
+                    teclas["ArrowLeft"] = false;
+                    teclas["ArrowRight"] = false;
+                    teclas["ArrowUp"] = false;
+                    teclas["ArrowDown"] = false;
+                    teclas[" "] = false;
                 }
                 break;
         }
         if (jugando == false) {
             dirC = true;
             juegoN = 0;
-            // Limpiar TODAS las teclas al salir de cualquier minijuego
             Object.keys(teclas).forEach(key => teclas[key] = false);
+
+            if (juegoN === 6 && juegoNinjaActivo) {
+                cerrarNinja();
+            }
         }
     }
 
@@ -1046,8 +1142,14 @@ function actualizar() {
 }
 
 function dibujar() {
-    if (imagenes[escenarioActual] && imagenes[escenarioActual].complete) {
-        ctx.drawImage(imagenes[escenarioActual], 0, 0, canvas.width, canvas.height);
+    const escenarioKey = escenarioActual.startsWith('iglu_') ? 'iglu' : escenarioActual;
+    
+    if (imagenes[escenarioKey] && imagenes[escenarioKey].complete) {
+        ctx.drawImage(imagenes[escenarioKey], 0, 0, canvas.width, canvas.height);
+    } else if (escenarioActual.startsWith('iglu_')) {
+        cargarImagenIgluDinamico(escenarioActual);
+        ctx.fillStyle = "#e6ffa1ff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
     } else {
         ctx.fillStyle = "#e6ffa1ff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1160,7 +1262,4 @@ function dibujar() {
     ctx.fillText("Personaje: " + jugador.nombrePersonaje, 10, 110);
 }
 
-
 bucleJuego();
-
-
