@@ -56,7 +56,7 @@ function initNinja() {
     isMyTurn = true;
     opponentMoved = false;
     gameMessage = '';
-    press = false; // IMPORTANTE: Resetear press
+    press = false;
     
     console.log('Ninja Card Game inicializado');
 }
@@ -103,8 +103,10 @@ function handleMenuClick() {
     // Verificar clic en botón CONTRA PC
     if (mouseX >= centerX - 100 && mouseX <= centerX + 100) {
         if (mouseY >= 300 && mouseY <= 350) {
+            console.log('Iniciando modo CONTRA PC');
             startGame('single');
         } else if (mouseY >= 400 && mouseY <= 450) {
+            console.log('Iniciando modo ONLINE');
             startGame('multi');
         }
     }
@@ -117,6 +119,7 @@ function handleGameClick() {
         const c = playerHand[i];
         if (mouseX >= c.x && mouseX <= c.x + c.w && 
             mouseY >= c.y && mouseY <= c.y + c.h) {
+            console.log('Jugando carta', i);
             playCard(i);
             break;
         }
@@ -126,8 +129,11 @@ function handleGameClick() {
 // Manejar clics en game over
 function handleGameOverClick() {
     const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
     if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
-        mouseY >= canvas.height/2 + 50 && mouseY <= canvas.height/2 + 100) {
+        mouseY >= centerY + 50 && mouseY <= centerY + 100) {
+        console.log('Volviendo al menú');
         resetGame();
     }
 }
@@ -162,6 +168,7 @@ function dealCards(count) {
 // Iniciar juego
 function startGame(mode) {
     gameMode = mode;
+    console.log('startGame llamado con modo:', mode);
     
     if (mode === 'single') {
         currentState = STATES.GAME;
@@ -171,82 +178,103 @@ function startGame(mode) {
         opponentWonCards = [];
         isMyTurn = true;
         showMessage('¡Comienza el juego!');
+        console.log('Juego iniciado. Estado:', STATES.GAME, 'Cartas:', playerHand.length);
     } else {
         // Modo multi (simulado por ahora)
         currentState = STATES.SEARCHING;
+        showMessage('Buscando oponente...');
+        console.log('Buscando oponente...');
+        
         setTimeout(() => {
-            currentState = STATES.GAME;
-            playerHand = dealCards(MAX_HAND_SIZE);
-            opponentHandCount = 5;
-            playerWonCards = [];
-            opponentWonCards = [];
-            isMyTurn = true;
-            showMessage('¡Encontraste un oponente!');
+            if (juega) {
+                currentState = STATES.GAME;
+                gameMode = 'multi'; // Asegurar que el modo se mantiene
+                playerHand = dealCards(MAX_HAND_SIZE);
+                opponentHandCount = 5;
+                playerWonCards = [];
+                opponentWonCards = [];
+                isMyTurn = true;
+                showMessage('¡Encontraste un oponente!');
+                console.log('Oponente encontrado. Estado:', STATES.GAME);
+            }
         }, 1500);
     }
 }
 
 // Jugar carta
 function playCard(index) {
-    if (index < 0 || index >= playerHand.length) return;
+    if (index < 0 || index >= playerHand.length) {
+        console.log('Índice inválido:', index);
+        return;
+    }
+    
+    if (!isMyTurn) {
+        console.log('No es tu turno');
+        return;
+    }
     
     const card = playerHand[index];
+    console.log('Jugando carta:', card.element, card.value);
     
-    if (gameMode === 'single') {
-        // Remover carta jugada y agregar nueva
-        playerHand.splice(index, 1);
-        playerHand.push(generateRandomCard());
-        
-        // IA juega una carta
-        const aiCard = generateRandomCard();
-        opponentHandCount = Math.max(0, opponentHandCount - 1);
-        
-        // Resolver la ronda
-        resolveRoundLocal(card, aiCard);
-        
-        isMyTurn = false;
-        
-        // Restaurar turno después de un segundo
-        setTimeout(() => {
-            isMyTurn = true;
-            opponentHandCount = Math.min(5, opponentHandCount + 1);
-        }, 1000);
-    }
-}
-
-// Resolver ronda local (vs PC)
-function resolveRoundLocal(pCard, aiCard) {
-    const winner = determineWinner(pCard, aiCard);
+    // Remover carta jugada y agregar nueva
+    playerHand.splice(index, 1);
+    
+    // IA juega una carta
+    const aiCard = generateRandomCard();
+    console.log('IA juega:', aiCard.element, aiCard.value);
+    
+    // Mostrar cartas brevemente
+    const winner = determineWinner(card, aiCard);
     
     if (winner === 'player') {
-        playerWonCards.push(pCard);
-        showMessage(`¡Ganaste! ${getElementEmoji(pCard.element)} vs ${getElementEmoji(aiCard.element)}`);
+        playerWonCards.push(card);
+        showMessage(`¡Ganaste! ${getElementEmoji(card.element)}${card.value} vs ${getElementEmoji(aiCard.element)}${aiCard.value}`);
+        console.log('Jugador gana la ronda');
     } else if (winner === 'opponent') {
         opponentWonCards.push(aiCard);
-        showMessage(`¡Perdiste! ${getElementEmoji(pCard.element)} vs ${getElementEmoji(aiCard.element)}`);
+        showMessage(`¡Perdiste! ${getElementEmoji(card.element)}${card.value} vs ${getElementEmoji(aiCard.element)}${aiCard.value}`);
+        console.log('Oponente gana la ronda');
     } else {
-        showMessage(`¡Empate! ${getElementEmoji(pCard.element)} vs ${getElementEmoji(aiCard.element)}`);
+        showMessage(`¡Empate! ${getElementEmoji(card.element)}${card.value} vs ${getElementEmoji(aiCard.element)}${aiCard.value}`);
+        console.log('Empate en la ronda');
     }
     
-    // Verificar condición de victoria después de un pequeño delay
+    isMyTurn = false;
+    
+    // Restaurar turno y añadir nueva carta después de un tiempo
     setTimeout(() => {
-        checkWinCondition();
-    }, 100);
+        if (juega && currentState === STATES.GAME) {
+            playerHand.push(generateRandomCard());
+            isMyTurn = true;
+            
+            // Verificar condición de victoria
+            checkWinCondition();
+        }
+    }, 1500);
 }
 
 // Determinar ganador
 function determineWinner(c1, c2) {
+    // Primero verificar ventaja de tipo elemental
+    if (c1.element === ELEMENTS.FIRE && c2.element === ELEMENTS.SNOW) return 'player';
+    if (c1.element === ELEMENTS.SNOW && c2.element === ELEMENTS.WATER) return 'player';
+    if (c1.element === ELEMENTS.WATER && c2.element === ELEMENTS.FIRE) return 'player';
+    
+    if (c2.element === ELEMENTS.FIRE && c1.element === ELEMENTS.SNOW) return 'opponent';
+    if (c2.element === ELEMENTS.SNOW && c1.element === ELEMENTS.WATER) return 'opponent';
+    if (c2.element === ELEMENTS.WATER && c1.element === ELEMENTS.FIRE) return 'opponent';
+    
+    // Si son del mismo elemento, comparar valores
     if (c1.element === c2.element) {
         if (c1.value > c2.value) return 'player';
         if (c2.value > c1.value) return 'opponent';
         return 'tie';
     }
     
-    if (c1.element === ELEMENTS.FIRE && c2.element === ELEMENTS.SNOW) return 'player';
-    if (c1.element === ELEMENTS.SNOW && c2.element === ELEMENTS.WATER) return 'player';
-    if (c1.element === ELEMENTS.WATER && c2.element === ELEMENTS.FIRE) return 'player';
-    
-    return 'opponent';
+    // Por defecto, si no hay ventaja elemental clara, comparar valores
+    if (c1.value > c2.value) return 'player';
+    if (c2.value > c1.value) return 'opponent';
+    return 'tie';
 }
 
 // Obtener emoji del elemento
@@ -265,6 +293,7 @@ function showMessage(msg) {
         clearTimeout(messageTimeout);
     }
     gameMessage = msg;
+    console.log('Mensaje:', msg);
     messageTimeout = setTimeout(() => {
         gameMessage = '';
     }, 2000);
@@ -272,12 +301,20 @@ function showMessage(msg) {
 
 // Verificar condición de victoria
 function checkWinCondition() {
+    console.log('Verificando condición de victoria...');
+    console.log('Cartas ganadas jugador:', playerWonCards.length, playerWonCards.map(c => c.element));
+    console.log('Cartas ganadas oponente:', opponentWonCards.length, opponentWonCards.map(c => c.element));
+    
     if (hasWinningSet(playerWonCards)) {
         currentState = STATES.GAMEOVER;
-        showMessage('¡Juego Terminado! ¡TÚ GANAS!');
+        showMessage('¡GANASTE EL JUEGO!');
+        console.log('¡JUGADOR GANA!');
     } else if (hasWinningSet(opponentWonCards)) {
         currentState = STATES.GAMEOVER;
-        showMessage('¡Juego Terminado! ¡OPONENTE GANA!');
+        showMessage('¡PERDISTE EL JUEGO!');
+        console.log('¡OPONENTE GANA!');
+    } else {
+        console.log('El juego continúa...');
     }
 }
 
@@ -287,14 +324,26 @@ function hasWinningSet(cards) {
     const waters = cards.filter(c => c.element === ELEMENTS.WATER).length;
     const snows = cards.filter(c => c.element === ELEMENTS.SNOW).length;
     
-    if (fires >= 1 && waters >= 1 && snows >= 1) return true;
-    if (fires >= 3 || waters >= 3 || snows >= 3) return true;
+    console.log(`Verificando set: Fuego=${fires}, Agua=${waters}, Nieve=${snows}`);
+    
+    // Ganar con 1 de cada elemento
+    if (fires >= 1 && waters >= 1 && snows >= 1) {
+        console.log('¡Victoria por 1 de cada elemento!');
+        return true;
+    }
+    
+    // Ganar con 3 del mismo elemento
+    if (fires >= 3 || waters >= 3 || snows >= 3) {
+        console.log('¡Victoria por 3 del mismo elemento!');
+        return true;
+    }
     
     return false;
 }
 
 // Reiniciar juego
 function resetGame() {
+    console.log('Reiniciando juego al menú');
     currentState = STATES.MENU;
     playerHand = [];
     playerWonCards = [];
@@ -302,6 +351,7 @@ function resetGame() {
     gameMessage = '';
     isMyTurn = true;
     press = false;
+    gameMode = 'single';
 }
 
 // Dibujar todo
@@ -403,7 +453,7 @@ function drawSearching() {
 
 // Dibujar juego en curso
 function drawGame() {
-    // Cartas del oponente
+    // Cartas del oponente (boca arriba ahora para ver)
     for (let i = 0; i < opponentHandCount; i++) {
         drawCardBack(100 + i * 120, 50);
     }
@@ -418,14 +468,24 @@ function drawGame() {
         drawCard(card.x, card.y, card);
     });
     
-    // Cartas ganadas por jugador
+    // Cartas ganadas por jugador (izquierda)
+    ctx.fillStyle = '#FFD700';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('Tus cartas ganadas:', 20, 300);
+    
     playerWonCards.forEach((card, i) => {
-        drawSmallCard(20, 400 - i * 25, card);
+        drawSmallCard(20 + (i % 3) * 45, 320 + Math.floor(i / 3) * 45, card);
     });
     
-    // Cartas ganadas por oponente
+    // Cartas ganadas por oponente (derecha)
+    ctx.fillStyle = '#FFD700';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'right';
+    ctx.fillText('Cartas del oponente:', canvas.width - 20, 200);
+    
     opponentWonCards.forEach((card, i) => {
-        drawSmallCard(canvas.width - 60, 100 + i * 25, card);
+        drawSmallCard(canvas.width - 140 + (i % 3) * 45, 220 + Math.floor(i / 3) * 45, card);
     });
     
     // Dibujar ninjas
@@ -435,14 +495,14 @@ function drawGame() {
     // Indicador de turno
     if (isMyTurn) {
         ctx.fillStyle = '#00FF00';
-        ctx.font = '20px Arial';
+        ctx.font = 'bold 20px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('TU TURNO', canvas.width/2, 380);
+        ctx.fillText('¡TU TURNO! Haz clic en una carta', canvas.width/2, 380);
     } else {
         ctx.fillStyle = '#FF0000';
-        ctx.font = '20px Arial';
+        ctx.font = 'bold 20px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('TURNO DEL OPONENTE', canvas.width/2, 380);
+        ctx.fillText('TURNO DEL OPONENTE...', canvas.width/2, 380);
     }
 }
 
@@ -451,12 +511,27 @@ function drawGameOver() {
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     
-    ctx.fillStyle = '#FFD700';
-    ctx.font = '36px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('JUEGO TERMINADO', centerX, centerY);
+    // Fondo semitransparente
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    drawButton(centerX - 100, centerY + 50, 200, 50, '#3498db', 'VOLVER AL MENÚ');
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 36px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('¡JUEGO TERMINADO!', centerX, centerY - 50);
+    
+    // Mostrar resultado
+    if (hasWinningSet(playerWonCards)) {
+        ctx.fillStyle = '#00FF00';
+        ctx.font = 'bold 48px Arial';
+        ctx.fillText('¡TÚ GANAS!', centerX, centerY + 20);
+    } else {
+        ctx.fillStyle = '#FF0000';
+        ctx.font = 'bold 48px Arial';
+        ctx.fillText('¡PERDISTE!', centerX, centerY + 20);
+    }
+    
+    drawButton(centerX - 100, centerY + 80, 200, 50, '#3498db', 'VOLVER AL MENÚ');
 }
 
 // Dibujar botón
@@ -522,7 +597,7 @@ function drawSmallCard(x, y, card) {
     ctx.strokeRect(x, y, 40, 40);
     
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '24px Arial';
+    ctx.font = '20px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(getElementEmoji(card.element), x + 20, y + 20);
@@ -579,9 +654,9 @@ function drawNinja(x, y, isPlayer) {
 // Dibujar mensaje
 function drawMessage() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(canvas.width/2 - 200, 150, 400, 50);
+    ctx.fillRect(canvas.width/2 - 250, 150, 500, 60);
     ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 24px Arial';
+    ctx.font = 'bold 20px Arial';
     ctx.textAlign = 'center';
     ctx.fillText(gameMessage, canvas.width/2, 185);
 }
@@ -592,13 +667,14 @@ function drawExitInstructions() {
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 3;
     ctx.font = '16px Arial';
+    ctx.textAlign = 'left';
     
     const exitText = 'ESC para salir';
     ctx.strokeText(exitText, 10, 30);
     ctx.fillText(exitText, 10, 30);
     
     ctx.font = '14px Arial';
-    const clickText = 'CLIC para jugar cartas';
+    const clickText = 'CLIC para interactuar';
     ctx.strokeText(clickText, 10, 50);
     ctx.fillText(clickText, 10, 50);
 }
