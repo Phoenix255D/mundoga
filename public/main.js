@@ -422,15 +422,16 @@ class Mapa {
     };
     todosJugadores.push(jugadorActual);
 
-    console.log('Total jugadores incluyendo actual:', todosJugadores.length);
+    todosJugadores.sort((a, b) => {
+        if (a.id < b.id) return -1;
+        if (a.id > b.id) return 1;
+        return 0;
+    });
+
+    console.log('Total jugadores ordenados:', todosJugadores.length);
 
     if (todosJugadores.length > MAX_PUERTAS) {
-        const jugadorActualIncluido = todosJugadores.find(j => j.id === miIdJugador);
-        let otrosJugadores = todosJugadores.filter(j => j.id !== miIdJugador);
-        otrosJugadores = otrosJugadores
-            .sort(() => Math.random() - 0.5)
-            .slice(0, MAX_PUERTAS - 1);
-        todosJugadores = [jugadorActualIncluido, ...otrosJugadores];
+        todosJugadores = todosJugadores.slice(0, MAX_PUERTAS);
     }
 
     todosJugadores.forEach((jugador, index) => {
