@@ -5,6 +5,7 @@ import { teclas } from "../../main.js";
 let canvas, ctx;
 let juega = true;
 let score = 0;
+let playerSprite = null;
 
 // Pájaro
 const bird = {
@@ -42,6 +43,11 @@ function initFlappy() {
     
     pipes = [];
     coins = [];
+    
+    // Obtener el sprite del jugador desde el main
+    if (window.imagenes && window.imagenes.jugador) {
+        playerSprite = window.imagenes.jugador;
+    }
     
     console.log('Flappy Bird inicializado');
 }
@@ -210,22 +216,35 @@ function draw() {
         ctx.stroke();
     });
     
-    // Dibujar pájaro
-    ctx.fillStyle = '#e74c3c';
-    ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
-    ctx.strokeStyle = '#c0392b';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(bird.x, bird.y, bird.width, bird.height);
-    
-    // Ojo del pájaro
-    ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.arc(bird.x + 22, bird.y + 12, 6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = 'black';
-    ctx.beginPath();
-    ctx.arc(bird.x + 24, bird.y + 12, 3, 0, Math.PI * 2);
-    ctx.fill();
+    // Dibujar pájaro con sprite del jugador
+    if (playerSprite && playerSprite.complete) {
+        // Usar frame 1 del sprite (posición neutral)
+        ctx.drawImage(
+            playerSprite,
+            32, // frame 1 en x
+            0,  // dirección 0 (abajo)
+            32, 32,
+            bird.x, bird.y,
+            bird.width, bird.height
+        );
+    } else {
+        // Fallback: dibujar pájaro simple
+        ctx.fillStyle = '#e74c3c';
+        ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+        ctx.strokeStyle = '#c0392b';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(bird.x, bird.y, bird.width, bird.height);
+        
+        // Ojo del pájaro
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(bird.x + 22, bird.y + 12, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.arc(bird.x + 24, bird.y + 12, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
     
     // Suelo
     ctx.fillStyle = '#7d5a3a';
