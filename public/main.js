@@ -399,13 +399,13 @@ class Mapa {
         return iglooId;
     }
 
-    updateIglooDoors(jugadoresConectados) {
+    actualizarPuertasIglu(jugadoresConectados) {
     const MAX_PUERTAS = 5;
     const INICIO_X = 5;
     const INICIO_Y = 8;
     const ESPACIO = 4;
 
-    console.log('updateIglooDoors llamado con jugadores:', jugadoresConectados.size);
+    console.log('actualizarPuertasIglu llamado con jugadores:', jugadoresConectados.size);
     console.log('miIdJugador:', miIdJugador);
 
     Object.keys(this.scenes.iglu).forEach(key => {
@@ -414,18 +414,26 @@ class Mapa {
         }
     });
 
-    let jugadoresFiltrados = Array.from(jugadoresConectados.values())
-        .filter(j => j.id !== miIdJugador);
+    let todosJugadores = Array.from(jugadoresConectados.values());
+    
+    const jugadorActual = {
+        id: miIdJugador,
+        username: miUsername
+    };
+    todosJugadores.push(jugadorActual);
 
-    console.log('Jugadores filtrados:', jugadoresFiltrados.length);
+    console.log('Total jugadores incluyendo actual:', todosJugadores.length);
 
-    if (jugadoresFiltrados.length > MAX_PUERTAS) {
-        jugadoresFiltrados = jugadoresFiltrados
+    if (todosJugadores.length > MAX_PUERTAS) {
+        const jugadorActualIncluido = todosJugadores.find(j => j.id === miIdJugador);
+        let otrosJugadores = todosJugadores.filter(j => j.id !== miIdJugador);
+        otrosJugadores = otrosJugadores
             .sort(() => Math.random() - 0.5)
-            .slice(0, MAX_PUERTAS);
+            .slice(0, MAX_PUERTAS - 1);
+        todosJugadores = [jugadorActualIncluido, ...otrosJugadores];
     }
 
-    jugadoresFiltrados.forEach((jugador, index) => {
+    todosJugadores.forEach((jugador, index) => {
         const iglooId = `iglu_${jugador.id}`;
         const puertaNombre = `puerta_iglu_${jugador.id}`;
         
@@ -733,7 +741,7 @@ ws.onmessage = (evento) => {
                 });
 
                 if (escenarioActual === 'iglu') {
-                    mapa.updateIglooDoors(otrosJugadores);
+                    mapa.actualizarPuertasIglu(otrosJugadores);
                     cargarEscenario();
                 }
             }
@@ -771,7 +779,7 @@ ws.onmessage = (evento) => {
                 }
 
                 if (escenarioActual === 'iglu') {
-                    mapa.updateIglooDoors(otrosJugadores);
+                    mapa.actualizarPuertasIglu(otrosJugadores);
                     cargarEscenario();
                 }
             }
@@ -834,7 +842,7 @@ ws.onmessage = (evento) => {
             spritesJugadores.delete(datos.idJugador);
             
             if (escenarioActual === 'iglu') {
-                mapa.updateIglooDoors(otrosJugadores);
+                mapa.actualizarPuertasIglu(otrosJugadores);
                 cargarEscenario();
             }
             break;
@@ -1072,7 +1080,7 @@ function actualizar() {
         
         if (escenarioActual === 'iglu') {
             console.log('Entrando a iglu, actualizando puertas...');
-            mapa.updateIglooDoors(otrosJugadores);
+            mapa.actualizarPuertasIglu(otrosJugadores);
         }
         
         if (ws.readyState === WebSocket.OPEN) {
