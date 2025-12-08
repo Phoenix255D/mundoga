@@ -179,6 +179,7 @@ function requireLogin(req, res, next) {
     next();
 }
 
+aplicacion.use("/portafolio", express.static(path.join(__dirname, "public", "portafolio")));
 aplicacion.use("/fondos", express.static(path.join(__dirname, "public", "fondos")));
 aplicacion.use(requireLogin);
 aplicacion.use(express.static(path.join(__dirname, "public")));
@@ -453,4 +454,5 @@ const intervalo = setInterval(() => {
 
 servidorWS.on("close", () => {
     clearInterval(intervalo);
+
 });
