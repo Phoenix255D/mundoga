@@ -884,10 +884,9 @@ function actualizar() {
             jugando = true;
             juegoN = hita.juegoNum;
             if (juegoN === 2) {
+                initFrog();
                 if (ws.readyState === WebSocket.OPEN) {
                     ws.send(JSON.stringify({ tipo: 'joinFrogger' }));
-                } else {
-                    initFrog();
                 }
             }
             if (juegoN === 3) {
@@ -1140,4 +1139,5 @@ function dibujar() {
 
 
 bucleJuego();
+
 
