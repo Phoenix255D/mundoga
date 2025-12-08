@@ -7,6 +7,9 @@ import { initNinja, update as updateNinja } from "./miniGames/ninja/ninja.js";
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+let mouseX = 0;
+let mouseY = 0;
+
 const personajes = [
     {
         id: 1,
@@ -916,8 +919,6 @@ const states = [0, 1, 2, 1];
 cargarEscenario();
 
 function actualizar() {
-    let mouseX = 0;
-    let mouseY = 0;
 
     if (!validarCoordenadas(jugador.x, jugador.y, "actualizar - jugador") ||
         !validarCoordenadas(jugador.realX, jugador.realY, "actualizar - jugador.real")) {
