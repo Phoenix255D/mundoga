@@ -2,7 +2,7 @@ import { iniciarJuego, bucleTest } from "./miniGames/mini.js";
 import { initFrog, update, getFrogPosition, updateRemoteFrog, hideRemoteFrog } from "./miniGames/frogger/main.js";
 import { initFishing, update as updateFishing } from "./miniGames/fishing/fishing.js";
 import { initFlappy, update as updateFlappy } from "./miniGames/flappy/script.js";
-import { initNinja, updateNinja, juegoNinjaActivo } from "./miniGames/ninja/ninja.js";
+import { initNinja, update as updateNinja } from "./miniGames/ninja/ninja.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -1162,4 +1162,5 @@ function dibujar() {
 
 
 bucleJuego();
+
 
