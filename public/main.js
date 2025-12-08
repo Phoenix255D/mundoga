@@ -353,7 +353,6 @@ class Mapa {
                 }
             }
         };
-        this.dynamicIgloos = new Map();
     }
 
     getScene(sceneName) {
@@ -384,17 +383,15 @@ class Mapa {
         if (!this.scenes[iglooId]) {
             this.scenes[iglooId] = {
                 puertaSalida: { 
-                    x: 31, y: 14, w: 1, h: 2, 
+                    x: 15, y: 2, w: 1, h: 2, 
                     inix: 10, iniy: 0, 
                     rutaImagen: "escenarios/dungeon.png", 
                     tipo: "puerta", 
                     nombre: "puertaSalida", 
                     destino: "iglu", 
-                    posx: 2, posy: 11, 
-                    message: "Salir" 
+                    posx: 15, posy: 11 
                 }
             };
-            this.dynamicIgloos.set(playerId, { iglooId, playerName });
         }
         return iglooId;
     }
@@ -403,7 +400,7 @@ class Mapa {
         const MAX_PUERTAS = 5;
         const INICIO_X = 5;
         const INICIO_Y = 8;
-        const ESPACIO = 3;
+        const ESPACIO = 4;
 
         Object.keys(this.scenes.iglu).forEach(key => {
             if (key.startsWith('puerta_iglu_')) {
@@ -427,7 +424,7 @@ class Mapa {
             this.scenes.iglu[puertaNombre] = {
                 x: INICIO_X + (index * ESPACIO),
                 y: INICIO_Y,
-                w: 1,
+                w: 2,
                 h: 2,
                 inix: 10,
                 iniy: 0,
@@ -444,7 +441,6 @@ class Mapa {
         });
     }
 }
-
 function cargarSpriteJugador(jugadorId, spriteUrl) {
     if (spritesJugadores.has(jugadorId)) {
         const spriteExistente = spritesJugadores.get(jugadorId);
@@ -469,7 +465,8 @@ function cargarImagenes() {
         lobby: "escenarios/lobby.png",
         iglu: "escenarios/iglu.png",
         juegos: "escenarios/juegos.png",
-        jugador: "sprites/Zero.png"
+        jugador: "sprites/Zero.png",
+        iglucasa: "escenarios/iglucasa.png"
     };
 
     let cargadas = 0;
@@ -493,21 +490,12 @@ function cargarImagenes() {
         imagenes[nombre] = img;
     });
 }
-
 function cargarEscenario() {
     for (const door of mapa.getAllDoors(escenarioActual)) {
         if (door.rutaImagen) {
             const img = new Image();
             img.src = door.rutaImagen;
             imagenes[door.nombre] = img;
-        }
-    }
-    
-    if (escenarioActual.startsWith('iglu_')) {
-        if (!imagenes[escenarioActual]) {
-            const img = new Image();
-            img.src = "escenarios/iglu.png";
-            imagenes[escenarioActual] = img;
         }
     }
 }
@@ -1067,7 +1055,9 @@ function actualizar() {
         move = false;
         dirC = true;
         escenarioActual = collidedDoor.destino;
-
+		if (escenarioActual === 'iglu') {
+					mapa.updateIglooDoors(otrosJugadores);
+				}
         if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({
                 tipo: 'mover',
@@ -1137,7 +1127,7 @@ function actualizar() {
 function dibujar() {
     let escenarioImagen = escenarioActual;
     if (escenarioActual.startsWith('iglu_')) {
-        escenarioImagen = escenarioActual;
+        escenarioImagen = 'iglucasa';
     }
     
     if (imagenes[escenarioImagen] && imagenes[escenarioImagen].complete) {
