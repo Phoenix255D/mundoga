@@ -58,22 +58,6 @@ const personajes = [
     }
 ];
 
-// Eventos en relacion al mouse y el juego de yorch
-canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
-});
-
-canvas.addEventListener('click', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
-    // Simular tecla espacio para clic
-    teclas[" "] = true;
-    setTimeout(() => teclas[" "] = false, 100);
-});
-
 let menuPersonajesAbierto = false;
 let personajeSeleccionado = null;
 
@@ -829,10 +813,6 @@ const states = [0, 1, 2, 1];
 cargarEscenario();
 
 function actualizar() {
-    // Variables a utilizar para el juego de ninja y su uso del mouse
-    let mouseX = 0;
-    let mouseY = 0;
-
     if (!validarCoordenadas(jugador.x, jugador.y, "actualizar - jugador") ||
         !validarCoordenadas(jugador.realX, jugador.realY, "actualizar - jugador.real")) {
         console.error('COORDENADAS CORRUPTAS DETECTADAS - RESETEANDO');
@@ -1183,3 +1163,4 @@ function dibujar() {
 
 
 bucleJuego();
+
