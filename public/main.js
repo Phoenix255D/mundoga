@@ -353,6 +353,7 @@ class Mapa {
                 }
             }
         };
+        this.dynamicIgloos = new Map();
     }
 
     getScene(sceneName) {
@@ -376,6 +377,71 @@ class Mapa {
             }
         }
         return null;
+    }
+
+    createPlayerIgloo(playerId, playerName) {
+        const iglooId = `iglu_${playerId}`;
+        if (!this.scenes[iglooId]) {
+            this.scenes[iglooId] = {
+                puertaSalida: { 
+                    x: 31, y: 14, w: 1, h: 2, 
+                    inix: 10, iniy: 0, 
+                    rutaImagen: "escenarios/dungeon.png", 
+                    tipo: "puerta", 
+                    nombre: "puertaSalida", 
+                    destino: "iglu", 
+                    posx: 2, posy: 11, 
+                    message: "Salir" 
+                }
+            };
+            this.dynamicIgloos.set(playerId, { iglooId, playerName });
+        }
+        return iglooId;
+    }
+
+    updateIglooDoors(jugadoresConectados) {
+        const MAX_PUERTAS = 5;
+        const INICIO_X = 5;
+        const INICIO_Y = 8;
+        const ESPACIO = 3;
+
+        Object.keys(this.scenes.iglu).forEach(key => {
+            if (key.startsWith('puerta_iglu_')) {
+                delete this.scenes.iglu[key];
+            }
+        });
+
+        let jugadoresFiltrados = Array.from(jugadoresConectados.values())
+            .filter(j => j.id !== miIdJugador);
+
+        if (jugadoresFiltrados.length > MAX_PUERTAS) {
+            jugadoresFiltrados = jugadoresFiltrados
+                .sort(() => Math.random() - 0.5)
+                .slice(0, MAX_PUERTAS);
+        }
+
+        jugadoresFiltrados.forEach((jugador, index) => {
+            const iglooId = `iglu_${jugador.id}`;
+            const puertaNombre = `puerta_iglu_${jugador.id}`;
+            
+            this.scenes.iglu[puertaNombre] = {
+                x: INICIO_X + (index * ESPACIO),
+                y: INICIO_Y,
+                w: 1,
+                h: 2,
+                inix: 10,
+                iniy: 0,
+                rutaImagen: "escenarios/dungeon.png",
+                tipo: "puerta",
+                nombre: puertaNombre,
+                destino: iglooId,
+                posx: 15,
+                posy: 11,
+                message: jugador.username || "Jugador"
+            };
+
+            this.createPlayerIgloo(jugador.id, jugador.username);
+        });
     }
 }
 
@@ -434,6 +500,14 @@ function cargarEscenario() {
             const img = new Image();
             img.src = door.rutaImagen;
             imagenes[door.nombre] = img;
+        }
+    }
+    
+    if (escenarioActual.startsWith('iglu_')) {
+        if (!imagenes[escenarioActual]) {
+            const img = new Image();
+            img.src = "escenarios/iglu.png";
+            imagenes[escenarioActual] = img;
         }
     }
 }
@@ -657,6 +731,11 @@ ws.onmessage = (evento) => {
                         agregarMensajeChat("Sistema", `${j.username} se ha unido al juego`, false);
                     }
                 });
+
+                if (escenarioActual === 'iglu') {
+                    mapa.updateIglooDoors(otrosJugadores);
+                    cargarEscenario();
+                }
             }
             break;
 
@@ -689,6 +768,11 @@ ws.onmessage = (evento) => {
                 cargarSpriteJugador(datos.jugador.id, datos.jugador.sprite || 'sprites/Zero.png');
                 if (datos.jugador.username) {
                     agregarMensajeChat("Sistema", `${datos.jugador.username} se ha unido al juego`, false);
+                }
+
+                if (escenarioActual === 'iglu') {
+                    mapa.updateIglooDoors(otrosJugadores);
+                    cargarEscenario();
                 }
             }
             break;
@@ -748,6 +832,11 @@ ws.onmessage = (evento) => {
             otrosJugadores.delete(datos.idJugador);
             otrosJugadoresPos.delete(datos.idJugador);
             spritesJugadores.delete(datos.idJugador);
+            
+            if (escenarioActual === 'iglu') {
+                mapa.updateIglooDoors(otrosJugadores);
+                cargarEscenario();
+            }
             break;
 
         case 'chat':
@@ -1046,8 +1135,13 @@ function actualizar() {
 }
 
 function dibujar() {
-    if (imagenes[escenarioActual] && imagenes[escenarioActual].complete) {
-        ctx.drawImage(imagenes[escenarioActual], 0, 0, canvas.width, canvas.height);
+    let escenarioImagen = escenarioActual;
+    if (escenarioActual.startsWith('iglu_')) {
+        escenarioImagen = escenarioActual;
+    }
+    
+    if (imagenes[escenarioImagen] && imagenes[escenarioImagen].complete) {
+        ctx.drawImage(imagenes[escenarioImagen], 0, 0, canvas.width, canvas.height);
     } else {
         ctx.fillStyle = "#e6ffa1ff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1162,5 +1256,4 @@ function dibujar() {
 
 
 bucleJuego();
-
 
