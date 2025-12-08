@@ -1054,27 +1054,46 @@ function actualizar() {
     const collidedDoor = mapa.checkDoorCollisions(escenarioActual, jugador);
 
     if (collidedDoor && collidedDoor.tipo === "puerta") {
-    xNext = collidedDoor.posx;
-    yNext = collidedDoor.posy;
-    jugador.realX = collidedDoor.posx;
-    jugador.realY = collidedDoor.posy;
-    jugador.x = collidedDoor.posx;
-    jugador.y = collidedDoor.posy;
+        xNext = collidedDoor.posx;
+        yNext = collidedDoor.posy;
+        jugador.realX = collidedDoor.posx;
+        jugador.realY = collidedDoor.posy;
+        jugador.x = collidedDoor.posx;
+        jugador.y = collidedDoor.posy;
 
-    move = false;
-    dirC = true;
-    
-    const escenarioAnterior = escenarioActual;
-    escenarioActual = collidedDoor.destino;
-    
-    console.log('Cambio de escenario:', escenarioAnterior, '->', escenarioActual);
-    
-    if (escenarioActual === 'iglu') {
-        console.log('Entrando a iglu, actualizando puertas...');
-        mapa.updateIglooDoors(otrosJugadores);
+        move = false;
+        dirC = true;
+        
+        const escenarioAnterior = escenarioActual;
+        escenarioActual = collidedDoor.destino;
+        
+        console.log('Cambio de escenario:', escenarioAnterior, '->', escenarioActual);
+        
+        if (escenarioActual === 'iglu') {
+            console.log('Entrando a iglu, actualizando puertas...');
+            mapa.updateIglooDoors(otrosJugadores);
+        }
+        
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+                tipo: 'mover',
+                x: jugador.x,
+                y: jugador.y,
+                dir: jugador.dir,
+                step: jugador.step,
+                escenario: escenarioActual
+            }));
+
+            ultimaPosicionEnviada = {
+                x: jugador.x,
+                y: jugador.y,
+                dir: jugador.dir,
+                step: jugador.step,
+                escenario: escenarioActual
+            };
+        }
+        cargarEscenario();
     }
-    
-    cargarEscenario();
 
     if (collidedDoor && collidedDoor.tipo === "pared") {
         xNext += jugador.realX - xNext;
