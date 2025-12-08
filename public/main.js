@@ -302,6 +302,7 @@ const estadoConexionElem = document.getElementById('estadoConexion');
 let escenarioActual = "lobby";
 let imagenesListas = false;
 const imagenes = {};
+window.imagenes = imagenes;
 
 function colision(a, b) {
     return (
@@ -1137,4 +1138,5 @@ function dibujar() {
 
 
 bucleJuego();
+
 
