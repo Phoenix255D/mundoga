@@ -2,6 +2,7 @@ import { iniciarJuego, bucleTest } from "./miniGames/mini.js";
 import { initFrog, update, getFrogPosition, updateRemoteFrog, hideRemoteFrog } from "./miniGames/frogger/main.js";
 import { initFishing, update as updateFishing } from "./miniGames/fishing/fishing.js";
 import { initFlappy, update as updateFlappy } from "./miniGames/flappy/script.js";
+import { initNinja, updateNinja, cerrarNinja, juegoNinjaActivo } from "./miniGames/ninja/ninja.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -331,6 +332,8 @@ class Mapa {
                 frogger: { x: 8, y: 9, w: 1, h: 1, tipo: "pared", inix: 4, iniy: 12, rutaImagen: "escenarios/outside.png", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "Flappy Bird" },
                 flappy: {
                     x: 18, y: 7, w: 1, h: 1, tipo: "pared", inix: 6, iniy: 8, rutaImagen: "escenarios/outside.png", nombre: "flappy", juego: true, juegoNum: 4, posx: 2, posy: 10, color: "#70c5ce", message: "Pesca"
+                },
+                ninja: { x: 19, y: 10, w: 1, h: 1, inix: 10, iniy: 14, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "ninja", juego: true, juegoNum: 6, posx: 2, posy: 10, color: "#FF4500", message: "Ninja Card Game" 
                 }
             }
         };
@@ -895,6 +898,12 @@ function actualizar() {
             if (juegoN === 4) {
                 initFlappy();
             }
+
+            if (juegoN === 6) {  // Ninja
+                initNinja();
+            }
+
+
             if (jugando == false) {
                 dirC = true;
             }
@@ -933,12 +942,27 @@ function actualizar() {
                     // ArrowUp se limpia dentro del juego flappy
                 }
                 break;
+            case 6:
+                jugando = updateNinja(); 
+                // Limpiar teclas del juego principal
+                if (jugando) {
+                    teclas["ArrowLeft"] = false;
+                    teclas["ArrowRight"] = false;
+                    teclas["ArrowUp"] = false;
+                    teclas["ArrowDown"] = false;
+                    teclas[" "] = false;
+                }
+                break;
         }
         if (jugando == false) {
             dirC = true;
             juegoN = 0;
             // Limpiar TODAS las teclas al salir de cualquier minijuego
             Object.keys(teclas).forEach(key => teclas[key] = false);
+
+            if (juegoN === 6 && juegoNinjaActivo) {
+                cerrarNinja();
+            }
         }
     }
 

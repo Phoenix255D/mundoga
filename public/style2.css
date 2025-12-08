@@ -150,3 +150,23 @@
 #btn-personajes-menu:active {
     transform: scale(0.95);
 }
+
+#ninja-canvas {
+    box-shadow: 0 0 30px rgba(255, 69, 0, 0.7);
+    animation: pulse-ninja 2s infinite;
+}
+
+@keyframes pulse-ninja {
+    0% { box-shadow: 0 0 20px rgba(255, 69, 0, 0.5); }
+    50% { box-shadow: 0 0 30px rgba(255, 69, 0, 0.8); }
+    100% { box-shadow: 0 0 20px rgba(255, 69, 0, 0.5); }
+}
+
+button[onclick*="cerrarNinja"] {
+    transition: all 0.3s ease;
+}
+
+button[onclick*="cerrarNinja"]:hover {
+    background: #ff0000;
+    transform: scale(1.1);
+}
