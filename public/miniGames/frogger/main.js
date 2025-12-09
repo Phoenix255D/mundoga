@@ -120,7 +120,7 @@ function update() {
         if (checkCollision(player, car)) {
             resetGame();
             juega = false;//resetGame();
-
+            window.dispatchEvent(new CustomEvent('froggerGameOver'));
         }
     });
     /*
