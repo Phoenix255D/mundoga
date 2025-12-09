@@ -1000,7 +1000,7 @@ function actualizar() {
         currentIndex = 0;
     }
 
-   if (teclas[" "] && press == false) {
+   if (teclas[" "] && press == false  && !jugando) {
     press = true;
     switch (jugador.dir) {
         case 0: hitbox.x = jugador.realX; hitbox.y = jugador.realY + 1; break;
@@ -1029,7 +1029,7 @@ function actualizar() {
             initNinja();
         }
     }
-} else if (teclas[" "] == false) {
+} else if (teclas[" "] == false && !jugando) {
     press = false;
 }
 
