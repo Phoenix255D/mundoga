@@ -379,7 +379,7 @@ class Mapa {
                 puerta: { x: 31, y: 14, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 1, posy: 11, message: "puerta" }
             },
             juegos: {
-                 pared: {x: 0, y: 9, w: 6, h: 3,tipo: "pared",},
+                 pared: {x: 2, y: 8, w: 6, h: 3,tipo: "pared",},
                 pared7: {x: 6, y: 9, w: 1, h: 2,tipo: "pared",},
                 pared2: {x: 7, y: 8, w: 5, h: 2,tipo: "pared",},
                 pared3: {x: 11, y: 8, w: 11, h: 1,tipo: "pared",},
@@ -1358,6 +1358,7 @@ function dibujar() {
 
 
 bucleJuego();
+
 
 
 
