@@ -398,14 +398,18 @@ class Mapa {
         if (!this.scenes[iglooId]) {
             this.scenes[iglooId] = {
                 puertaSalida: { 
-                    x: 15, y: 2, w: 1, h: 2, 
+                    x: 5, y: 10, w: 1, h: 2, 
                     inix: 10, iniy: 0, 
                     rutaImagen: "escenarios/dungeon.png", 
                     tipo: "puerta", 
                     nombre: "puertaSalida", 
                     destino: "iglu", 
                     posx: 15, posy: 11 
-                }
+                },
+                pared1: { x: 4, y: 10, w: 30, h: 1, tipo: "pared"},
+                pared2: { x: 4, y: 10, w: 1, h: 10, tipo: "pared"},
+                pared3: { x: 4, y: 16, w: 30, h: 10, tipo: "pared"},
+                pared4: { x: 28, y: 11, w: 1, h: 10, tipo: "pared"}
             };
         }
         return iglooId;
