@@ -6,8 +6,8 @@ let juega = false;
 let canvas, ctx;
 
 // Estados del juego Ninja
-const STATES = { MENU: 0, GAME: 1, GAMEOVER: 2 };
-let currentState = STATES.MENU;
+const STATES = { GAME: 0, GAMEOVER: 1 };
+let currentState = STATES.GAME;
 
 // Elementos del juego de cartas
 const ELEMENTS = { FIRE: 'fire', WATER: 'water', SNOW: 'snow' };
@@ -26,7 +26,6 @@ let gameMessage = '';
 let messageTimeout = null;
 
 // Variables de animación
-let press = false;
 let clickCooldown = 0;
 
 // Variables del mouse
@@ -44,17 +43,10 @@ function initNinja() {
         ctx = canvas.getContext('2d');
         
         juega = true;
-        currentState = STATES.MENU;
+        currentState = STATES.GAME;
         
-        // Inicializar manos de cartas
-        playerHand = dealCards(MAX_HAND_SIZE);
-        playerWonCards = [];
-        opponentWonCards = [];
-        
-        isMyTurn = true;
-        gameMessage = '';
-        press = false;
-        clickCooldown = 0;
+        // Iniciar el juego directamente
+        startGame();
         
         console.log('Ninja Card Game inicializado');
     } catch (error) {
@@ -87,19 +79,10 @@ function update() {
         }
         
         // Tecla ESPACIO para interacción (con cooldown)
-        if (teclas[" "] && !press && clickCooldown === 0) {
-            press = true;
+        if (teclas[" "] && clickCooldown === 0) {
             clickCooldown = 15;
-            
-            if (currentState === STATES.MENU) {
-                handleMenuClick();
-            } else if (currentState === STATES.GAME && isMyTurn) {
-                handleGameClick();
-            } else if (currentState === STATES.GAMEOVER) {
-                handleGameOverClick();
-            }
-        } else if (!teclas[" "]) {
-            press = false;
+            handleClick();
+            teclas[" "] = false;
         }
         
         draw();
@@ -110,52 +93,32 @@ function update() {
     }
 }
 
-// Manejar clics en el menú
-function handleMenuClick() {
-    try {
-        const centerX = canvas.width / 2;
-        
-        // Verificar clic en botón JUGAR
-        if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
-            mouseY >= 350 && mouseY <= 400) {
-            startGame();
-            return;
-        }
-    } catch (error) {
-        console.error('Error en handleMenuClick:', error);
-    }
-}
-
-// Manejar clics en el juego
-function handleGameClick() {
-    try {
-        // Verificar clic en cartas
-        for (let i = 0; i < playerHand.length; i++) {
-            const c = playerHand[i];
-            
-            if (mouseX >= c.x && mouseX <= c.x + c.w && 
-                mouseY >= c.y && mouseY <= c.y + c.h) {
-                playCard(i);
-                return;
-            }
-        }
-    } catch (error) {
-        console.error('Error en handleGameClick:', error);
-    }
-}
-
-// Manejar clics en game over
-function handleGameOverClick() {
+// Manejar clics
+function handleClick() {
     try {
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         
-        if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
-            mouseY >= centerY + 80 && mouseY <= centerY + 130) {
-            resetGame();
+        if (currentState === STATES.GAME && isMyTurn) {
+            // Verificar clic en cartas
+            for (let i = 0; i < playerHand.length; i++) {
+                const c = playerHand[i];
+                
+                if (mouseX >= c.x && mouseX <= c.x + c.w && 
+                    mouseY >= c.y && mouseY <= c.y + c.h) {
+                    playCard(i);
+                    return;
+                }
+            }
+        } else if (currentState === STATES.GAMEOVER) {
+            // Botón reiniciar
+            if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
+                mouseY >= centerY + 80 && mouseY <= centerY + 130) {
+                resetGame();
+            }
         }
     } catch (error) {
-        console.error('Error en handleGameOverClick:', error);
+        console.error('Error en handleClick:', error);
     }
 }
 
@@ -203,7 +166,10 @@ function startGame() {
 // Jugar carta
 function playCard(index) {
     try {
+        console.log('playCard llamada con index:', index);
+        
         if (index < 0 || index >= playerHand.length || !isMyTurn) {
+            console.log('Jugada inválida');
             return;
         }
         
@@ -212,15 +178,18 @@ function playCard(index) {
         clickCooldown = 60;
         
         const card = playerHand[index];
+        console.log('Carta jugada:', card);
         
         // Remover carta jugada
         playerHand.splice(index, 1);
         
         // IA juega una carta
         const aiCard = generateRandomCard();
+        console.log('Carta IA:', aiCard);
         
         // Determinar ganador
         const winner = determineWinner(card, aiCard);
+        console.log('Ganador:', winner);
         
         if (winner === 'player') {
             playerWonCards.push(card);
@@ -240,9 +209,12 @@ function playCard(index) {
                     isMyTurn = true;
                     clickCooldown = 0;
                     checkWinCondition();
+                    console.log('Turno restaurado');
                 }
             } catch (error) {
                 console.error('Error en setTimeout de playCard:', error);
+                isMyTurn = true;
+                clickCooldown = 0;
             }
         }, 1800);
     } catch (error) {
@@ -339,14 +311,8 @@ function hasWinningSet(cards) {
 // Reiniciar juego
 function resetGame() {
     try {
-        currentState = STATES.MENU;
-        playerHand = [];
-        playerWonCards = [];
-        opponentWonCards = [];
-        gameMessage = '';
-        isMyTurn = true;
-        press = false;
-        clickCooldown = 30;
+        currentState = STATES.GAME;
+        startGame();
     } catch (error) {
         console.error('Error en resetGame:', error);
     }
@@ -359,16 +325,10 @@ function draw() {
         
         drawBackground();
         
-        switch(currentState) {
-            case STATES.MENU:
-                drawMenu();
-                break;
-            case STATES.GAME:
-                drawGame();
-                break;
-            case STATES.GAMEOVER:
-                drawGameOver();
-                break;
+        if (currentState === STATES.GAME) {
+            drawGame();
+        } else if (currentState === STATES.GAMEOVER) {
+            drawGameOver();
         }
         
         if (gameMessage) {
@@ -408,37 +368,14 @@ function drawBackground() {
     ctx.fill();
 }
 
-// Dibujar menú
-function drawMenu() {
-    const centerX = canvas.width / 2;
-    
-    ctx.fillStyle = '#FF4500';
-    ctx.font = 'bold 48px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('NINJA CARD GAME', centerX, 100);
-    
-    ctx.fillStyle = '#FFD700';
-    ctx.font = '24px Arial';
-    ctx.fillText('¡Batalla de elementos!', centerX, 140);
-    
-    // Reglas del juego
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '18px Arial';
-    ctx.fillText('Reglas:', centerX, 200);
-    
-    ctx.font = '16px Arial';
-    ctx.fillStyle = '#AAAAAA';
-    ctx.fillText('🔥 vence ❄️  |  ❄️ vence 💧  |  💧 vence 🔥', centerX, 240);
-    ctx.fillText('Gana consiguiendo:', centerX, 270);
-    ctx.fillText('• 3 cartas del mismo elemento', centerX, 295);
-    ctx.fillText('• 1 carta de cada elemento', centerX, 320);
-    
-    // Botón de jugar
-    drawButton(centerX - 100, 350, 200, 50, '#2ecc71', 'JUGAR');
-}
-
 // Dibujar juego en curso
 function drawGame() {
+    // Título
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('🔥 NINJA CARD GAME ❄️', canvas.width/2, 30);
+    
     // Cartas del jugador
     const startX = 100;
     const gap = 120;
@@ -532,7 +469,7 @@ function drawGameOver() {
         });
     }
     
-    drawButton(centerX - 100, centerY + 140, 200, 50, '#3498db', 'VOLVER AL MENÚ');
+    drawButton(centerX - 100, centerY + 140, 200, 50, '#3498db', 'JUGAR DE NUEVO');
 }
 
 // Dibujar botón
