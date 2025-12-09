@@ -33,6 +33,7 @@ let messageTimeout = null;
 // Variables de animación
 let currentIndex = 0;
 let press = false;
+let clickCooldown = 0; // Temporizador para evitar clics múltiples
 
 // Variables del mouse
 let mouseX = 0;
@@ -57,6 +58,7 @@ function initNinja() {
     opponentMoved = false;
     gameMessage = '';
     press = false;
+    clickCooldown = 0;
     
     console.log('Ninja Card Game inicializado');
 }
@@ -70,6 +72,11 @@ function update() {
     mouseX = mousePos.x;
     mouseY = mousePos.y;
     
+    // Decrementar cooldown
+    if (clickCooldown > 0) {
+        clickCooldown--;
+    }
+    
     // Tecla ESC para salir
     if (teclas["Escape"]) {
         juega = false;
@@ -77,9 +84,12 @@ function update() {
         return false;
     }
     
-    // Tecla ESPACIO para interacción
-    if (teclas[" "] && !press) {
+    // Tecla ESPACIO para interacción (con cooldown)
+    if (teclas[" "] && !press && clickCooldown === 0) {
         press = true;
+        clickCooldown = 15; // Cooldown de ~15 frames (250ms a 60fps)
+        
+        console.log('Click detectado. Estado actual:', currentState, 'isMyTurn:', isMyTurn);
         
         if (currentState === STATES.MENU) {
             handleMenuClick();
@@ -100,30 +110,43 @@ function update() {
 function handleMenuClick() {
     const centerX = canvas.width / 2;
     
+    console.log('handleMenuClick - Mouse:', mouseX, mouseY);
+    
     // Verificar clic en botón CONTRA PC
     if (mouseX >= centerX - 100 && mouseX <= centerX + 100) {
         if (mouseY >= 300 && mouseY <= 350) {
-            console.log('Iniciando modo CONTRA PC');
+            console.log('>>> Iniciando modo CONTRA PC');
             startGame('single');
+            return;
         } else if (mouseY >= 400 && mouseY <= 450) {
-            console.log('Iniciando modo ONLINE');
+            console.log('>>> Iniciando modo ONLINE');
             startGame('multi');
+            return;
         }
     }
+    
+    console.log('Click fuera de botones del menú');
 }
 
 // Manejar clics en el juego
 function handleGameClick() {
+    console.log('handleGameClick - Verificando cartas. Total:', playerHand.length);
+    console.log('Mouse posición:', mouseX, mouseY);
+    
     // Verificar clic en cartas
     for (let i = 0; i < playerHand.length; i++) {
         const c = playerHand[i];
+        console.log(`Carta ${i}: x=${c.x}-${c.x + c.w}, y=${c.y}-${c.y + c.h}`);
+        
         if (mouseX >= c.x && mouseX <= c.x + c.w && 
             mouseY >= c.y && mouseY <= c.y + c.h) {
-            console.log('Jugando carta', i);
+            console.log(`>>> CARTA ${i} CLICKEADA! Ejecutando playCard...`);
             playCard(i);
-            break;
+            return; // IMPORTANTE: salir inmediatamente después de jugar
         }
     }
+    
+    console.log('Click fuera de las cartas');
 }
 
 // Manejar clics en game over
@@ -131,9 +154,11 @@ function handleGameOverClick() {
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     
+    console.log('handleGameOverClick - Mouse:', mouseX, mouseY);
+    
     if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
-        mouseY >= centerY + 50 && mouseY <= centerY + 100) {
-        console.log('Volviendo al menú');
+        mouseY >= centerY + 80 && mouseY <= centerY + 130) {
+        console.log('>>> Volviendo al menú');
         resetGame();
     }
 }
@@ -168,7 +193,7 @@ function dealCards(count) {
 // Iniciar juego
 function startGame(mode) {
     gameMode = mode;
-    console.log('startGame llamado con modo:', mode);
+    console.log('=== startGame llamado con modo:', mode, '===');
     
     if (mode === 'single') {
         currentState = STATES.GAME;
@@ -177,11 +202,13 @@ function startGame(mode) {
         playerWonCards = [];
         opponentWonCards = [];
         isMyTurn = true;
+        clickCooldown = 30; // Cooldown más largo al iniciar juego
         showMessage('¡Comienza el juego!');
-        console.log('Juego iniciado. Estado:', STATES.GAME, 'Cartas:', playerHand.length);
+        console.log('Juego iniciado. Estado:', currentState, 'Cartas:', playerHand.length);
     } else {
         // Modo multi (simulado por ahora)
         currentState = STATES.SEARCHING;
+        clickCooldown = 30;
         showMessage('Buscando oponente...');
         console.log('Buscando oponente...');
         
@@ -194,8 +221,9 @@ function startGame(mode) {
                 playerWonCards = [];
                 opponentWonCards = [];
                 isMyTurn = true;
+                clickCooldown = 30;
                 showMessage('¡Encontraste un oponente!');
-                console.log('Oponente encontrado. Estado:', STATES.GAME);
+                console.log('Oponente encontrado. Estado:', currentState);
             }
         }, 1500);
     }
@@ -203,54 +231,65 @@ function startGame(mode) {
 
 // Jugar carta
 function playCard(index) {
+    console.log('=== playCard llamado con index:', index, '===');
+    
     if (index < 0 || index >= playerHand.length) {
-        console.log('Índice inválido:', index);
+        console.log('ERROR: Índice inválido:', index);
         return;
     }
     
     if (!isMyTurn) {
-        console.log('No es tu turno');
+        console.log('ERROR: No es tu turno');
         return;
     }
+    
+    // CRÍTICO: Marcar que no es el turno del jugador INMEDIATAMENTE
+    isMyTurn = false;
+    clickCooldown = 60; // Cooldown largo para evitar clics durante la animación
     
     const card = playerHand[index];
     console.log('Jugando carta:', card.element, card.value);
     
-    // Remover carta jugada y agregar nueva
+    // Remover carta jugada
     playerHand.splice(index, 1);
     
     // IA juega una carta
     const aiCard = generateRandomCard();
     console.log('IA juega:', aiCard.element, aiCard.value);
     
-    // Mostrar cartas brevemente
+    // Determinar ganador
     const winner = determineWinner(card, aiCard);
     
     if (winner === 'player') {
         playerWonCards.push(card);
         showMessage(`¡Ganaste! ${getElementEmoji(card.element)}${card.value} vs ${getElementEmoji(aiCard.element)}${aiCard.value}`);
-        console.log('Jugador gana la ronda');
+        console.log('>>> Jugador gana la ronda');
     } else if (winner === 'opponent') {
         opponentWonCards.push(aiCard);
         showMessage(`¡Perdiste! ${getElementEmoji(card.element)}${card.value} vs ${getElementEmoji(aiCard.element)}${aiCard.value}`);
-        console.log('Oponente gana la ronda');
+        console.log('>>> Oponente gana la ronda');
     } else {
         showMessage(`¡Empate! ${getElementEmoji(card.element)}${card.value} vs ${getElementEmoji(aiCard.element)}${aiCard.value}`);
-        console.log('Empate en la ronda');
+        console.log('>>> Empate en la ronda');
     }
-    
-    isMyTurn = false;
     
     // Restaurar turno y añadir nueva carta después de un tiempo
     setTimeout(() => {
+        console.log('Timeout: verificando si continuar...');
+        console.log('juega:', juega, 'currentState:', currentState, 'STATES.GAME:', STATES.GAME);
+        
         if (juega && currentState === STATES.GAME) {
+            console.log('Añadiendo nueva carta y restaurando turno');
             playerHand.push(generateRandomCard());
             isMyTurn = true;
+            clickCooldown = 0; // Reset cooldown
             
             // Verificar condición de victoria
             checkWinCondition();
+        } else {
+            console.log('No se continúa - juego terminado o estado cambiado');
         }
-    }, 1500);
+    }, 1800);
 }
 
 // Determinar ganador
@@ -296,23 +335,27 @@ function showMessage(msg) {
     console.log('Mensaje:', msg);
     messageTimeout = setTimeout(() => {
         gameMessage = '';
-    }, 2000);
+    }, 2500);
 }
 
 // Verificar condición de victoria
 function checkWinCondition() {
-    console.log('Verificando condición de victoria...');
+    console.log('=== Verificando condición de victoria ===');
     console.log('Cartas ganadas jugador:', playerWonCards.length, playerWonCards.map(c => c.element));
     console.log('Cartas ganadas oponente:', opponentWonCards.length, opponentWonCards.map(c => c.element));
     
     if (hasWinningSet(playerWonCards)) {
         currentState = STATES.GAMEOVER;
+        isMyTurn = false;
+        clickCooldown = 30;
         showMessage('¡GANASTE EL JUEGO!');
-        console.log('¡JUGADOR GANA!');
+        console.log('¡¡¡ JUGADOR GANA !!!');
     } else if (hasWinningSet(opponentWonCards)) {
         currentState = STATES.GAMEOVER;
+        isMyTurn = false;
+        clickCooldown = 30;
         showMessage('¡PERDISTE EL JUEGO!');
-        console.log('¡OPONENTE GANA!');
+        console.log('¡¡¡ OPONENTE GANA !!!');
     } else {
         console.log('El juego continúa...');
     }
@@ -343,7 +386,7 @@ function hasWinningSet(cards) {
 
 // Reiniciar juego
 function resetGame() {
-    console.log('Reiniciando juego al menú');
+    console.log('=== Reiniciando juego al menú ===');
     currentState = STATES.MENU;
     playerHand = [];
     playerWonCards = [];
@@ -351,6 +394,7 @@ function resetGame() {
     gameMessage = '';
     isMyTurn = true;
     press = false;
+    clickCooldown = 30;
     gameMode = 'single';
 }
 
@@ -382,6 +426,14 @@ function draw() {
     
     // Dibujar instrucciones de salida
     drawExitInstructions();
+    
+    // Debug: mostrar cooldown (opcional, puedes comentar esta línea)
+    if (clickCooldown > 0) {
+        ctx.fillStyle = 'yellow';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Cooldown: ${clickCooldown}`, 10, 70);
+    }
 }
 
 // Dibujar fondo
