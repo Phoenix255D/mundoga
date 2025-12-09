@@ -377,19 +377,19 @@ class Mapa {
             },
             juegos: {
                 puerta: { x: 0, y: 11, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 30, posy: 11, message: "puerta" },
-                fishing: { x: 14, y: 8, w: 1, h: 1, inix: 2, iniy: 8, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "fishing", juego: true, juegoNum: 3, posx: 2, posy: 10, message: "Frogger" },
-                frogger: { x: 8, y: 9, w: 1, h: 1, tipo: "pared", inix: 4, iniy: 12, rutaImagen: "escenarios/outside.png", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "Flappy Bird" },
+                fishing: { x: 18, y: 7, w: 1, h: 1, inix: 2, iniy: 8, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "fishing", juego: true, juegoNum: 3, posx: 2, posy: 10, message: "Fishing" },
+                frogger: { x: 6, y: 10, w: 1, h: 1, tipo: "pared", inix: 4, iniy: 12, rutaImagen: "escenarios/outside.png", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "Frogger" },
                 flappy: {
-                    x: 18, y: 7, w: 1, h: 1, tipo: "pared", inix: 6, iniy: 8, rutaImagen: "escenarios/outside.png", nombre: "flappy", juego: true, juegoNum: 4, posx: 2, posy: 10, color: "#70c5ce", message: "Pesca"
+                    x: 9.5, y: 9.2, w: 1, h: 1, tipo: "pared", inix: 15, iniy: 4, rutaImagen: "escenarios/outside.png", nombre: "flappy", juego: true, juegoNum: 4, posx: 2, posy: 10, color: "#70c5ce", message: "Flappy"
                 },
                 ninja: {
-                    x: 19, y: 10, w: 1, h: 1, inix: 10, iniy: 14, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "ninja", juego: true, juegoNum: 6, posx: 2, posy: 10, color: "#FF4500", message: "Ninja Card Game"
+                    x: 24, y: 9, w: 1, h: 1, inix: 2, iniy: 10, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "ninja", juego: true, juegoNum: 6, posx: 2, posy: 10, color: "#FF4500", message: "Ninja Card"
                 },
                 tametsi: {
-                    x: 6, y: 10, w: 1, h: 1, inix: 8, iniy: 10, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "tametsi", juego: true, juegoNum: 7, posx: 2, posy: 10, color: "#8e44ad", message: "Tametsi"
+                    x: 14.5, y: 7.5, w: 1, h: 1, inix: 10, iniy: 2, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "tametsi", juego: true, juegoNum: 7, posx: 2, posy: 10, color: "#8e44ad", message: "Tametsi"
                 },
                 fruit: {
-                    x: 22, y: 9, w: 1, h: 1, inix: 0, iniy: 12, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "fruit", juego: true, juegoNum: 8, posx: 2, posy: 10, color: "#e67e22", message: "Fruit Ninja"
+                    x: 28.1, y: 10.9, w: 1, h: 1, inix: 12, iniy: 0, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "fruit", juego: true, juegoNum: 8, posx: 2, posy: 10, color: "#e67e22", message: "Fruit Ninja"
                 }
             }
         };
