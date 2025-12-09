@@ -74,9 +74,11 @@ canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
     mouseX = e.clientX - rect.left;
     mouseY = e.clientY - rect.top;
-    // Simular tecla espacio para clic
-    teclas[" "] = true;
-    setTimeout(() => teclas[" "] = false, 100);
+    
+    if (!jugando) {
+        teclas[" "] = true;
+        setTimeout(() => teclas[" "] = false, 100);
+    }
 });
 
 let menuPersonajesAbierto = false;
@@ -998,42 +1000,38 @@ function actualizar() {
         currentIndex = 0;
     }
 
-    if (teclas[" "] && press == false) {
-        press = true;
-        switch (jugador.dir) {
-            case 0: hitbox.x = jugador.realX; hitbox.y = jugador.realY + 1; break;
-            case 1: hitbox.x = jugador.realX - 1; hitbox.y = jugador.realY; break;
-            case 2: hitbox.x = jugador.realX + 1; hitbox.y = jugador.realY; break;
-            case 3: hitbox.x = jugador.realX; hitbox.y = jugador.realY - 1; break;
-        }
-
-        const hita = mapa.checkDoorCollisions(escenarioActual, hitbox);
-        if (hita && hita.juego == true) {
-            dirC = false;
-            jugando = true;
-            juegoN = hita.juegoNum;
-            if (juegoN === 2) {
-                initFrog();
-                if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({ tipo: 'joinFrogger' }));
-                }
-            }
-            if (juegoN === 3) {
-                initFishing();
-            }
-            if (juegoN === 4) {
-                initFlappy();
-            }
-            if (jugando == false) {
-                dirC = true;
-            }
-			if (juegoN === 6) {
-			initNinja();
-			}
-        }
-    } else if (teclas[" "] == false) {
-        press = false;
+   if (teclas[" "] && press == false) {
+    press = true;
+    switch (jugador.dir) {
+        case 0: hitbox.x = jugador.realX; hitbox.y = jugador.realY + 1; break;
+        case 1: hitbox.x = jugador.realX - 1; hitbox.y = jugador.realY; break;
+        case 2: hitbox.x = jugador.realX + 1; hitbox.y = jugador.realY; break;
+        case 3: hitbox.x = jugador.realX; hitbox.y = jugador.realY - 1; break;
     }
+
+    const hita = mapa.checkDoorCollisions(escenarioActual, hitbox);
+    if (hita && hita.juego == true) {
+        dirC = false;
+        jugando = true;
+        juegoN = hita.juegoNum;
+        
+        // Inicializar juegos SOLO la primera vez
+        if (juegoN === 2) {
+            initFrog();
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ tipo: 'joinFrogger' }));
+            }
+        } else if (juegoN === 3) {
+            initFishing();
+        } else if (juegoN === 4) {
+            initFlappy();
+        } else if (juegoN === 6) {
+            initNinja();
+        }
+    }
+} else if (teclas[" "] == false) {
+    press = false;
+}
 
     if (jugando == true) {
         switch (juegoN) {

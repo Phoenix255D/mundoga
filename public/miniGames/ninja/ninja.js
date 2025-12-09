@@ -5,363 +5,422 @@ import { teclas, getMousePosition } from "../../main.js";
 let juega = false;
 let canvas, ctx;
 
-// Estados del juego
-const STATES = { MENU: 0, GAME: 1, GAMEOVER: 2 };
-let currentState = STATES.MENU;
-
 // Elementos del juego
 const ELEMENTS = { FIRE: 'fire', WATER: 'water', SNOW: 'snow' };
+const COLORS = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
+const MAX_HAND_SIZE = 5;
 
-// Variables del jugador
+// Variables del juego
 let playerHand = [];
 let playerWonCards = [];
 let opponentWonCards = [];
-let isMyTurn = true;
 let gameMessage = '';
-let clickCooldown = 0;
+let messageTimer = 0;
+let cooldown = 0;
 
 // Variables del mouse
 let mouseX = 0;
 let mouseY = 0;
 
-// Inicializar el juego
+// Inicializar juego
 function initNinja() {
+    console.log('=== NINJA CARD GAME INICIANDO ===');
     canvas = document.getElementById('game');
     ctx = canvas.getContext('2d');
     
     juega = true;
-    currentState = STATES.MENU;
-    resetGame();
+    playerHand = dealCards(MAX_HAND_SIZE);
+    playerWonCards = [];
+    opponentWonCards = [];
+    gameMessage = '¡Comienza el juego!';
+    messageTimer = 120;
+    cooldown = 0;
     
-    console.log('Ninja Card Game inicializado');
+    console.log('Juego inicializado. Cartas:', playerHand.length);
 }
 
-// Actualizar el juego
+// Generar carta aleatoria
+function generateRandomCard() {
+    const elements = [ELEMENTS.FIRE, ELEMENTS.WATER, ELEMENTS.SNOW];
+    const element = elements[Math.floor(Math.random() * 3)];
+    const value = Math.floor(Math.random() * 10) + 1;
+    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    return { element, value, color, x: 0, y: 0, w: 60, h: 90 };
+}
+
+// Repartir cartas
+function dealCards(count) {
+    const cards = [];
+    for (let i = 0; i < count; i++) {
+        cards.push(generateRandomCard());
+    }
+    return cards;
+}
+
+// Actualizar juego
 function update() {
-    if (!juega) return false;
-    
-    // Obtener posición del mouse
-    const mousePos = getMousePosition();
-    mouseX = mousePos.x;
-    mouseY = mousePos.y;
-    
-    // Decrementar cooldown
-    if (clickCooldown > 0) clickCooldown--;
-    
-    // ESC para salir
-    if (teclas["Escape"]) {
-        juega = false;
-        teclas["Escape"] = false;
+    // IMPORTANTE: Siempre verificar que juega sea true
+    if (!juega) {
+        console.log('update() retornando false porque juega=false');
         return false;
     }
     
-    // ESPACIO para clic
-    if (teclas[" "] && clickCooldown === 0) {
-        clickCooldown = 15;
-        handleClick();
-        teclas[" "] = false;
+    // Obtener posición del mouse
+    const mousePos = getMousePosition();
+    if (mousePos) {
+        mouseX = mousePos.x;
+        mouseY = mousePos.y;
     }
     
+    // Decrementar cooldown
+    if (cooldown > 0) cooldown--;
+    
+    // Decrementar timer del mensaje
+    if (messageTimer > 0) messageTimer--;
+    if (messageTimer === 0) gameMessage = '';
+    
+    // ESC para salir (ÚNICA forma de salir)
+    if (teclas["Escape"]) {
+        console.log('ESC presionado - SALIENDO del juego');
+        juega = false;
+        teclas["Escape"] = false;
+        return false; // Aquí sí retornamos false para salir
+    }
+    
+    // ESPACIO para jugar carta
+    if (teclas[" "] && cooldown === 0) {
+        console.log('ESPACIO presionado - intentando jugar carta');
+        cooldown = 20; // Cooldown para evitar doble click
+        teclas[" "] = false;
+        handleClick();
+    }
+    
+    // Dibujar
     draw();
+    
+    // CRÍTICO: Siempre retornar true mientras el juego esté activo
     return true;
 }
 
 // Manejar clics
 function handleClick() {
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+    console.log('handleClick() - mouseX:', mouseX, 'mouseY:', mouseY);
     
-    if (currentState === STATES.MENU) {
-        // Botón JUGAR
-        if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
-            mouseY >= 350 && mouseY <= 400) {
-            startGame();
-        }
-    } else if (currentState === STATES.GAME && isMyTurn) {
-        // Verificar clic en cartas
-        for (let i = 0; i < playerHand.length; i++) {
-            const c = playerHand[i];
-            if (mouseX >= c.x && mouseX <= c.x + 70 && 
-                mouseY >= c.y && mouseY <= c.y + 100) {
-                playCard(i);
-                break;
-            }
-        }
-    } else if (currentState === STATES.GAMEOVER) {
-        // Botón volver al menú
-        if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
-            mouseY >= centerY + 80 && mouseY <= centerY + 130) {
-            currentState = STATES.MENU;
-            resetGame();
+    // Verificar si ganó alguien - reiniciar
+    if (hasWinningSet(playerWonCards) || hasWinningSet(opponentWonCards)) {
+        console.log('Juego terminado - REINICIANDO');
+        playerHand = dealCards(MAX_HAND_SIZE);
+        playerWonCards = [];
+        opponentWonCards = [];
+        gameMessage = '¡Nuevo juego!';
+        messageTimer = 120;
+        return;
+    }
+    
+    // Buscar carta clickeada
+    for (let i = 0; i < playerHand.length; i++) {
+        const c = playerHand[i];
+        if (mouseX >= c.x && mouseX <= c.x + c.w && 
+            mouseY >= c.y && mouseY <= c.y + c.h) {
+            console.log('¡Carta encontrada! índice:', i, 'carta:', c.element, c.value);
+            playCard(i);
+            return;
         }
     }
-}
-
-// Generar carta aleatoria
-function generateCard() {
-    const elements = [ELEMENTS.FIRE, ELEMENTS.WATER, ELEMENTS.SNOW];
-    return { 
-        element: elements[Math.floor(Math.random() * 3)],
-        value: Math.floor(Math.random() * 10) + 1,
-        x: 0, 
-        y: 0
-    };
-}
-
-// Iniciar juego
-function startGame() {
-    currentState = STATES.GAME;
-    playerHand = [generateCard(), generateCard(), generateCard(), generateCard(), generateCard()];
-    playerWonCards = [];
-    opponentWonCards = [];
-    isMyTurn = true;
-    gameMessage = '¡Comienza el juego!';
-    setTimeout(() => gameMessage = '', 2000);
+    
+    console.log('No se encontró ninguna carta en esa posición');
 }
 
 // Jugar carta
 function playCard(index) {
-    if (!isMyTurn) return;
+    console.log('playCard() - jugando carta índice:', index);
     
-    isMyTurn = false;
     const playerCard = playerHand[index];
-    const opponentCard = generateCard();
+    const aiCard = generateRandomCard();
+    
+    console.log('Carta jugador:', playerCard.element, playerCard.value);
+    console.log('Carta IA:', aiCard.element, aiCard.value);
+    
+    // Quitar carta jugada y añadir nueva
+    playerHand.splice(index, 1);
+    playerHand.push(generateRandomCard());
     
     // Determinar ganador
-    const winner = getWinner(playerCard, opponentCard);
+    const winner = determineWinner(playerCard, aiCard);
+    console.log('Ganador de la ronda:', winner);
     
     if (winner === 'player') {
         playerWonCards.push(playerCard);
-        gameMessage = `¡Ganaste! ${getEmoji(playerCard.element)}${playerCard.value} vs ${getEmoji(opponentCard.element)}${opponentCard.value}`;
+        gameMessage = `¡Ganaste! ${getIcon(playerCard.element)}${playerCard.value} vs ${getIcon(aiCard.element)}${aiCard.value}`;
     } else if (winner === 'opponent') {
-        opponentWonCards.push(opponentCard);
-        gameMessage = `Perdiste. ${getEmoji(playerCard.element)}${playerCard.value} vs ${getEmoji(opponentCard.element)}${opponentCard.value}`;
+        opponentWonCards.push(aiCard);
+        gameMessage = `Perdiste. ${getIcon(playerCard.element)}${playerCard.value} vs ${getIcon(aiCard.element)}${aiCard.value}`;
     } else {
-        gameMessage = `Empate. ${getEmoji(playerCard.element)}${playerCard.value} vs ${getEmoji(opponentCard.element)}${opponentCard.value}`;
+        gameMessage = `Empate. ${getIcon(playerCard.element)}${playerCard.value} vs ${getIcon(aiCard.element)}${aiCard.value}`;
     }
     
-    // Remover carta jugada y añadir nueva
-    playerHand.splice(index, 1);
+    messageTimer = 120;
     
-    setTimeout(() => {
-        if (currentState === STATES.GAME) {
-            playerHand.push(generateCard());
-            isMyTurn = true;
-            
-            // Verificar victoria
-            if (checkWin(playerWonCards)) {
-                currentState = STATES.GAMEOVER;
-                gameMessage = '¡GANASTE EL JUEGO!';
-            } else if (checkWin(opponentWonCards)) {
-                currentState = STATES.GAMEOVER;
-                gameMessage = 'PERDISTE EL JUEGO';
-            } else {
-                gameMessage = '';
-            }
-        }
-    }, 1500);
+    // Verificar victoria
+    if (hasWinningSet(playerWonCards)) {
+        gameMessage = '¡GANASTE EL JUEGO! Presiona ESPACIO para jugar de nuevo';
+        messageTimer = 600;
+        console.log('¡JUGADOR GANÓ EL JUEGO!');
+    } else if (hasWinningSet(opponentWonCards)) {
+        gameMessage = '¡PERDISTE EL JUEGO! Presiona ESPACIO para jugar de nuevo';
+        messageTimer = 600;
+        console.log('¡IA GANÓ EL JUEGO!');
+    }
+    
+    console.log('Cartas ganadas jugador:', playerWonCards.length);
+    console.log('Cartas ganadas IA:', opponentWonCards.length);
 }
 
 // Determinar ganador
-function getWinner(c1, c2) {
-    // Ventajas elementales: Fuego > Nieve, Nieve > Agua, Agua > Fuego
+function determineWinner(c1, c2) {
+    // Mismo elemento: comparar valores
+    if (c1.element === c2.element) {
+        if (c1.value > c2.value) return 'player';
+        if (c2.value > c1.value) return 'opponent';
+        return 'tie';
+    }
+    
+    // Ventajas elementales
     if (c1.element === ELEMENTS.FIRE && c2.element === ELEMENTS.SNOW) return 'player';
     if (c1.element === ELEMENTS.SNOW && c2.element === ELEMENTS.WATER) return 'player';
     if (c1.element === ELEMENTS.WATER && c2.element === ELEMENTS.FIRE) return 'player';
     
-    if (c2.element === ELEMENTS.FIRE && c1.element === ELEMENTS.SNOW) return 'opponent';
-    if (c2.element === ELEMENTS.SNOW && c1.element === ELEMENTS.WATER) return 'opponent';
-    if (c2.element === ELEMENTS.WATER && c1.element === ELEMENTS.FIRE) return 'opponent';
-    
-    // Mismo elemento o sin ventaja: comparar valores
-    if (c1.value > c2.value) return 'player';
-    if (c2.value > c1.value) return 'opponent';
-    return 'tie';
+    return 'opponent';
 }
 
-// Obtener emoji
-function getEmoji(element) {
+// Verificar conjunto ganador
+function hasWinningSet(cards) {
+    const fires = cards.filter(c => c.element === ELEMENTS.FIRE).length;
+    const waters = cards.filter(c => c.element === ELEMENTS.WATER).length;
+    const snows = cards.filter(c => c.element === ELEMENTS.SNOW).length;
+    
+    // 1 de cada elemento o 3 del mismo
+    if (fires >= 1 && waters >= 1 && snows >= 1) return true;
+    if (fires >= 3 || waters >= 3 || snows >= 3) return true;
+    
+    return false;
+}
+
+// Obtener icono del elemento
+function getIcon(element) {
     if (element === ELEMENTS.FIRE) return '🔥';
     if (element === ELEMENTS.WATER) return '💧';
     if (element === ELEMENTS.SNOW) return '❄️';
     return '';
 }
 
-// Verificar victoria
-function checkWin(cards) {
-    const fires = cards.filter(c => c.element === ELEMENTS.FIRE).length;
-    const waters = cards.filter(c => c.element === ELEMENTS.WATER).length;
-    const snows = cards.filter(c => c.element === ELEMENTS.SNOW).length;
-    
-    // 1 de cada elemento o 3 del mismo
-    return (fires >= 1 && waters >= 1 && snows >= 1) || fires >= 3 || waters >= 3 || snows >= 3;
-}
-
-// Reiniciar juego
-function resetGame() {
-    playerHand = [];
-    playerWonCards = [];
-    opponentWonCards = [];
-    gameMessage = '';
-    isMyTurn = true;
-    clickCooldown = 0;
-}
-
 // Dibujar todo
 function draw() {
-    // Fondo
-    ctx.fillStyle = '#1a1a3a';
+    // Fondo del dojo
+    ctx.fillStyle = '#f39c12';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    if (currentState === STATES.MENU) {
-        drawMenu();
-    } else if (currentState === STATES.GAME) {
-        drawGame();
-    } else if (currentState === STATES.GAMEOVER) {
-        drawGameOver();
+    // Líneas decorativas
+    ctx.strokeStyle = '#d35400';
+    ctx.lineWidth = 5;
+    for (let i = 0; i < canvas.width; i += 100) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
     }
+    
+    // Círculo central
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, 100, 0, Math.PI * 2);
+    ctx.strokeStyle = '#c0392b';
+    ctx.lineWidth = 10;
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fill();
+    
+    // Barra superior
+    ctx.fillStyle = '#7f8c8d';
+    ctx.fillRect(0, 0, canvas.width, 50);
+    
+    // Dibujar cartas
+    drawCards();
+    
+    // Dibujar pingüinos
+    drawPenguin(100, 350, 'blue', true);
+    drawPenguin(canvas.width - 100, 250, 'red', false);
     
     // Mensaje
     if (gameMessage) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.fillRect(canvas.width/2 - 250, 150, 500, 60);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(canvas.width/2 - 250, 100, 500, 60);
         ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(canvas.width/2 - 250, 150, 500, 60);
+        ctx.lineWidth = 3;
+        ctx.strokeRect(canvas.width/2 - 250, 100, 500, 60);
+        
         ctx.fillStyle = '#FFD700';
-        ctx.font = 'bold 20px Arial';
+        ctx.font = 'bold 18px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(gameMessage, canvas.width/2, 185);
+        ctx.fillText(gameMessage, canvas.width/2, 135);
     }
     
     // Instrucciones
     ctx.fillStyle = 'white';
     ctx.font = '14px Arial';
     ctx.textAlign = 'left';
-    ctx.fillText('ESC: salir | ESPACIO: clic', 10, 25);
+    ctx.fillText('ESC: Salir | ESPACIO: Clic', 10, 25);
+    
+    // Debug info
+    ctx.fillStyle = 'yellow';
+    ctx.font = '12px Arial';
+    ctx.fillText('Mouse: ' + Math.floor(mouseX) + ', ' + Math.floor(mouseY), 10, canvas.height - 10);
 }
 
-// Dibujar menú
-function drawMenu() {
-    const cx = canvas.width / 2;
+// Dibujar cartas
+function drawCards() {
+    const startX = 150;
+    const gap = 100;
     
-    ctx.fillStyle = '#FF4500';
-    ctx.font = 'bold 48px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('NINJA CARD GAME', cx, 100);
-    
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '18px Arial';
-    ctx.fillText('Reglas:', cx, 200);
-    ctx.font = '16px Arial';
-    ctx.fillText('🔥 vence ❄️  |  ❄️ vence 💧  |  💧 vence 🔥', cx, 230);
-    ctx.fillText('Gana con: 3 del mismo elemento', cx, 260);
-    ctx.fillText('o 1 de cada elemento', cx, 285);
-    
-    // Botón
-    const hover = mouseX >= cx - 100 && mouseX <= cx + 100 && mouseY >= 350 && mouseY <= 400;
-    ctx.fillStyle = hover ? '#3ae374' : '#2ecc71';
-    ctx.fillRect(cx - 100, 350, 200, 50);
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(cx - 100, 350, 200, 50);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 24px Arial';
-    ctx.fillText('JUGAR', cx, 380);
-}
-
-// Dibujar juego
-function drawGame() {
     // Cartas del jugador
-    const startX = 100;
     playerHand.forEach((card, i) => {
-        card.x = startX + i * 120;
-        card.y = 400;
-        const hover = mouseX >= card.x && mouseX <= card.x + 70 && 
-                      mouseY >= card.y && mouseY <= card.y + 100 && isMyTurn;
-        const y = hover ? card.y - 10 : card.y;
-        
-        // Carta
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(card.x, y, 70, 100);
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(card.x, y, 70, 100);
-        
-        // Emoji
-        ctx.font = '35px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(getEmoji(card.element), card.x + 35, y + 45);
-        
-        // Valor
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 24px Arial';
-        ctx.fillText(card.value, card.x + 35, y + 80);
+        card.x = startX + i * gap;
+        card.y = 480;
+        drawOneCard(card.x, card.y, card);
     });
     
-    // Cartas ganadas - Jugador
-    ctx.fillStyle = '#FFD700';
-    ctx.font = '16px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('Tus cartas:', 20, 280);
-    playerWonCards.forEach((card, i) => {
-        ctx.fillStyle = '#DDD';
-        ctx.fillRect(20 + (i % 5) * 45, 300 + Math.floor(i / 5) * 45, 40, 40);
-        ctx.strokeStyle = '#000';
-        ctx.strokeRect(20 + (i % 5) * 45, 300 + Math.floor(i / 5) * 45, 40, 40);
-        ctx.font = '25px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(getEmoji(card.element), 40 + (i % 5) * 45, 325 + Math.floor(i / 5) * 45);
+    // Cartas del oponente (reverso)
+    for (let i = 0; i < 5; i++) {
+        drawCardBack(startX + i * gap, 20);
+    }
+    
+    // Cartas ganadas - jugador
+    playerWonCards.forEach((c, i) => {
+        drawSmallCard(10, 480 - i * 30, c);
     });
     
-    // Cartas ganadas - Oponente
-    ctx.fillStyle = '#FFD700';
-    ctx.font = '16px Arial';
-    ctx.textAlign = 'right';
-    ctx.fillText('PC:', canvas.width - 20, 180);
-    opponentWonCards.forEach((card, i) => {
-        ctx.fillStyle = '#DDD';
-        ctx.fillRect(canvas.width - 180 + (i % 5) * 45, 200 + Math.floor(i / 5) * 45, 40, 40);
-        ctx.strokeStyle = '#000';
-        ctx.strokeRect(canvas.width - 180 + (i % 5) * 45, 200 + Math.floor(i / 5) * 45, 40, 40);
-        ctx.font = '25px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(getEmoji(card.element), canvas.width - 160 + (i % 5) * 45, 225 + Math.floor(i / 5) * 45);
+    // Cartas ganadas - oponente
+    opponentWonCards.forEach((c, i) => {
+        drawSmallCard(canvas.width - 50, 50 + i * 30, c);
     });
-    
-    // Indicador de turno
-    ctx.fillStyle = isMyTurn ? '#00FF00' : '#FF0000';
-    ctx.font = 'bold 20px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(isMyTurn ? 'TU TURNO' : 'TURNO DEL OPONENTE', canvas.width/2, 375);
 }
 
-// Dibujar game over
-function drawGameOver() {
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
+// Dibujar una carta
+function drawOneCard(x, y, card) {
+    // Hover effect
+    const isHover = mouseX >= x && mouseX <= x + card.w && 
+                    mouseY >= y && mouseY <= y + card.h;
     
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (isHover) {
+        y -= 10;
+        ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
+        ctx.shadowBlur = 15;
+    }
     
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 42px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('JUEGO TERMINADO', cx, cy - 60);
-    
-    const won = checkWin(playerWonCards);
-    ctx.fillStyle = won ? '#00FF00' : '#FF0000';
-    ctx.font = 'bold 56px Arial';
-    ctx.fillText(won ? '¡VICTORIA!' : '¡DERROTA!', cx, cy + 10);
-    
-    // Botón
-    const hover = mouseX >= cx - 100 && mouseX <= cx + 100 && mouseY >= cy + 80 && mouseY <= cy + 130;
-    ctx.fillStyle = hover ? '#5dade2' : '#3498db';
-    ctx.fillRect(cx - 100, cy + 80, 200, 50);
-    ctx.strokeStyle = '#FFFFFF';
+    // Fondo blanco
+    ctx.fillStyle = 'white';
+    ctx.fillRect(x, y, card.w, card.h);
+    ctx.strokeStyle = '#333';
     ctx.lineWidth = 2;
-    ctx.strokeRect(cx - 100, cy + 80, 200, 50);
-    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeRect(x, y, card.w, card.h);
+    
+    // Barra de color
+    ctx.fillStyle = card.color;
+    ctx.fillRect(x + 5, y + 5, card.w - 10, 20);
+    
+    ctx.shadowBlur = 0;
+    
+    // Icono del elemento
+    ctx.fillStyle = 'black';
+    ctx.font = '30px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(getIcon(card.element), x + card.w / 2, y + 55);
+    
+    // Valor
     ctx.font = 'bold 20px Arial';
-    ctx.fillText('VOLVER AL MENÚ', cx, cy + 107);
+    ctx.fillText(card.value, x + card.w / 2, y + 80);
+}
+
+// Dibujar reverso de carta
+function drawCardBack(x, y) {
+    ctx.fillStyle = '#34495e';
+    ctx.fillRect(x, y, 60, 90);
+    ctx.strokeStyle = '#ecf0f1';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, 60, 90);
+    
+    ctx.fillStyle = '#ecf0f1';
+    ctx.font = '40px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('?', x + 30, y + 60);
+}
+
+// Dibujar carta pequeña
+function drawSmallCard(x, y, card) {
+    ctx.fillStyle = card.color;
+    ctx.fillRect(x, y, 40, 40);
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, 40, 40);
+    
+    ctx.fillStyle = 'white';
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(getIcon(card.element), x + 20, y + 28);
+}
+
+// Dibujar pingüino
+function drawPenguin(x, y, color, isPlayer) {
+    ctx.save();
+    ctx.translate(x, y);
+    if (!isPlayer) ctx.scale(-1, 1);
+    
+    // Cuerpo
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 40, 60, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Panza blanca
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.ellipse(5, 5, 25, 45, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Ojos
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(10, -30, 8, 0, Math.PI * 2);
+    ctx.arc(25, -30, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Pupilas
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.arc(12, -30, 3, 0, Math.PI * 2);
+    ctx.arc(27, -30, 3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Pico
+    ctx.fillStyle = 'orange';
+    ctx.beginPath();
+    ctx.moveTo(15, -20);
+    ctx.lineTo(40, -15);
+    ctx.lineTo(15, -10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Cinturón
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(-35, 20);
+    ctx.lineTo(35, 20);
+    ctx.stroke();
+    
+    ctx.restore();
 }
