@@ -5,166 +5,215 @@ import { teclas, getMousePosition } from "../../main.js";
 let juega = false;
 let canvas, ctx;
 
-// Estados del juego
+// Estados del juego Ninja
 const STATES = { MENU: 0, GAME: 1, GAMEOVER: 2 };
 let currentState = STATES.MENU;
 
-// Elementos del juego
+// Elementos del juego de cartas
 const ELEMENTS = { FIRE: 'fire', WATER: 'water', SNOW: 'snow' };
+const COLORS = ['#FF0000', '#0000FF', '#008000', '#FFFF00', '#800080', '#FFA500'];
+const MAX_HAND_SIZE = 5;
 
 // Variables del jugador
 let playerHand = [];
 let playerWonCards = [];
 let opponentWonCards = [];
+
 let isMyTurn = true;
+
+// Variables para mensajes
 let gameMessage = '';
+let messageTimeout = null;
+
+// Variables de animación
+let press = false;
 let clickCooldown = 0;
 
 // Variables del mouse
 let mouseX = 0;
 let mouseY = 0;
 
-// Inicializar el juego
+// Inicializar el juego Ninja
 function initNinja() {
     canvas = document.getElementById('game');
     ctx = canvas.getContext('2d');
     
     juega = true;
     currentState = STATES.MENU;
-    resetGame();
+    
+    // Inicializar manos de cartas
+    playerHand = dealCards(MAX_HAND_SIZE);
+    playerWonCards = [];
+    opponentWonCards = [];
+    
+    isMyTurn = true;
+    gameMessage = '';
+    press = false;
+    clickCooldown = 0;
     
     console.log('Ninja Card Game inicializado');
 }
 
-// Actualizar el juego
+// Actualizar el juego Ninja
 function update() {
     if (!juega) return false;
     
-    // Obtener posición del mouse
+    // Obtener posición del mouse desde main.js
     const mousePos = getMousePosition();
     mouseX = mousePos.x;
     mouseY = mousePos.y;
     
     // Decrementar cooldown
-    if (clickCooldown > 0) clickCooldown--;
+    if (clickCooldown > 0) {
+        clickCooldown--;
+    }
     
-    // ESC para salir
+    // Tecla ESC para salir
     if (teclas["Escape"]) {
         juega = false;
         teclas["Escape"] = false;
         return false;
     }
     
-    // ESPACIO para clic
-    if (teclas[" "] && clickCooldown === 0) {
+    // Tecla ESPACIO para interacción (con cooldown)
+    if (teclas[" "] && !press && clickCooldown === 0) {
+        press = true;
         clickCooldown = 15;
-        handleClick();
-        teclas[" "] = false;
+        
+        if (currentState === STATES.MENU) {
+            handleMenuClick();
+        } else if (currentState === STATES.GAME && isMyTurn) {
+            handleGameClick();
+        } else if (currentState === STATES.GAMEOVER) {
+            handleGameOverClick();
+        }
+    } else if (!teclas[" "]) {
+        press = false;
     }
     
     draw();
     return true;
 }
 
-// Manejar clics
-function handleClick() {
+// Manejar clics en el menú
+function handleMenuClick() {
     const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
     
-    if (currentState === STATES.MENU) {
-        // Botón JUGAR
-        if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
-            mouseY >= 350 && mouseY <= 400) {
-            startGame();
-        }
-    } else if (currentState === STATES.GAME && isMyTurn) {
-        // Verificar clic en cartas
-        for (let i = 0; i < playerHand.length; i++) {
-            const c = playerHand[i];
-            if (mouseX >= c.x && mouseX <= c.x + 70 && 
-                mouseY >= c.y && mouseY <= c.y + 100) {
-                playCard(i);
-                break;
-            }
-        }
-    } else if (currentState === STATES.GAMEOVER) {
-        // Botón volver al menú
-        if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
-            mouseY >= centerY + 80 && mouseY <= centerY + 130) {
-            currentState = STATES.MENU;
-            resetGame();
+    // Verificar clic en botón JUGAR
+    if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
+        mouseY >= 350 && mouseY <= 400) {
+        startGame();
+        return;
+    }
+}
+
+// Manejar clics en el juego
+function handleGameClick() {
+    // Verificar clic en cartas
+    for (let i = 0; i < playerHand.length; i++) {
+        const c = playerHand[i];
+        
+        if (mouseX >= c.x && mouseX <= c.x + c.w && 
+            mouseY >= c.y && mouseY <= c.y + c.h) {
+            playCard(i);
+            return;
         }
     }
 }
 
+// Manejar clics en game over
+function handleGameOverClick() {
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    if (mouseX >= centerX - 100 && mouseX <= centerX + 100 &&
+        mouseY >= centerY + 80 && mouseY <= centerY + 130) {
+        resetGame();
+    }
+}
+
 // Generar carta aleatoria
-function generateCard() {
-    const elements = [ELEMENTS.FIRE, ELEMENTS.WATER, ELEMENTS.SNOW];
+function generateRandomCard() {
+    const keys = Object.values(ELEMENTS);
+    const element = keys[Math.floor(Math.random() * keys.length)];
+    const value = Math.floor(Math.random() * 10) + 1;
+    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
     return { 
-        element: elements[Math.floor(Math.random() * 3)],
-        value: Math.floor(Math.random() * 10) + 1,
+        element, 
+        value, 
+        color, 
         x: 0, 
-        y: 0
+        y: 0, 
+        w: 70, 
+        h: 100
     };
+}
+
+// Repartir cartas
+function dealCards(count) {
+    const cards = [];
+    for (let i = 0; i < count; i++) {
+        cards.push(generateRandomCard());
+    }
+    return cards;
 }
 
 // Iniciar juego
 function startGame() {
     currentState = STATES.GAME;
-    playerHand = [generateCard(), generateCard(), generateCard(), generateCard(), generateCard()];
+    playerHand = dealCards(MAX_HAND_SIZE);
     playerWonCards = [];
     opponentWonCards = [];
     isMyTurn = true;
-    gameMessage = '¡Comienza el juego!';
-    setTimeout(() => gameMessage = '', 2000);
+    clickCooldown = 30;
+    showMessage('¡Comienza el juego!');
 }
 
 // Jugar carta
 function playCard(index) {
-    if (!isMyTurn) return;
-    
-    isMyTurn = false;
-    const playerCard = playerHand[index];
-    const opponentCard = generateCard();
-    
-    // Determinar ganador
-    const winner = getWinner(playerCard, opponentCard);
-    
-    if (winner === 'player') {
-        playerWonCards.push(playerCard);
-        gameMessage = `¡Ganaste! ${getEmoji(playerCard.element)}${playerCard.value} vs ${getEmoji(opponentCard.element)}${opponentCard.value}`;
-    } else if (winner === 'opponent') {
-        opponentWonCards.push(opponentCard);
-        gameMessage = `Perdiste. ${getEmoji(playerCard.element)}${playerCard.value} vs ${getEmoji(opponentCard.element)}${opponentCard.value}`;
-    } else {
-        gameMessage = `Empate. ${getEmoji(playerCard.element)}${playerCard.value} vs ${getEmoji(opponentCard.element)}${opponentCard.value}`;
+    if (index < 0 || index >= playerHand.length || !isMyTurn) {
+        return;
     }
     
-    // Remover carta jugada y añadir nueva
+    // Marcar que no es el turno del jugador
+    isMyTurn = false;
+    clickCooldown = 60;
+    
+    const card = playerHand[index];
+    
+    // Remover carta jugada
     playerHand.splice(index, 1);
     
+    // IA juega una carta
+    const aiCard = generateRandomCard();
+    
+    // Determinar ganador
+    const winner = determineWinner(card, aiCard);
+    
+    if (winner === 'player') {
+        playerWonCards.push(card);
+        showMessage(`¡Ganaste! ${getElementEmoji(card.element)}${card.value} vs ${getElementEmoji(aiCard.element)}${aiCard.value}`);
+    } else if (winner === 'opponent') {
+        opponentWonCards.push(aiCard);
+        showMessage(`¡Perdiste! ${getElementEmoji(card.element)}${card.value} vs ${getElementEmoji(aiCard.element)}${aiCard.value}`);
+    } else {
+        showMessage(`¡Empate! ${getElementEmoji(card.element)}${card.value} vs ${getElementEmoji(aiCard.element)}${aiCard.value}`);
+    }
+    
+    // Restaurar turno y añadir nueva carta
     setTimeout(() => {
-        if (currentState === STATES.GAME) {
-            playerHand.push(generateCard());
+        if (juega && currentState === STATES.GAME) {
+            playerHand.push(generateRandomCard());
             isMyTurn = true;
-            
-            // Verificar victoria
-            if (checkWin(playerWonCards)) {
-                currentState = STATES.GAMEOVER;
-                gameMessage = '¡GANASTE EL JUEGO!';
-            } else if (checkWin(opponentWonCards)) {
-                currentState = STATES.GAMEOVER;
-                gameMessage = 'PERDISTE EL JUEGO';
-            } else {
-                gameMessage = '';
-            }
+            clickCooldown = 0;
+            checkWinCondition();
         }
-    }, 1500);
+    }, 1800);
 }
 
 // Determinar ganador
-function getWinner(c1, c2) {
-    // Ventajas elementales: Fuego > Nieve, Nieve > Agua, Agua > Fuego
+function determineWinner(c1, c2) {
+    // Verificar ventaja de tipo elemental
     if (c1.element === ELEMENTS.FIRE && c2.element === ELEMENTS.SNOW) return 'player';
     if (c1.element === ELEMENTS.SNOW && c2.element === ELEMENTS.WATER) return 'player';
     if (c1.element === ELEMENTS.WATER && c2.element === ELEMENTS.FIRE) return 'player';
@@ -173,195 +222,426 @@ function getWinner(c1, c2) {
     if (c2.element === ELEMENTS.SNOW && c1.element === ELEMENTS.WATER) return 'opponent';
     if (c2.element === ELEMENTS.WATER && c1.element === ELEMENTS.FIRE) return 'opponent';
     
-    // Mismo elemento o sin ventaja: comparar valores
+    // Si son del mismo elemento, comparar valores
+    if (c1.element === c2.element) {
+        if (c1.value > c2.value) return 'player';
+        if (c2.value > c1.value) return 'opponent';
+        return 'tie';
+    }
+    
+    // Por defecto, comparar valores
     if (c1.value > c2.value) return 'player';
     if (c2.value > c1.value) return 'opponent';
     return 'tie';
 }
 
-// Obtener emoji
-function getEmoji(element) {
-    if (element === ELEMENTS.FIRE) return '🔥';
-    if (element === ELEMENTS.WATER) return '💧';
-    if (element === ELEMENTS.SNOW) return '❄️';
-    return '';
+// Obtener emoji del elemento
+function getElementEmoji(element) {
+    switch(element) {
+        case ELEMENTS.FIRE: return '🔥';
+        case ELEMENTS.WATER: return '💧';
+        case ELEMENTS.SNOW: return '❄️';
+        default: return '';
+    }
 }
 
-// Verificar victoria
-function checkWin(cards) {
+// Mostrar mensaje temporal
+function showMessage(msg) {
+    if (messageTimeout) {
+        clearTimeout(messageTimeout);
+    }
+    gameMessage = msg;
+    messageTimeout = setTimeout(() => {
+        gameMessage = '';
+    }, 2500);
+}
+
+// Verificar condición de victoria
+function checkWinCondition() {
+    if (hasWinningSet(playerWonCards)) {
+        currentState = STATES.GAMEOVER;
+        isMyTurn = false;
+        clickCooldown = 30;
+        showMessage('¡GANASTE EL JUEGO!');
+    } else if (hasWinningSet(opponentWonCards)) {
+        currentState = STATES.GAMEOVER;
+        isMyTurn = false;
+        clickCooldown = 30;
+        showMessage('¡PERDISTE EL JUEGO!');
+    }
+}
+
+// Verificar si hay conjunto ganador
+function hasWinningSet(cards) {
     const fires = cards.filter(c => c.element === ELEMENTS.FIRE).length;
     const waters = cards.filter(c => c.element === ELEMENTS.WATER).length;
     const snows = cards.filter(c => c.element === ELEMENTS.SNOW).length;
     
-    // 1 de cada elemento o 3 del mismo
-    return (fires >= 1 && waters >= 1 && snows >= 1) || fires >= 3 || waters >= 3 || snows >= 3;
+    // Ganar con 1 de cada elemento
+    if (fires >= 1 && waters >= 1 && snows >= 1) return true;
+    
+    // Ganar con 3 del mismo elemento
+    if (fires >= 3 || waters >= 3 || snows >= 3) return true;
+    
+    return false;
 }
 
 // Reiniciar juego
 function resetGame() {
+    currentState = STATES.MENU;
     playerHand = [];
     playerWonCards = [];
     opponentWonCards = [];
     gameMessage = '';
     isMyTurn = true;
-    clickCooldown = 0;
+    press = false;
+    clickCooldown = 30;
 }
 
 // Dibujar todo
 function draw() {
-    // Fondo
-    ctx.fillStyle = '#1a1a3a';
+    drawBackground();
+    
+    switch(currentState) {
+        case STATES.MENU:
+            drawMenu();
+            break;
+        case STATES.GAME:
+            drawGame();
+            break;
+        case STATES.GAMEOVER:
+            drawGameOver();
+            break;
+    }
+    
+    if (gameMessage) {
+        drawMessage();
+    }
+    
+    drawExitInstructions();
+}
+
+// Dibujar fondo
+function drawBackground() {
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#0a0a1a');
+    gradient.addColorStop(1, '#1a1a3a');
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    if (currentState === STATES.MENU) {
-        drawMenu();
-    } else if (currentState === STATES.GAME) {
-        drawGame();
-    } else if (currentState === STATES.GAMEOVER) {
-        drawGameOver();
+    ctx.strokeStyle = 'rgba(255, 215, 0, 0.2)';
+    ctx.lineWidth = 2;
+    
+    for (let i = 0; i < canvas.width; i += 100) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, canvas.height);
+        ctx.stroke();
     }
     
-    // Mensaje
-    if (gameMessage) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.fillRect(canvas.width/2 - 250, 150, 500, 60);
-        ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(canvas.width/2 - 250, 150, 500, 60);
-        ctx.fillStyle = '#FFD700';
-        ctx.font = 'bold 20px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(gameMessage, canvas.width/2, 185);
-    }
-    
-    // Instrucciones
-    ctx.fillStyle = 'white';
-    ctx.font = '14px Arial';
-    ctx.textAlign = 'left';
-    ctx.fillText('ESC: salir | ESPACIO: clic', 10, 25);
+    ctx.beginPath();
+    ctx.arc(canvas.width/2, canvas.height/2, 120, 0, Math.PI * 2);
+    ctx.strokeStyle = '#FF4500';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255, 69, 0, 0.1)';
+    ctx.fill();
 }
 
 // Dibujar menú
 function drawMenu() {
-    const cx = canvas.width / 2;
+    const centerX = canvas.width / 2;
     
     ctx.fillStyle = '#FF4500';
     ctx.font = 'bold 48px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('NINJA CARD GAME', cx, 100);
+    ctx.fillText('NINJA CARD GAME', centerX, 100);
     
+    ctx.fillStyle = '#FFD700';
+    ctx.font = '24px Arial';
+    ctx.fillText('¡Batalla de elementos!', centerX, 140);
+    
+    // Reglas del juego
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '18px Arial';
-    ctx.fillText('Reglas:', cx, 200);
-    ctx.font = '16px Arial';
-    ctx.fillText('🔥 vence ❄️  |  ❄️ vence 💧  |  💧 vence 🔥', cx, 230);
-    ctx.fillText('Gana con: 3 del mismo elemento', cx, 260);
-    ctx.fillText('o 1 de cada elemento', cx, 285);
+    ctx.fillText('Reglas:', centerX, 200);
     
-    // Botón
-    const hover = mouseX >= cx - 100 && mouseX <= cx + 100 && mouseY >= 350 && mouseY <= 400;
-    ctx.fillStyle = hover ? '#3ae374' : '#2ecc71';
-    ctx.fillRect(cx - 100, 350, 200, 50);
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(cx - 100, 350, 200, 50);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 24px Arial';
-    ctx.fillText('JUGAR', cx, 380);
+    ctx.font = '16px Arial';
+    ctx.fillStyle = '#AAAAAA';
+    ctx.fillText('🔥 vence ❄️  |  ❄️ vence 💧  |  💧 vence 🔥', centerX, 240);
+    ctx.fillText('Gana consiguiendo:', centerX, 270);
+    ctx.fillText('• 3 cartas del mismo elemento', centerX, 295);
+    ctx.fillText('• 1 carta de cada elemento', centerX, 320);
+    
+    // Botón de jugar
+    drawButton(centerX - 100, 350, 200, 50, '#2ecc71', 'JUGAR');
 }
 
-// Dibujar juego
+// Dibujar juego en curso
 function drawGame() {
     // Cartas del jugador
     const startX = 100;
+    const gap = 120;
+    
     playerHand.forEach((card, i) => {
-        card.x = startX + i * 120;
+        card.x = startX + i * gap;
         card.y = 400;
-        const hover = mouseX >= card.x && mouseX <= card.x + 70 && 
-                      mouseY >= card.y && mouseY <= card.y + 100 && isMyTurn;
-        const y = hover ? card.y - 10 : card.y;
-        
-        // Carta
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(card.x, y, 70, 100);
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(card.x, y, 70, 100);
-        
-        // Emoji
-        ctx.font = '35px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(getEmoji(card.element), card.x + 35, y + 45);
-        
-        // Valor
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 24px Arial';
-        ctx.fillText(card.value, card.x + 35, y + 80);
+        drawCard(card.x, card.y, card);
     });
     
-    // Cartas ganadas - Jugador
+    // Cartas ganadas por jugador (izquierda)
     ctx.fillStyle = '#FFD700';
-    ctx.font = '16px Arial';
+    ctx.font = 'bold 16px Arial';
     ctx.textAlign = 'left';
     ctx.fillText('Tus cartas:', 20, 280);
+    
     playerWonCards.forEach((card, i) => {
-        ctx.fillStyle = '#DDD';
-        ctx.fillRect(20 + (i % 5) * 45, 300 + Math.floor(i / 5) * 45, 40, 40);
-        ctx.strokeStyle = '#000';
-        ctx.strokeRect(20 + (i % 5) * 45, 300 + Math.floor(i / 5) * 45, 40, 40);
-        ctx.font = '25px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(getEmoji(card.element), 40 + (i % 5) * 45, 325 + Math.floor(i / 5) * 45);
+        drawSmallCard(20 + (i % 3) * 45, 300 + Math.floor(i / 3) * 45, card);
     });
     
-    // Cartas ganadas - Oponente
+    // Cartas ganadas por oponente (derecha)
     ctx.fillStyle = '#FFD700';
-    ctx.font = '16px Arial';
+    ctx.font = 'bold 16px Arial';
     ctx.textAlign = 'right';
     ctx.fillText('PC:', canvas.width - 20, 180);
+    
     opponentWonCards.forEach((card, i) => {
-        ctx.fillStyle = '#DDD';
-        ctx.fillRect(canvas.width - 180 + (i % 5) * 45, 200 + Math.floor(i / 5) * 45, 40, 40);
-        ctx.strokeStyle = '#000';
-        ctx.strokeRect(canvas.width - 180 + (i % 5) * 45, 200 + Math.floor(i / 5) * 45, 40, 40);
-        ctx.font = '25px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(getEmoji(card.element), canvas.width - 160 + (i % 5) * 45, 225 + Math.floor(i / 5) * 45);
+        drawSmallCard(canvas.width - 140 + (i % 3) * 45, 200 + Math.floor(i / 3) * 45, card);
     });
     
+    // Dibujar ninjas
+    drawNinja(150, 230, true);
+    drawNinja(canvas.width - 150, 130, false);
+    
     // Indicador de turno
-    ctx.fillStyle = isMyTurn ? '#00FF00' : '#FF0000';
-    ctx.font = 'bold 20px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(isMyTurn ? 'TU TURNO' : 'TURNO DEL OPONENTE', canvas.width/2, 375);
+    if (isMyTurn) {
+        ctx.fillStyle = '#00FF00';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('¡TU TURNO! Haz clic en una carta', canvas.width/2, 375);
+    } else {
+        ctx.fillStyle = '#FF0000';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('TURNO DEL OPONENTE...', canvas.width/2, 375);
+    }
 }
 
-// Dibujar game over
+// Dibujar fin del juego
 function drawGameOver() {
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
     
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+    // Fondo semitransparente
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     ctx.fillStyle = '#FFD700';
     ctx.font = 'bold 42px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('JUEGO TERMINADO', cx, cy - 60);
+    ctx.fillText('¡JUEGO TERMINADO!', centerX, centerY - 60);
     
-    const won = checkWin(playerWonCards);
-    ctx.fillStyle = won ? '#00FF00' : '#FF0000';
-    ctx.font = 'bold 56px Arial';
-    ctx.fillText(won ? '¡VICTORIA!' : '¡DERROTA!', cx, cy + 10);
+    // Mostrar resultado
+    if (hasWinningSet(playerWonCards)) {
+        ctx.fillStyle = '#00FF00';
+        ctx.font = 'bold 56px Arial';
+        ctx.fillText('¡VICTORIA!', centerX, centerY + 10);
+        
+        // Mostrar cartas ganadoras
+        ctx.fillStyle = '#FFD700';
+        ctx.font = '20px Arial';
+        ctx.fillText('Tus cartas ganadoras:', centerX, centerY + 60);
+        
+        const startX = centerX - (playerWonCards.length * 25);
+        playerWonCards.forEach((card, i) => {
+            drawSmallCard(startX + i * 50, centerY + 75, card);
+        });
+    } else {
+        ctx.fillStyle = '#FF0000';
+        ctx.font = 'bold 56px Arial';
+        ctx.fillText('¡DERROTA!', centerX, centerY + 10);
+        
+        // Mostrar cartas ganadoras del oponente
+        ctx.fillStyle = '#FFD700';
+        ctx.font = '20px Arial';
+        ctx.fillText('El PC ganó con:', centerX, centerY + 60);
+        
+        const startX = centerX - (opponentWonCards.length * 25);
+        opponentWonCards.forEach((card, i) => {
+            drawSmallCard(startX + i * 50, centerY + 75, card);
+        });
+    }
     
-    // Botón
-    const hover = mouseX >= cx - 100 && mouseX <= cx + 100 && mouseY >= cy + 80 && mouseY <= cy + 130;
-    ctx.fillStyle = hover ? '#5dade2' : '#3498db';
-    ctx.fillRect(cx - 100, cy + 80, 200, 50);
+    drawButton(centerX - 100, centerY + 140, 200, 50, '#3498db', 'VOLVER AL MENÚ');
+}
+
+// Dibujar botón
+function drawButton(x, y, width, height, color, text) {
+    // Efecto hover
+    if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+        ctx.fillStyle = lightenColor(color, 20);
+    } else {
+        ctx.fillStyle = color;
+    }
+    
+    ctx.fillRect(x, y, width, height);
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x, y, width, height);
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 22px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, x + width/2, y + height/2);
+}
+
+// Aclarar color (para efecto hover)
+function lightenColor(color, percent) {
+    const num = parseInt(color.replace("#",""), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 +
+        (G<255?G<1?0:G:255)*0x100 + (B<255?B<1?0:B:255))
+        .toString(16).slice(1);
+}
+
+// Dibujar carta
+function drawCard(x, y, card) {
+    // Efecto hover
+    const isHover = mouseX >= x && mouseX <= x + card.w && 
+                    mouseY >= y && mouseY <= y + card.h && isMyTurn;
+    
+    if (isHover) {
+        y -= 10; // Levantar carta
+        ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
+        ctx.shadowBlur = 15;
+    }
+    
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(x, y, 70, 100);
+    
+    ctx.strokeStyle = card.color;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x, y, 70, 100);
+    
+    ctx.fillStyle = card.color;
+    ctx.fillRect(x + 5, y + 5, 60, 20);
+    
+    ctx.shadowBlur = 0;
+    
+    ctx.font = '30px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(getElementEmoji(card.element), x + 35, y + 55);
+    
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 24px Arial';
+    ctx.fillText(card.value, x + 35, y + 85);
+}
+
+// Dibujar carta pequeña (ganadas)
+function drawSmallCard(x, y, card) {
+    ctx.fillStyle = card.color;
+    ctx.fillRect(x, y, 40, 40);
+    
     ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = 2;
-    ctx.strokeRect(cx - 100, cy + 80, 200, 50);
+    ctx.strokeRect(x, y, 40, 40);
+    
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 20px Arial';
-    ctx.fillText('VOLVER AL MENÚ', cx, cy + 107);
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(getElementEmoji(card.element), x + 20, y + 20);
+}
+
+// Dibujar ninja
+function drawNinja(x, y, isPlayer) {
+    ctx.save();
+    ctx.translate(x, y);
+    
+    if (!isPlayer) {
+        ctx.scale(-1, 1);
+    }
+    
+    // Cuerpo
+    ctx.fillStyle = isPlayer ? '#3498db' : '#e74c3c';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 30, 50, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Panza
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.ellipse(5, 5, 20, 35, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Ojos
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(-10, -20, 8, 0, Math.PI * 2);
+    ctx.arc(10, -20, 8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Pupilas
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.arc(-10, -20, 4, 0, Math.PI * 2);
+    ctx.arc(10, -20, 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Pico
+    ctx.fillStyle = '#FFA500';
+    ctx.beginPath();
+    ctx.moveTo(0, -10);
+    ctx.lineTo(25, -5);
+    ctx.lineTo(0, 0);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Bandana
+    ctx.fillStyle = isPlayer ? '#2C3E50' : '#C0392B';
+    ctx.fillRect(-25, -35, 50, 10);
+    
+    // Cinturón
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(-35, 25, 70, 5);
+    
+    ctx.restore();
+}
+
+// Dibujar mensaje
+function drawMessage() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(canvas.width/2 - 260, 145, 520, 70);
+    
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(canvas.width/2 - 260, 145, 520, 70);
+    
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 22px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(gameMessage, canvas.width/2, 185);
+}
+
+// Dibujar instrucciones de salida
+function drawExitInstructions() {
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 3;
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'left';
+    
+    const exitText = 'ESC para salir';
+    ctx.strokeText(exitText, 10, 30);
+    ctx.fillText(exitText, 10, 30);
+    
+    ctx.font = '14px Arial';
+    const clickText = 'ESPACIO para clic';
+    ctx.strokeText(clickText, 10, 50);
+    ctx.fillText(clickText, 10, 50);
 }
