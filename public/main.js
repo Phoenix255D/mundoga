@@ -1242,12 +1242,12 @@ function dibujar() {
     for (const door of mapa.getAllDoors(escenarioActual)) {
         if (door.rutaImagen) {
             ctx.drawImage(imagenes[door.nombre], door.inix * tamano, door.iniy * tamano, door.w * tamano, door.h * tamano, door.x * tamano, door.y * tamano, door.w * tamano, door.h * tamano);
-        } else {
+        }/* else {
             ctx.fillStyle = door.color || "#8B4513";
             ctx.fillRect(door.x * tamano, door.y * tamano, door.w * tamano, door.h * tamano);
             ctx.fillStyle = "black";
             ctx.font = "14px Arial";
-        }
+        }*/
         if (door.message != null) {
             ctx.fillText(door.message, (door.x * 32) + 10, (door.y * 32) + 60);
         }
@@ -1348,5 +1348,6 @@ function dibujar() {
 
 
 bucleJuego();
+
 
 
