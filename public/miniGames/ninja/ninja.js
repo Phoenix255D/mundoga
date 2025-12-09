@@ -16,6 +16,7 @@ let playerWonCards = [];
 let opponentWonCards = [];
 let gameMessage = '';
 let messageTimer = 0;
+let cooldown = 0;
 
 // Variables del mouse
 let mouseX = 0;
@@ -23,6 +24,7 @@ let mouseY = 0;
 
 // Inicializar juego
 function initNinja() {
+    console.log('=== NINJA CARD GAME INICIANDO ===');
     canvas = document.getElementById('game');
     ctx = canvas.getContext('2d');
     
@@ -32,8 +34,9 @@ function initNinja() {
     opponentWonCards = [];
     gameMessage = '¡Comienza el juego!';
     messageTimer = 120;
+    cooldown = 0;
     
-    console.log('Ninja Card Game inicializado');
+    console.log('Juego inicializado. Cartas:', playerHand.length);
 }
 
 // Generar carta aleatoria
@@ -56,39 +59,56 @@ function dealCards(count) {
 
 // Actualizar juego
 function update() {
-    if (!juega) return false;
+    // IMPORTANTE: Siempre verificar que juega sea true
+    if (!juega) {
+        console.log('update() retornando false porque juega=false');
+        return false;
+    }
     
     // Obtener posición del mouse
     const mousePos = getMousePosition();
-    mouseX = mousePos.x;
-    mouseY = mousePos.y;
+    if (mousePos) {
+        mouseX = mousePos.x;
+        mouseY = mousePos.y;
+    }
+    
+    // Decrementar cooldown
+    if (cooldown > 0) cooldown--;
     
     // Decrementar timer del mensaje
     if (messageTimer > 0) messageTimer--;
     if (messageTimer === 0) gameMessage = '';
     
-    // ESC para salir
+    // ESC para salir (ÚNICA forma de salir)
     if (teclas["Escape"]) {
+        console.log('ESC presionado - SALIENDO del juego');
         juega = false;
         teclas["Escape"] = false;
-        return false;
+        return false; // Aquí sí retornamos false para salir
     }
     
     // ESPACIO para jugar carta
-    if (teclas[" "]) {
+    if (teclas[" "] && cooldown === 0) {
+        console.log('ESPACIO presionado - intentando jugar carta');
+        cooldown = 20; // Cooldown para evitar doble click
         teclas[" "] = false;
         handleClick();
     }
     
+    // Dibujar
     draw();
+    
+    // CRÍTICO: Siempre retornar true mientras el juego esté activo
     return true;
 }
 
 // Manejar clics
 function handleClick() {
-    // Verificar si ganó alguien
+    console.log('handleClick() - mouseX:', mouseX, 'mouseY:', mouseY);
+    
+    // Verificar si ganó alguien - reiniciar
     if (hasWinningSet(playerWonCards) || hasWinningSet(opponentWonCards)) {
-        // Reiniciar juego
+        console.log('Juego terminado - REINICIANDO');
         playerHand = dealCards(MAX_HAND_SIZE);
         playerWonCards = [];
         opponentWonCards = [];
@@ -102,16 +122,24 @@ function handleClick() {
         const c = playerHand[i];
         if (mouseX >= c.x && mouseX <= c.x + c.w && 
             mouseY >= c.y && mouseY <= c.y + c.h) {
+            console.log('¡Carta encontrada! índice:', i, 'carta:', c.element, c.value);
             playCard(i);
             return;
         }
     }
+    
+    console.log('No se encontró ninguna carta en esa posición');
 }
 
 // Jugar carta
 function playCard(index) {
+    console.log('playCard() - jugando carta índice:', index);
+    
     const playerCard = playerHand[index];
     const aiCard = generateRandomCard();
+    
+    console.log('Carta jugador:', playerCard.element, playerCard.value);
+    console.log('Carta IA:', aiCard.element, aiCard.value);
     
     // Quitar carta jugada y añadir nueva
     playerHand.splice(index, 1);
@@ -119,6 +147,7 @@ function playCard(index) {
     
     // Determinar ganador
     const winner = determineWinner(playerCard, aiCard);
+    console.log('Ganador de la ronda:', winner);
     
     if (winner === 'player') {
         playerWonCards.push(playerCard);
@@ -136,10 +165,15 @@ function playCard(index) {
     if (hasWinningSet(playerWonCards)) {
         gameMessage = '¡GANASTE EL JUEGO! Presiona ESPACIO para jugar de nuevo';
         messageTimer = 600;
+        console.log('¡JUGADOR GANÓ EL JUEGO!');
     } else if (hasWinningSet(opponentWonCards)) {
         gameMessage = '¡PERDISTE EL JUEGO! Presiona ESPACIO para jugar de nuevo';
         messageTimer = 600;
+        console.log('¡IA GANÓ EL JUEGO!');
     }
+    
+    console.log('Cartas ganadas jugador:', playerWonCards.length);
+    console.log('Cartas ganadas IA:', opponentWonCards.length);
 }
 
 // Determinar ganador
@@ -235,6 +269,11 @@ function draw() {
     ctx.font = '14px Arial';
     ctx.textAlign = 'left';
     ctx.fillText('ESC: Salir | ESPACIO: Clic', 10, 25);
+    
+    // Debug info
+    ctx.fillStyle = 'yellow';
+    ctx.font = '12px Arial';
+    ctx.fillText('Mouse: ' + Math.floor(mouseX) + ', ' + Math.floor(mouseY), 10, canvas.height - 10);
 }
 
 // Dibujar cartas
