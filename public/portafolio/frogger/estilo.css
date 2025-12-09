@@ -1,0 +1,49 @@
+main {
+    margin: 10px;
+    padding: 5px 7px;
+}
+canvas {
+  background: url("carriles.png") no-repeat center center;
+  background-size: cover;
+}
+
+body {
+    font-family: "Papyrus", sans-serif;
+    text-align: center;
+    background: radial-gradient(circle at center, #2b2b2b, #111);
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    padding-top: 20px;
+}
+
+input#pantalla {
+    font-family: "Papyrus", sans-serif;
+    text-align: right;
+    background: radial-gradient(circle, #ffeb3b, #111);
+    color: black;
+    width: 330px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 30px;
+    padding: 10px;
+    outline: none;
+}
+
+button {
+    font-family: "Papyrus", sans-serif;
+    width: 110px;
+    height: 90px;
+    font-size: 20px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    color: red;
+    transition: 0.2s;
+}
+
+

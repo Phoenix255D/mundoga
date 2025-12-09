@@ -1,0 +1,82 @@
+main {
+    margin: 10px;
+    padding: 5px 7px;
+}
+
+body {
+    font-family: "Papyrus", sans-serif;
+    text-align: center;
+    background: radial-gradient(circle at center, #2b2b2b, #111);
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+    padding-top: 20px;
+}
+
+input#pantalla {
+    font-family: "Papyrus", sans-serif;
+    text-align: right;
+    background: radial-gradient(circle, #ffeb3b, #111);
+    color: black;
+    width: 330px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 10px;
+    font-size: 30px;
+    padding: 10px;
+    outline: none;
+}
+
+table {
+    font-family: "Papyrus", sans-serif;
+    display: inline-block;
+    padding: 20px;
+    background-color: #555;
+    border-radius: 15px;
+    box-shadow: 0 0 15px #000;
+}
+
+.button {
+    font-family: "Papyrus", sans-serif;
+    width: 65px;
+    height: 40px;
+    font-size: 20px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    transition: 0.2s;
+}
+
+.button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px white;
+}
+
+.greenbutton {
+    background: radial-gradient(circle, orange, #111);
+}
+
+.bluebutton {
+    background: radial-gradient(circle, #0099ff, #111);
+}
+
+.redbutton {
+    background: radial-gradient(circle, #ff3333, #111);
+}
+
+.orangebutton {
+    background: radial-gradient(circle, #ff9900, #111);
+}
+
+.blackbutton {
+    background: black;
+    color: white;
+}
+
+.greybutton {
+    background: radial-gradient(circle, grey, #111);
+}

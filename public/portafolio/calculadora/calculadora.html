@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>si</title>
+    <link rel="stylesheet" href="calculadora.css">
+</head>
+
+<body>
+    <header>
+        <h1>Calculadora con Parentesis</h1>
+    </header>
+
+    <main>
+        <table>
+            <tr>
+                <th colspan="5">
+                    <input id="pantalla" type="text" readonly value="0">
+                </th>
+            </tr>
+
+            <tr>
+                <td><button class="button greenbutton" onclick="calc.escribir('(')">(</button></td>
+                <td><button class="button greenbutton" onclick="calc.escribir(')')">)</button></td>
+                <td><button class="button greenbutton" onclick="calc.escribir('.')">.</button></td>
+                <td><button class="button greenbutton" onclick="calc.escribirOp ? calc.escribirOp('/') : calc.escribir('/')">/</button></td>
+            </tr>
+
+            <tr>
+                <td><button class="button bluebutton" onclick="calc.escribir('7')">7</button></td>
+                <td><button class="button bluebutton" onclick="calc.escribir('8')">8</button></td>
+                <td><button class="button bluebutton" onclick="calc.escribir('9')">9</button></td>
+                <td><button class="button greenbutton" onclick="calc.escribir('*')">×</button></td>
+            </tr>
+
+            <tr>
+                <td><button class="button bluebutton" onclick="calc.escribir('4')">4</button></td>
+                <td><button class="button bluebutton" onclick="calc.escribir('5')">5</button></td>
+                <td><button class="button bluebutton" onclick="calc.escribir('6')">6</button></td>
+                <td><button class="button greenbutton" onclick="calc.escribir('-')">−</button></td>
+            </tr>
+
+            <tr>
+                <td><button class="button bluebutton" onclick="calc.escribir('1')">1</button></td>
+                <td><button class="button bluebutton" onclick="calc.escribir('2')">2</button></td>
+                <td><button class="button bluebutton" onclick="calc.escribir('3')">3</button></td>
+                <td><button class="button greenbutton" onclick="calc.escribir('+')">+</button></td>
+            </tr>
+
+            <tr>
+                <td><button class="button redbutton" onclick="calc.limpiar()">C</button></td>
+                <td><button class="button bluebutton" onclick="calc.escribir('0')">0</button></td>
+                <td><button class="button redbutton" onclick="calc.borrarUltimo()">Del</button></td>
+                <td><button class="button greenbutton" onclick="calc.resolver()">=</button></td>
+            </tr>
+        </table>
+    </main>
+
+    <script src="c.js"></script>
+</body>
+</html>
