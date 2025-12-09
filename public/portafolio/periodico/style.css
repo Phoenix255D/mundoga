@@ -1,0 +1,124 @@
+ <style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #1C1C1C;
+            font-family: 'Libre Baskerville', serif;
+            color: #47110c;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .newspaper {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #F4E4BC;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.3);
+            border: 3px double #B68E54;
+        }
+        
+        .ornament {
+            text-align: center;
+            font-size: 24px;
+            margin: 10px 0;
+            color: #8b4513;
+        }
+        
+        header {
+            text-align: center;
+            border-bottom: 4px double #7B3F00;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .masthead {
+            font-family: 'Playfair Display', serif;
+            font-size: 72px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin: 20px 0;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+  
+       
+     
+        
+    
+        .columns {
+            column-count: 3;
+            column-gap: 30px;
+            column-rule: 1px solid #ccc;
+            text-align: justify;
+            font-size: 14px;
+        }
+        
+		.fotos{
+		
+		justify-content: center; align-items: center;
+		}
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin: 30px 0 20px 0;
+            padding: 10px;
+            background: #2a2a2a;
+            color: #faf8f3;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .secondary-article {
+            margin-bottom: 25px;
+            break-inside: avoid;
+        }
+        
+        .secondary-headline {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .article-text {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .advertisement {
+            border: 3px double #2a2a2a;
+            padding: 20px;
+            text-align: center;
+            margin: 30px 0;
+            background: #fff;
+        }
+        
+        .ad-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        
+        footer {
+            margin-top: 40px;
+            border-top: 2px solid #2a2a2a;
+            padding-top: 20px;
+            text-align: center;
+            font-size: 11px;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 16px;
+        }
+    </style>
