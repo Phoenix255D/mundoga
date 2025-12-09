@@ -380,15 +380,15 @@ class Mapa {
             },
             juegos: {
                  pared: {x: 2, y: 8, w: 6, h: 3,tipo: "pared",},
-                pared7: {x: 6, y: 9, w: 1, h: 2,tipo: "pared",},
-                pared2: {x: 7, y: 8, w: 5, h: 2,tipo: "pared",},
-                pared3: {x: 11, y: 8, w: 11, h: 1,tipo: "pared",},
-                pared4: {x: 22, y: 9, w: 4, h: 1,tipo: "pared",},
-                pared5: {x: 26, y: 10, w: 2, h: 1,tipo: "pared",},
-                pared6: {x: 27, y: 11, w: 5, h: 1,tipo: "pared",},
-                puerta: { x: 0, y: 11, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 30, posy: 11, message: "puerta" },
-                fishing: { x: 18, y: 7, w: 1, h: 1, inix: 2, iniy: 8, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "fishing", juego: true, juegoNum: 3, posx: 2, posy: 10, message: "Fishing" },
-                frogger: { x: 6, y: 10, w: 1, h: 1, tipo: "pared", inix: 4, iniy: 12, rutaImagen: "escenarios/outside.png", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "Frogger" },
+                pared7: {x: 6, y: 8, w: 1, h: 2,tipo: "pared",},
+                pared2: {x: 7, y: 7, w: 5, h: 2,tipo: "pared",},
+                pared3: {x: 11, y: 7, w: 11, h: 1,tipo: "pared",},
+                pared4: {x: 22, y: 8, w: 4, h: 1,tipo: "pared",},
+                pared5: {x: 26, y: 9, w: 2, h: 1,tipo: "pared",},
+                pared6: {x: 27, y: 10, w: 5, h: 1,tipo: "pared",},
+                puerta: { x: 0, y: 10, w: 1, h: 2, inix: 10, iniy: 0, rutaImagen: "escenarios/dungeon.png", tipo: "puerta", destino: "lobby", posx: 30, posy: 11, message: "puerta" },
+                fishing: { x: 18, y: 6, w: 1, h: 1, inix: 2, iniy: 8, rutaImagen: "escenarios/outside.png", tipo: "pared", nombre: "fishing", juego: true, juegoNum: 3, posx: 2, posy: 10, message: "Fishing" },
+                frogger: { x: 6, y: 9, w: 1, h: 1, tipo: "pared", inix: 4, iniy: 12, rutaImagen: "escenarios/outside.png", nombre: "frogger", juego: true, juegoNum: 2, posx: 2, posy: 10, color: "#10AA10", message: "Frogger" },
                 flappy: {
                     x: 9.5, y: 9.2, w: 1, h: 1, tipo: "pared", inix: 15, iniy: 4, rutaImagen: "escenarios/outside.png", nombre: "flappy", juego: true, juegoNum: 4, posx: 2, posy: 10, color: "#70c5ce", message: "Flappy"
                 },
@@ -1358,6 +1358,7 @@ function dibujar() {
 
 
 bucleJuego();
+
 
 
 
