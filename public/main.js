@@ -309,6 +309,30 @@ if (!window.__WS__) {
 }
 const ws = window.__WS__;
 
+// event listener para Game Over de Frogger
+window.addEventListener('froggerGameOver', () => {
+    if (ws.readyState === WebSocket.OPEN) {
+        console.log('Evento froggerGameOver recibido - enviando aviso al servidor');
+        ws.send(JSON.stringify({
+            tipo: 'froggerGameOver'
+        }));
+        // forzar estado de juego a falso
+        jugando = false;
+
+        // actualización inmediata para asegurar sincronización con el lobby
+        ws.send(JSON.stringify({
+            tipo: 'mover',
+            x: jugador.x,
+            y: jugador.y,
+            realX: jugador.realX,
+            realY: jugador.realY,
+            dir: jugador.dir,
+            step: jugador.step,
+            escenario: escenarioActual
+        }));
+    }
+});
+
 const tamano = 32;
 let miIdJugador = null;
 const otrosJugadores = new Map();
@@ -799,6 +823,10 @@ ws.onmessage = (evento) => {
                     mapa.actualizarPuertasIglu(otrosJugadores);
                     cargarEscenario();
                 }
+                // prevenir mensajes duplicados de union
+                if (!otrosJugadores.has(datos.jugador.id) && datos.jugador.username) {
+                    agregarMensajeChat("Sistema", `${datos.jugador.username} se ha unido al juego`, false);
+                }
             }
             break;
 
@@ -806,6 +834,11 @@ ws.onmessage = (evento) => {
             if (juegoN === 2 && jugando) {
                 initFrog(datos.state);
             }
+            break;
+
+        // manejar salida de jugador remoto de Frogger
+        case 'remoteFrogLeft':
+            hideRemoteFrog();
             break;
 
         case 'jugadorMovido':
